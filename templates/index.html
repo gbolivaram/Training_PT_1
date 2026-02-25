@@ -12,6 +12,7 @@
   <header class="header">
     <div class="header-inner">
       <div class="header-left">
+        <button id="btn-sidebar-toggle" class="btn-ghost btn-icon" title="Mostrar/ocultar progreso">☰</button>
         <span class="header-code">PRO141</span>
         <span class="header-title">Tratamiento de materiales obsoletos y análisis de obsolescencia</span>
       </div>
@@ -24,56 +25,73 @@
     </div>
   </header>
 
-  <!-- ── Main ── -->
-  <main class="main">
+  <!-- ── Layout ── -->
+  <div class="layout">
 
-    <!-- Progress bar -->
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" id="progress-bar"></div>
-    </div>
+    <!-- ── Sidebar timeline ── -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Progreso</span>
+        <span class="sidebar-session" id="sidebar-session"></span>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </aside>
 
-    <!-- Step counter -->
-    <div class="step-meta" id="step-meta"></div>
+    <!-- ── Main content ── -->
+    <main class="main">
 
-    <!-- Card ── Node content -->
-    <div class="card" id="card">
-
-      <!-- Node header -->
-      <div class="node-header" id="node-header"></div>
-
-      <!-- Node body -->
-      <div class="node-body" id="node-body"></div>
-
-      <!-- Block panel (hidden by default) -->
-      <div class="block-panel hidden" id="block-panel">
-        <div class="block-title">Paso bloqueado — registre motivo(s)</div>
-        <div class="block-motivos" id="block-motivos"></div>
-        <label class="input-label">Detalle adicional</label>
-        <textarea id="block-detalle" class="block-textarea" placeholder="Describa el motivo. Obligatorio si selecciona 'Otro'."></textarea>
-        <button class="btn btn-info" id="btn-rehacer">Rehacer paso</button>
+      <!-- Progress bar -->
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progress-bar"></div>
       </div>
 
-      <!-- Alert message -->
-      <div class="alert hidden" id="alert"></div>
+      <!-- Step counter -->
+      <div class="step-meta" id="step-meta"></div>
 
-      <!-- Footer actions -->
-      <div class="card-footer" id="card-footer">
-        <button class="btn btn-back" id="btn-back">Volver</button>
-        <div class="footer-main-btns">
-          <button class="btn btn-no" id="btn-no">NO</button>
-          <button class="btn btn-si" id="btn-si">SÍ / Avanzar</button>
+      <!-- Card ── Node content -->
+      <div class="card" id="card">
+
+        <!-- Node header -->
+        <div class="node-header" id="node-header"></div>
+
+        <!-- Node body -->
+        <div class="node-body" id="node-body"></div>
+
+        <!-- Block panel (hidden by default) -->
+        <div class="block-panel hidden" id="block-panel">
+          <div class="block-title">Paso bloqueado — registre motivo(s)</div>
+          <div class="block-motivos" id="block-motivos"></div>
+          <label class="input-label">Detalle adicional</label>
+          <textarea id="block-detalle" class="block-textarea" placeholder="Describa el motivo. Obligatorio si selecciona 'Otro'."></textarea>
+          <button class="btn btn-info" id="btn-rehacer">Rehacer paso</button>
         </div>
+
+        <!-- Alert message -->
+        <div class="alert hidden" id="alert"></div>
+
+        <!-- Footer actions -->
+        <div class="card-footer" id="card-footer">
+          <button class="btn btn-back" id="btn-back">Volver</button>
+          <div class="footer-main-btns">
+            <button class="btn btn-no" id="btn-no">NO</button>
+            <button class="btn btn-si" id="btn-si">SÍ / Avanzar</button>
+          </div>
+        </div>
+
       </div>
 
-    </div>
+      <!-- End summary (hidden until end node) -->
+      <div class="summary-panel hidden" id="summary-panel">
+        <div class="summary-title">Resumen de sesión</div>
+        <div id="summary-tables"></div>
+      </div>
 
-    <!-- End summary (hidden until end node) -->
-    <div class="summary-panel hidden" id="summary-panel">
-      <div class="summary-title">Resumen de sesión</div>
-      <div id="summary-tables"></div>
-    </div>
+    </main>
 
-  </main>
+  </div><!-- /.layout -->
+
+  <!-- ── Sidebar overlay (mobile) ── -->
+  <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
 
   <!-- ── Toast notification ── -->
   <div class="toast hidden" id="toast"></div>
