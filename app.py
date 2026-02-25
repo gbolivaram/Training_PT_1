@@ -8,13 +8,15 @@ from flask import Flask, jsonify, request, render_template, send_from_directory,
 app = Flask(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "database.db")
+# Vercel only allows writes to /tmp; locally use project dir
+DB_PATH = "/tmp/database.db" if os.environ.get("VERCEL") else os.path.join(BASE_DIR, "database.db")
 NODOS_PATH = os.path.join(BASE_DIR, "nodos.json")
 
 # ── DB ───────────────────────────────────────────────────────────────────────
 
 def get_db():
     if "db" not in g:
+        init_db()  # no-op if table already exists
         g.db = sqlite3.connect(DB_PATH)
         g.db.row_factory = sqlite3.Row
     return g.db
