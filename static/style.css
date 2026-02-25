@@ -24,12 +24,12 @@
   --font:       'Inter', system-ui, sans-serif;
 }
 
-html { font-size: 15px; }
+html { font-size: 15px; height: 100%; }
 body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -112,6 +112,7 @@ body {
 .layout {
   display: flex;
   flex: 1;
+  min-height: 0;        /* CRITICAL: lets flex children shrink so they scroll */
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -123,10 +124,7 @@ body {
   flex-shrink: 0;
   background: var(--surface);
   border-right: 1px solid var(--border);
-  position: sticky;
-  top: var(--header-h);
-  height: calc(100vh - var(--header-h));
-  overflow-y: auto;
+  overflow-y: auto;     /* sidebar scrolls on its own */
   display: flex;
   flex-direction: column;
   transition: transform .25s ease;
@@ -261,6 +259,7 @@ body {
 .main {
   flex: 1;
   min-width: 0;
+  overflow-y: auto;     /* main content scrolls on its own */
   padding: 24px 24px 48px;
   display: flex;
   flex-direction: column;
