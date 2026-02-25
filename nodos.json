@@ -1,0 +1,415 @@
+{
+  "S0_alcance": {
+    "type": "decision",
+    "titulo": "¿Se está realizando un análisis de obsolescencia o tratamiento de materiales obsoletos?",
+    "rol": "HMI (selección de alcance)",
+    "descripcion": "Seleccione el flujo correcto según el objetivo del trabajo.",
+    "pregunta": "Seleccione una opción para iniciar:",
+    "opciones": [
+      {"label": "Análisis de obsolescencia", "next": "AN1_inicio"},
+      {"label": "Tratamiento de materiales obsoletos", "next": "TR0_inicio"}
+    ],
+    "ayuda": "Este selector controla el alcance del procedimiento antes de ejecutar acciones."
+  },
+
+  "AN1_inicio": {
+    "type": "task",
+    "titulo": "Inicio de análisis de obsolescencia",
+    "rol": "Jefe de ingeniería de materiales / Jefe de Planificación y Predictivo (GSO)",
+    "descripcion": "Inicio del proceso de provisión/analítica anual de obsolescencia.",
+    "acciones": [
+      "Iniciar el análisis anual según calendario definido (referencia: mes de Septiembre)."
+    ],
+    "checklist": [
+      "Inicio registrado",
+      "Período de análisis definido"
+    ],
+    "validacion": "¿Se inició el análisis de obsolescencia y quedó definido el período?",
+    "next": "AN2_crear_reporte"
+  },
+  "AN2_crear_reporte": {
+    "type": "task",
+    "titulo": "Crear reporte de Universo de materiales y repuestos",
+    "rol": "Jefe de ingeniería de materiales / Jefe de Planificación y Predictivo (GSO)",
+    "descripcion": "Preparar el reporte de materiales y repuestos en desuso bajo los criterios del procedimiento.",
+    "acciones": [
+      "Preparar el reporte del universo de materiales y repuestos en desuso, considerando criterios del procedimiento:",
+      "1) Materiales y repuestos asociados a Químicas o Instrumentación y Control, con tiempo de desuso >= 3 años.",
+      "2) Repuestos de equipos con estrategia a la falla, que han fallado en los últimos 5 años y no presentan consumo en los últimos 5 años.",
+      "3) Repuestos de equipos con estrategia de mantenimiento preventiva que no han registrado consumo durante 3 o más ciclos de mantenimiento.",
+      "4) Repuestos con estrategia de mantenimiento preventiva (en almacén) que no ha registrado OT en 3 o más ciclos de mantenimiento del repuesto.",
+      "5) Repuestos que no representan vínculo a un equipo o ubicación técnica."
+    ],
+    "checklist": [
+      "Universo de materiales/repuestos generado",
+      "Criterios aplicados",
+      "Listado trazable (códigos/cantidades)"
+    ],
+    "validacion": "¿El reporte del universo de materiales y repuestos fue creado y es trazable?",
+    "next": "AN3_enviar_reporte"
+  },
+  "AN3_enviar_reporte": {
+    "type": "task",
+    "titulo": "Enviar reporte",
+    "rol": "Jefe de ingeniería de materiales / Jefe de Planificación y Predictivo (GSO)",
+    "descripcion": "Enviar el reporte para habilitar la provisión y pasos posteriores al subgerente de contabilidad.",
+    "acciones": [
+      "Enviar el reporte del universo de materiales y repuestos según distribución definida por el procedimiento."
+    ],
+    "checklist": [
+      "Reporte enviado",
+      "Destino(s) confirmados",
+      "Registro de envío disponible"
+    ],
+    "validacion": "¿El reporte fue enviado y quedó registro del envío?",
+    "next": "AN4_registrar_provision"
+  },
+  "AN4_registrar_provision": {
+    "type": "task",
+    "titulo": "Registrar provisión de obsolescencia",
+    "rol": "Subgerente de contabilidad",
+    "descripcion": "Registrar provisión anual de obsolescencia según reporte recibido.",
+    "acciones": [
+      "Registrar provisión de obsolescencia en base al reporte recibido."
+    ],
+    "checklist": [
+      "Provisión registrada",
+      "Registro/soporte disponible"
+    ],
+    "validacion": "¿La provisión de obsolescencia fue registrada y es trazable?",
+    "next": "AN5_recepcion_listado"
+  },
+  "AN5_recepcion_listado": {
+    "type": "task",
+    "titulo": "Recepción de listado de materiales",
+    "rol": "Gerente de Tecnología",
+    "descripcion": "Recepción del listado asociado al análisis/provisión para coordinar revisión y retroalimentación.",
+    "acciones": [
+      "Recibir listado de materiales y repuestos resultantes del análisis/provisión."
+    ],
+    "checklist": [
+      "Listado recibido",
+      "Listado disponible para coordinación"
+    ],
+    "validacion": "¿El listado fue recibido y está disponible para coordinar revisión?",
+    "next": "AN6_coordinar_revision"
+  },
+  "AN6_coordinar_revision": {
+    "type": "task",
+    "titulo": "Coordinar revisión y retroalimentación de los resultados del análisis de obsolescencia",
+    "rol": "Gerente de Tecnología",
+    "descripcion": "Coordinar revisión y retroalimentación de resultados dentro de los plazos del procedimiento.",
+    "acciones": [
+      "Coordinar revisión y retroalimentación de los resultados del análisis de obsolescencia.",
+      "Asegurar retroalimentación dentro del plazo establecido por el procedimiento (referencia: último plazo en Agosto del año siguiente)."
+    ],
+    "checklist": [
+      "Revisión coordinada",
+      "Retroalimentación registrada"
+    ],
+    "validacion": "¿La revisión y retroalimentación de resultados fue coordinada y registrada?",
+    "next": "AN7_tratamiento_subproceso"
+  },
+  "AN7_tratamiento_subproceso": {
+    "type": "task",
+    "titulo": "Tratamiento de materiales obsoletos",
+    "rol": "Gerente de Tecnología",
+    "descripcion": "Subproceso: derivación al flujo de tratamiento de materiales obsoletos (cuando aplique).",
+    "acciones": [
+      "Derivar al flujo de tratamiento de materiales obsoletos según el listado definido."
+    ],
+    "checklist": [
+      "Derivación realizada",
+      "Listado/alcance definido para tratamiento"
+    ],
+    "validacion": "¿Se derivó correctamente al tratamiento de materiales obsoletos (si aplica)?",
+    "next": "TR0_inicio"
+  },
+
+  "TR0_inicio": {
+    "type": "decision",
+    "titulo": "¿Cómo se inicia el tratamiento de material obsoleto?",
+    "rol": "HMI (selección de inicio)",
+    "descripcion": "Seleccione el punto de entrada según el contexto en terreno.",
+    "pregunta": "Seleccione una opción para iniciar:",
+    "opciones": [
+      {"label": "Identificación de repuesto obsoleto por usuario central", "next": "TR_A1_identificacion"},
+      {"label": "Necesidad de análisis individual (almacén)", "next": "TR_B1_solicitar_inspeccion"},
+      {"label": "Recepción de análisis masivo", "next": "TR_C1_recepcion_masiva"}
+    ],
+    "ayuda": "Este selector define el punto de entrada sin modificar el flujo del procedimiento."
+  },
+
+  "TR_A1_identificacion": {
+    "type": "task",
+    "titulo": "Identificación de repuesto obsoleto",
+    "rol": "Usuario central",
+    "descripcion": "Se identifica material o repuesto obsoleto.",
+    "acciones": ["Identificar material/repuesto y notificar a almacenamiento."],
+    "checklist": ["Material/repuesto identificado", "Notificación preparada"],
+    "validacion": "¿El repuesto obsoleto fue identificado y está listo para informar?",
+    "next": "TR_A2_informar_almacen"
+  },
+  "TR_A2_informar_almacen": {
+    "type": "task",
+    "titulo": "Informar a almacenamiento",
+    "rol": "Usuario central",
+    "descripcion": "Se informa a almacenamiento la identificación del repuesto obsoleto.",
+    "acciones": ["Informar a almacenamiento por canal definido."],
+    "checklist": ["Almacén informado", "Registro del aviso disponible"],
+    "validacion": "¿Se informó a almacenamiento y quedó registro?",
+    "next": "TR_F1_formulario"
+  },
+
+  "TR_B1_solicitar_inspeccion": {
+    "type": "task",
+    "titulo": "Solicitar inspección de materiales",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Solicitud de inspección de materiales por necesidad de análisis individual.",
+    "acciones": ["Solicitar inspección de materiales.", "Segregar material si corresponde."],
+    "checklist": ["Inspección solicitada", "Material segregado (si aplica)"],
+    "validacion": "¿La inspección fue solicitada y el material quedó bajo control?",
+    "next": "TR_B2_definir_inspector"
+  },
+
+  "TR_C1_recepcion_masiva": {
+    "type": "task",
+    "titulo": "Recepción de análisis masivo",
+    "rol": "Encargado de materiales",
+    "descripcion": "Recepción del análisis masivo para definir inspección.",
+    "acciones": ["Recibir análisis masivo y preparar definición de inspección."],
+    "checklist": ["Análisis masivo recibido"],
+    "validacion": "¿Se recibió el análisis masivo?",
+    "next": "TR_C2_definir_inspeccion"
+  },
+  "TR_C2_definir_inspeccion": {
+    "type": "task",
+    "titulo": "Definir inspección de materiales",
+    "rol": "Encargado de materiales",
+    "descripcion": "Definir materiales que requieren inspección.",
+    "acciones": ["Definir inspección de materiales."],
+    "checklist": ["Inspección definida"],
+    "validacion": "¿La inspección de materiales quedó definida?",
+    "next": "TR_B2_definir_inspector"
+  },
+
+  "TR_B2_definir_inspector": {
+    "type": "task",
+    "titulo": "Definir inspector de materiales",
+    "rol": "Responsable de mtto. / Supervisor SSO / Jefe de administración",
+    "descripcion": "Asignación de inspector de materiales.",
+    "acciones": ["Definir inspector de materiales."],
+    "checklist": ["Inspector definido"],
+    "validacion": "¿El inspector de materiales fue definido?",
+    "next": "TR_I1_analizar_obsolescencia"
+  },
+  "TR_I1_analizar_obsolescencia": {
+    "type": "task",
+    "titulo": "Analizar obsolescencia, condición y/o vencimiento del material",
+    "rol": "Inspector de materiales",
+    "descripcion": "Evaluación del material para determinar obsolescencia, condición o vencimiento.",
+    "acciones": ["Analizar obsolescencia, condición y/o vencimiento del material."],
+    "checklist": ["Análisis realizado", "Resultado definido"],
+    "validacion": "¿El material fue analizado y se definió resultado?",
+    "next": "TR_F1_formulario"
+  },
+  "TR_F1_formulario": {
+    "type": "task",
+    "titulo": "Llenar formulario de revisión de obsolescencia",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Completar formulario de revisión de obsolescencia.",
+    "acciones": ["Llenar formulario de revisión de obsolescencia."],
+    "checklist": ["Formulario completado"],
+    "validacion": "¿El formulario fue completado correctamente?",
+    "next": "TR_F2_solicitar_aprobacion"
+  },
+  "TR_F2_solicitar_aprobacion": {
+    "type": "task",
+    "titulo": "Solicitar aprobación",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Solicitar aprobación del formulario de revisión de obsolescencia.",
+    "acciones": ["Solicitar aprobación."],
+    "checklist": ["Aprobación solicitada"],
+    "validacion": "¿Se solicitó la aprobación?",
+    "next": "TR_F3_revisar_firmar"
+  },
+  "TR_F3_revisar_firmar": {
+    "type": "task",
+    "titulo": "Revisar y firmar formulario de obsolescencia",
+    "rol": "Responsable de mtto. / Supervisor SSO / Jefe de administración",
+    "descripcion": "Revisión y firma del formulario de obsolescencia.",
+    "acciones": ["Revisar y firmar formulario de obsolescencia."],
+    "checklist": ["Formulario revisado"],
+    "validacion": "¿El formulario fue revisado y firmado?",
+    "next": "TR_F4_firmar_formulario"
+  },
+  "TR_F4_firmar_formulario": {
+    "type": "task",
+    "titulo": "Firmar formulario de obsolescencia",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Firma del formulario de obsolescencia según flujo.",
+    "acciones": ["Firmar formulario de obsolescencia."],
+    "checklist": ["Formulario firmado por especialista de almacenamiento"],
+    "validacion": "¿El formulario fue firmado por especialista de almacenamiento?",
+    "next": "TR_L1_traspasar_AL00"
+  },
+
+  "TR_L1_traspasar_AL00": {
+    "type": "task",
+    "titulo": "Traspasar material a AL00",
+    "rol": "Encargado de materiales",
+    "descripcion": "Movimiento 311 – Traspasar material a AL00.",
+    "acciones": ["Traspasar material a AL00 (movimiento 311)."],
+    "checklist": ["Movimiento ejecutado", "Documento registrado"],
+    "validacion": "¿El material fue traspasado a AL00 en sistema?",
+    "next": "TR_L2_modificar_ubicacion"
+  },
+  "TR_L2_modificar_ubicacion": {
+    "type": "task",
+    "titulo": "Modificar ubicación del material",
+    "rol": "Encargado de materiales",
+    "descripcion": "MM02 – Modificar ubicación del material.",
+    "acciones": ["Modificar ubicación del material (MM02)."],
+    "checklist": ["Ubicación modificada", "Físico y sistema coinciden"],
+    "validacion": "¿La ubicación del material fue modificada y coincide con físico?",
+    "next": "TR_L3_etiquetar"
+  },
+  "TR_L3_etiquetar": {
+    "type": "task",
+    "titulo": "Etiquetar material",
+    "rol": "Encargado de materiales",
+    "descripcion": "ZMM_IMP_ETIQUETA – Imprimir etiqueta e identificar material.",
+    "acciones": ["Imprimir etiqueta y etiquetar material (ZMM_IMP_ETIQUETA)."],
+    "inputs": [
+      {
+        "key": "numero_etiqueta",
+        "label": "Introduce número de etiqueta",
+        "required": true,
+        "placeholder": "Ej: ETQ-12345"
+      }
+    ],
+    "checklist": ["Etiqueta impresa", "Material etiquetado"],
+    "validacion": "¿El material quedó etiquetado?",
+    "next": "TR_L4_trasladar"
+  },
+  "TR_L4_trasladar": {
+    "type": "task",
+    "titulo": "Trasladar material obsoleto",
+    "rol": "Encargado de materiales",
+    "descripcion": "Traslado físico del material obsoleto.",
+    "acciones": ["Trasladar material obsoleto a ubicación definida (AL00)."],
+    "checklist": ["Material trasladado", "Material segregado"],
+    "validacion": "¿El material fue trasladado y quedó segregado en AL00?",
+    "next": "TR_L5_analizar_utilidad_otras"
+  },
+
+  "TR_L5_analizar_utilidad_otras": {
+    "type": "task",
+    "titulo": "Analizar utilidad material en otras centrales",
+    "rol": "Encargado de materiales",
+    "descripcion": "Analizar utilidad del material en otras centrales.",
+    "acciones": ["Enviar consulta a otras centrales para evaluar utilidad del material."],
+    "checklist": ["Consulta enviada", "Datos suficientes enviados"],
+    "validacion": "¿Se consultó a otras centrales por la utilidad del material?",
+    "next": "TR_L6_informar_utilidad"
+  },
+  "TR_L6_informar_utilidad": {
+    "type": "task",
+    "titulo": "Informar utilidad del material",
+    "rol": "Especialista de Almacén de otra central",
+    "descripcion": "Especialista de Almacén de otra central informa si el material es útil.",
+    "acciones": ["Verificar con mtto/operación y responder utilidad del material."],
+    "checklist": ["Utilidad verificada", "Respuesta enviada"],
+    "validacion": "¿La otra central verificó e informó la utilidad del material?",
+    "next": "TR_D1_util"
+  },
+  "TR_D1_util": {
+    "type": "decision",
+    "titulo": "¿El material es útil en otra central?",
+    "rol": "Encargado de materiales",
+    "descripcion": "Decisión según respuesta de otra central.",
+    "pregunta": "¿El material es útil en otra central?",
+    "opciones": [
+      {"label": "SÍ", "next": "TR_D3_TRASLADO_A_OTRA_PLANTA"},
+      {"label": "NO", "next": "TR_L7_inicio_desguace"}
+    ]
+  },
+
+  "TR_L7_inicio_desguace": {
+    "type": "task",
+    "titulo": "Inicio de proceso de desguace (cuando se necesite — mínimo cada 6 meses)",
+    "rol": "Encargado de materiales",
+    "descripcion": "Inicio del proceso de desguace según necesidad y frecuencia mínima definida.",
+    "acciones": ["Iniciar proceso de desguace cuando se necesite (mínimo cada 6 meses)."],
+    "checklist": ["Proceso de desguace iniciado"],
+    "validacion": "¿Se inició el proceso de desguace según el criterio del procedimiento?",
+    "next": "TR_L8_comercial"
+  },
+  "TR_L8_comercial": {
+    "type": "task",
+    "titulo": "Analizar posibilidad de comercializar materiales en AL00",
+    "rol": "Encargado de materiales",
+    "descripcion": "Analizar posibilidad de comercializar materiales en AL00.",
+    "acciones": ["Analizar posibilidad de comercializar materiales en AL00."],
+    "checklist": ["Análisis de comercialización realizado"],
+    "validacion": "¿Se analizó la posibilidad de comercializar materiales en AL00?",
+    "next": "TR_D2_comercial"
+  },
+  "TR_D2_comercial": {
+    "type": "decision",
+    "titulo": "¿El material es comercializable?",
+    "rol": "Encargado de materiales",
+    "descripcion": "Decisión de salida final del material.",
+    "pregunta": "¿El material es comercializable?",
+    "opciones": [
+      {"label": "SÍ", "next": "END_VENTAS"},
+      {"label": "NO", "next": "END_DISPOSICION"}
+    ]
+  },
+  "TR_D3_TRASLADO_A_OTRA_PLANTA": {
+    "type": "task",
+    "titulo": "Traslado del material a otra planta",
+    "rol": "Bodega / Logística",
+    "descripcion": "Registrar destino del material antes del cierre del proceso.",
+    "acciones": ["Definir a qué planta/central se trasladará el material."],
+    "inputs": [
+      {"key": "planta_destino", "label": "¿A qué planta/central irá el material?", "required": true, "placeholder": "Ej: Central Norte / Bodega Central"}
+    ],
+    "checklist": ["Destino de traslado definido"],
+    "validacion": "¿Se registró el destino del traslado?",
+    "next": "END_TRASLADO"
+  },
+
+  "END_TRASLADO": {
+    "type": "end",
+    "titulo": "Proceso finalizado",
+    "rol": "HMI",
+    "descripcion": "Resultado: traslado del material a otra central.",
+    "mensaje": "Se coordina y ejecuta el traslado del material entre centrales según definición del procedimiento.",
+    "inputs": [
+      {
+        "key": "centro_destino",
+        "label": "¿A qué centro fue trasladado?",
+        "required": true,
+        "placeholder": "Ej: Central X / AL00 / Bodega ..."
+      }
+    ],
+    "estado_final": "FINALIZADO"
+  },
+  "END_VENTAS": {
+    "type": "end",
+    "titulo": "Proceso finalizado",
+    "rol": "HMI",
+    "descripcion": "Resultado: gestión de ventas varias.",
+    "mensaje": "Se gestiona el material como ventas varias según definición del procedimiento.",
+    "estado_final": "FINALIZADO"
+  },
+  "END_DISPOSICION": {
+    "type": "end",
+    "titulo": "Proceso finalizado",
+    "rol": "HMI",
+    "descripcion": "Resultado: disposición final del material.",
+    "mensaje": "Se gestiona la disposición final del material según definición del procedimiento.",
+    "estado_final": "FINALIZADO"
+  }
+}

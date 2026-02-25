@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRO141 — Guía de Procedimiento</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <span class="header-code">PRO141</span>
+        <span class="header-title">Tratamiento de materiales obsoletos y análisis de obsolescencia</span>
+      </div>
+      <div class="header-right">
+        <a href="/static/docs/PRO141.pdf" target="_blank" class="doc-link">Procedimiento</a>
+        <a href="/static/docs/Sintesis.pdf" target="_blank" class="doc-link">Síntesis</a>
+        <button id="btn-export" class="btn-ghost" title="Exportar trazabilidad JSON">Exportar</button>
+        <button id="btn-reset" class="btn-ghost btn-danger-ghost" title="Reiniciar sesión">Reiniciar</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <!-- Progress bar -->
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- Step counter -->
+    <div class="step-meta" id="step-meta"></div>
+
+    <!-- Card ── Node content -->
+    <div class="card" id="card">
+
+      <!-- Node header -->
+      <div class="node-header" id="node-header"></div>
+
+      <!-- Node body -->
+      <div class="node-body" id="node-body"></div>
+
+      <!-- Block panel (hidden by default) -->
+      <div class="block-panel hidden" id="block-panel">
+        <div class="block-title">Paso bloqueado — registre motivo(s)</div>
+        <div class="block-motivos" id="block-motivos"></div>
+        <label class="input-label">Detalle adicional</label>
+        <textarea id="block-detalle" class="block-textarea" placeholder="Describa el motivo. Obligatorio si selecciona 'Otro'."></textarea>
+        <button class="btn btn-info" id="btn-rehacer">Rehacer paso</button>
+      </div>
+
+      <!-- Alert message -->
+      <div class="alert hidden" id="alert"></div>
+
+      <!-- Footer actions -->
+      <div class="card-footer" id="card-footer">
+        <button class="btn btn-back" id="btn-back">Volver</button>
+        <div class="footer-main-btns">
+          <button class="btn btn-no" id="btn-no">NO</button>
+          <button class="btn btn-si" id="btn-si">SÍ / Avanzar</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- End summary (hidden until end node) -->
+    <div class="summary-panel hidden" id="summary-panel">
+      <div class="summary-title">Resumen de sesión</div>
+      <div id="summary-tables"></div>
+    </div>
+
+  </main>
+
+  <!-- ── Toast notification ── -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="/static/main.js"></script>
+</body>
+</html>

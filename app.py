@@ -1,106 +1,159 @@
-import streamlit as st
-import html
+import json
+import sqlite3
+import uuid
+import datetime
+import os
+from flask import Flask, jsonify, request, render_template, send_from_directory, g
 
-# Configurar la página
-st.set_page_config(
-    page_title="Mi Primera App Streamlit",
-    page_icon="🚀",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+app = Flask(__name__)
 
-# Título principal
-st.title("🎉 Bienvenido a mi App Streamlit")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "database.db")
+NODOS_PATH = os.path.join(BASE_DIR, "nodos.json")
 
-# Crear tabs para organizar el contenido
-tab1, tab2, tab3 = st.tabs(["Inicio", "Formulario", "Información"])
+# ── DB ───────────────────────────────────────────────────────────────────────
 
-with tab1:
-    st.header("Pestaña de Inicio")
-    st.write("Esta es tu primera aplicación con Streamlit, HTML y GitHub!")
-    
-    # Usar HTML personalizado
-    st.markdown("""
-    <div style="background-color:#f0f2f6; padding:20px; border-radius:10px;">
-        <h3 style="color:#0066cc;">¿Qué es Streamlit?</h3>
-        <p>Streamlit es un framework de Python que permite crear aplicaciones web interactivas 
-        sin necesidad de conocer JavaScript o CSS avanzado.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Mostrar columnas
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.info("📚 Aprende HTML")
-    with col2:
-        st.success("✅ Usa Streamlit")
-    with col3:
-        st.warning("🔧 Controla GitHub")
+def get_db():
+    if "db" not in g:
+        g.db = sqlite3.connect(DB_PATH)
+        g.db.row_factory = sqlite3.Row
+    return g.db
 
-with tab2:
-    st.header("Formulario Interactivo")
-    
-    # Elementos de entrada
-    nombre = st.text_input("¿Cuál es tu nombre?", placeholder="Ingresa tu nombre aquí")
-    edad = st.slider("¿Cuál es tu edad?", 0, 100, 25)
-    ciudad = st.selectbox("¿De qué ciudad eres?", 
-                         ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena"])
-    
-    # Botón para procesar
-    if st.button("📤 Enviar Información"):
-        if nombre:
-            st.success(f"¡Hola {nombre}! Tienes {edad} años y eres de {ciudad}.")
-            st.balloons()
-        else:
-            st.error("Por favor ingresa tu nombre")
+@app.teardown_appcontext
+def close_db(exc):
+    db = g.pop("db", None)
+    if db:
+        db.close()
 
-with tab3:
-    st.header("Información del Proyecto")
-    
-    st.markdown("""
-    ### 📖 Temas Cubiertos:
-    
-    **1. HTML:**
-    - Elementos básicos (div, p, h1-h6)
-    - Estilos CSS (color, padding, border-radius)
-    - Atributos personalizados
-    
-    **2. Streamlit UI:**
-    - st.write() - para mostrar texto
-    - st.columns() - para layouts
-    - st.tabs() - para pestañas
-    - st.slider(), st.text_input(), st.selectbox() - para entrada de datos
-    - st.success(), st.error(), st.info() - para mensajes
-    
-    **3. GitHub:**
-    - Versionado de código
-    - Commits con mensajes descriptivos
-    - Repositorios públicos
-    
-    ### 🎯 Próximos Pasos:
-    1. Instala las dependencias
-    2. Ejecuta: `streamlit run app.py`
-    3. Experimenta con los componentes
-    4. Realiza cambios y haz commits
+def init_db():
+    db = sqlite3.connect(DB_PATH)
+    db.executescript("""
+        CREATE TABLE IF NOT EXISTS sessions (
+            id          TEXT PRIMARY KEY,
+            created_at  TEXT NOT NULL,
+            updated_at  TEXT NOT NULL,
+            estado      TEXT NOT NULL DEFAULT 'EN_CURSO',
+            current_node TEXT NOT NULL DEFAULT 'S0_alcance',
+            history     TEXT NOT NULL DEFAULT '[]',
+            decisiones  TEXT NOT NULL DEFAULT '[]',
+            bloqueos    TEXT NOT NULL DEFAULT '[]',
+            inputs      TEXT NOT NULL DEFAULT '{}',
+            logs        TEXT NOT NULL DEFAULT '[]'
+        );
     """)
-    
-    # Información de GitHub
-    st.divider()
-    st.subheader("Mi Repositorio en GitHub")
-    st.write("Repositorio: **gbolivaram/Training_PT_1**")
-    st.write("Lenguajes: Python, HTML, Markdown")
+    db.commit()
+    db.close()
 
-# Sidebar
-with st.sidebar:
-    st.header("⚙️ Controles")
-    st.write("Usa los controles anteriores en las pestañas para interactuar")
-    
-    with st.expander("📝 Ver Código Fuente"):
-        st.code("""
-# Este es un ejemplo de cómo está estructurado el código
-import streamlit as st
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
-st.title("Mi App")
-st.write("Contenido")
-        """, language="python")
+def now_iso():
+    return datetime.datetime.now().isoformat(timespec="seconds")
+
+def load_nodos():
+    with open(NODOS_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+# ── Routes ───────────────────────────────────────────────────────────────────
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/static/docs/<path:filename>")
+def serve_docs(filename):
+    return send_from_directory(os.path.join(BASE_DIR, "static", "docs"), filename)
+
+@app.route("/api/nodos")
+def api_nodos():
+    return jsonify(load_nodos())
+
+# Session management
+@app.route("/api/session", methods=["POST"])
+def create_session():
+    sid = str(uuid.uuid4())
+    ts = now_iso()
+    db = get_db()
+    db.execute(
+        "INSERT INTO sessions (id, created_at, updated_at, estado, current_node) VALUES (?,?,?,?,?)",
+        (sid, ts, ts, "EN_CURSO", "S0_alcance")
+    )
+    db.commit()
+    return jsonify({"session_id": sid, "current_node": "S0_alcance", "estado": "EN_CURSO"})
+
+@app.route("/api/session/<sid>")
+def get_session(sid):
+    db = get_db()
+    row = db.execute("SELECT * FROM sessions WHERE id=?", (sid,)).fetchone()
+    if not row:
+        return jsonify({"error": "not found"}), 404
+    return jsonify({
+        "session_id": sid,
+        "estado": row["estado"],
+        "current_node": row["current_node"],
+        "history": json.loads(row["history"]),
+        "decisiones": json.loads(row["decisiones"]),
+        "bloqueos": json.loads(row["bloqueos"]),
+        "inputs": json.loads(row["inputs"]),
+        "logs": json.loads(row["logs"]),
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"]
+    })
+
+@app.route("/api/session/<sid>", methods=["PUT"])
+def update_session(sid):
+    data = request.get_json()
+    db = get_db()
+    row = db.execute("SELECT * FROM sessions WHERE id=?", (sid,)).fetchone()
+    if not row:
+        return jsonify({"error": "not found"}), 404
+
+    ts = now_iso()
+    db.execute("""
+        UPDATE sessions SET
+            updated_at=?, estado=?, current_node=?,
+            history=?, decisiones=?, bloqueos=?, inputs=?, logs=?
+        WHERE id=?
+    """, (
+        ts,
+        data.get("estado", row["estado"]),
+        data.get("current_node", row["current_node"]),
+        json.dumps(data.get("history", json.loads(row["history"])), ensure_ascii=False),
+        json.dumps(data.get("decisiones", json.loads(row["decisiones"])), ensure_ascii=False),
+        json.dumps(data.get("bloqueos", json.loads(row["bloqueos"])), ensure_ascii=False),
+        json.dumps(data.get("inputs", json.loads(row["inputs"])), ensure_ascii=False),
+        json.dumps(data.get("logs", json.loads(row["logs"])), ensure_ascii=False),
+        sid
+    ))
+    db.commit()
+    return jsonify({"ok": True, "updated_at": ts})
+
+@app.route("/api/session/<sid>/export")
+def export_session(sid):
+    db = get_db()
+    row = db.execute("SELECT * FROM sessions WHERE id=?", (sid,)).fetchone()
+    if not row:
+        return jsonify({"error": "not found"}), 404
+    payload = {
+        "proceso": "PRO141 – Tratamiento de materiales obsoletos y análisis de obsolescencia",
+        "session_id": sid,
+        "estado": row["estado"],
+        "current_node": row["current_node"],
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+        "history": json.loads(row["history"]),
+        "decisiones": json.loads(row["decisiones"]),
+        "bloqueos": json.loads(row["bloqueos"]),
+        "inputs": json.loads(row["inputs"]),
+        "logs": json.loads(row["logs"]),
+        "export_ts": now_iso()
+    }
+    resp = app.response_class(
+        response=json.dumps(payload, ensure_ascii=False, indent=2),
+        mimetype="application/json"
+    )
+    resp.headers["Content-Disposition"] = f"attachment; filename=PRO141_{sid[:8]}.json"
+    return resp
+
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True, port=5000)
