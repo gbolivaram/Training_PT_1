@@ -1,0 +1,110 @@
+{
+  "areas": [
+    {
+      "id": "bodega",
+      "nombre": "Bodega y abastecimiento",
+      "pros": []
+    },
+    {
+      "id": "fallas",
+      "nombre": "Fallas, emergencias y crisis",
+      "pros": ["PRO114", "PRO115"]
+    },
+    {
+      "id": "inventario",
+      "nombre": "Inventario y almacén",
+      "pros": ["PRO141"]
+    },
+    {
+      "id": "mantenimiento",
+      "nombre": "Mantenimiento y operación",
+      "pros": []
+    },
+    {
+      "id": "ma_suspel",
+      "nombre": "MA y SUSPEL",
+      "pros": []
+    },
+    {
+      "id": "seguridad",
+      "nombre": "Seguridad y riesgos operacionales",
+      "pros": []
+    }
+  ],
+  "pros": {
+    "PRO114": {
+      "id": "PRO114",
+      "nombre": "Elaboración de Informes de Falla según Norma Técnica",
+      "descripcion": "Procedimiento para elaborar y presentar informes de falla al regulador (CEN/CNE) según la Norma Técnica de Seguridad y Calidad de Servicio.",
+      "data": "pro114.json",
+      "has_stop": false,
+      "primer_nodo": "T1",
+      "flow_order": ["T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12","T13","END_OK"],
+      "motivos_bloqueo": [
+        "Falta información mínima para el informe",
+        "No se logra contacto con el regulador (CEN/CNE)",
+        "Sistema SIGO no disponible",
+        "Datos técnicos inconsistentes o incompletos",
+        "Plazo NT en riesgo — requiere escalamiento",
+        "Aprobación interna pendiente",
+        "Otro"
+      ]
+    },
+    "PRO115": {
+      "id": "PRO115",
+      "nombre": "Aviso de Falla en Instalaciones",
+      "descripcion": "Procedimiento para gestionar y registrar avisos de falla en instalaciones eléctricas, coordinando con COC y CDC/CEN.",
+      "data": "pro115.json",
+      "has_stop": true,
+      "primer_nodo": "T1",
+      "flow_order": ["T1","T2","T3","T4","T5","T6","D_PRUEBA_UNIDAD","T7","T8","T9","END_OK","END_RECHAZO","END_STOP"],
+      "motivos_bloqueo": [
+        "Condición insegura detectada",
+        "Falta de información crítica",
+        "Sistema no disponible (SIGO / Mante / correo)",
+        "No se logra contacto con COC/CDC",
+        "Otro"
+      ],
+      "motivos_stop": [
+        "Condición insegura detectada — riesgo para personas",
+        "Falta información crítica para continuar",
+        "Sistema no disponible (SIGO / correo / comunicaciones)",
+        "No se logra contacto con COC/CDC después de 3 intentos",
+        "Otro"
+      ]
+    },
+    "PRO141": {
+      "id": "PRO141",
+      "nombre": "Tratamiento de materiales obsoletos y análisis de obsolescencia",
+      "descripcion": "Procedimiento para el análisis y tratamiento de materiales y repuestos obsoletos en almacén.",
+      "data": "nodos.json",
+      "has_stop": false,
+      "primer_nodo": "S0_alcance",
+      "flow_order": [
+        "S0_alcance",
+        "AN1_inicio","AN2_crear_reporte","AN3_enviar_reporte",
+        "AN4_registrar_provision","AN5_recepcion_listado","AN6_coordinar_revision","AN7_tratamiento_subproceso",
+        "TR0_inicio",
+        "TR_A1_identificacion","TR_A2_informar_almacen",
+        "TR_B1_solicitar_inspeccion","TR_B2_definir_inspector",
+        "TR_C1_recepcion_masiva","TR_C2_definir_inspeccion",
+        "TR_I1_analizar_obsolescencia",
+        "TR_F1_formulario","TR_F2_solicitar_aprobacion","TR_F3_revisar_firmar","TR_F4_firmar_formulario",
+        "TR_L1_traspasar_AL00","TR_L2_modificar_ubicacion","TR_L3_etiquetar","TR_L4_trasladar",
+        "TR_L5_analizar_utilidad_otras","TR_L6_informar_utilidad",
+        "TR_D1_util","TR_D3_TRASLADO_A_OTRA_PLANTA",
+        "TR_L7_inicio_desguace","TR_L8_comercial","TR_D2_comercial",
+        "END_TRASLADO","END_VENTAS","END_DISPOSICION"
+      ],
+      "motivos_bloqueo": [
+        "Falta información mínima para formulario / reporte",
+        "Aprobación rechazada / falta firma",
+        "No se puede ejecutar transacción SAP",
+        "Material no segregado / riesgo de mezcla",
+        "Discrepancia stock físico vs sistema",
+        "Falta respuesta de otra central",
+        "Otro"
+      ]
+    }
+  }
+}

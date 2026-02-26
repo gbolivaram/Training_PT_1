@@ -1,0 +1,273 @@
+{
+  "T1": {
+    "type": "task",
+    "titulo": "1. Identificar evento que requiere informe NT",
+    "rol": "Jefe de Turno / Operador COC",
+    "descripcion": "Identificar si el evento de falla ocurrido cumple los criterios de la Norma Técnica para requerir elaboración de informe formal.",
+    "acciones": [
+      "Verificar si la interrupción afecta instalaciones del SEN y supera los umbrales de duración y/o energía no suministrada exigidos por la NT.",
+      "Registrar la hora exacta de inicio del evento.",
+      "Confirmar con el jefe de turno la obligatoriedad del informe."
+    ],
+    "checklist": [
+      "Evento identificado y caracterizado",
+      "Se verificaron umbrales NT (duración / ENS)",
+      "Jefe de turno confirma obligatoriedad del informe"
+    ],
+    "validacion": "¿El evento supera los umbrales NT y se confirma la elaboración del informe?",
+    "next": "T2"
+  },
+  "T2": {
+    "type": "task",
+    "titulo": "2. Recopilar datos técnicos del evento",
+    "rol": "Jefe de Turno / Ingeniero de Turno",
+    "descripcion": "Recopilar toda la información técnica necesaria para documentar el evento de falla.",
+    "acciones": [
+      "Registrar fecha, hora inicio y hora fin de la interrupción.",
+      "Identificar la instalación, equipo(s) y nivel de tensión involucrados.",
+      "Obtener registros de SIGO (alarmas, eventos, oscilografías si aplica).",
+      "Registrar la causa preliminar de la falla."
+    ],
+    "inputs": [
+      {"key": "fecha_evento", "label": "Fecha del evento (DD/MM/AAAA)", "placeholder": "ej: 26/02/2026", "required": true},
+      {"key": "hora_inicio", "label": "Hora inicio (HH:MM)", "placeholder": "ej: 14:32", "required": true},
+      {"key": "hora_fin", "label": "Hora fin (HH:MM)", "placeholder": "ej: 15:10", "required": true},
+      {"key": "instalacion", "label": "Instalación / equipo afectado", "placeholder": "ej: S/E Los Vilos, T1 220 kV", "required": true}
+    ],
+    "checklist": [
+      "Fecha y horas registradas",
+      "Instalación y equipo identificados",
+      "Registros SIGO obtenidos",
+      "Causa preliminar registrada"
+    ],
+    "validacion": "¿Se recopilaron todos los datos técnicos del evento?",
+    "next": "T3"
+  },
+  "T3": {
+    "type": "task",
+    "titulo": "3. Clasificar tipo de interrupción",
+    "rol": "Jefe de Turno / Ingeniero de Planificación",
+    "descripcion": "Clasificar el tipo de interrupción según los criterios de la Norma Técnica.",
+    "acciones": [
+      "Determinar si la interrupción es programada o no programada.",
+      "Clasificar la causa: falla de equipo, causa externa, error humano, fenómeno natural, indeterminada.",
+      "Determinar si la falla es de origen propio o de terceros."
+    ],
+    "checklist": [
+      "Tipo de interrupción clasificado (programada / no programada)",
+      "Causa raíz preliminar clasificada",
+      "Origen de la falla determinado (propio / terceros)"
+    ],
+    "validacion": "¿La interrupción fue correctamente clasificada según los criterios NT?",
+    "next": "T4"
+  },
+  "T4": {
+    "type": "task",
+    "titulo": "4. Calcular energía no suministrada (ENS)",
+    "rol": "Ingeniero de Turno / Ingeniero de Planificación",
+    "descripcion": "Calcular y registrar la energía no suministrada asociada al evento de falla.",
+    "acciones": [
+      "Obtener la curva de carga del período afectado desde SIGO o sistema de medición.",
+      "Calcular la ENS total (MWh) durante el período de interrupción.",
+      "Identificar los suministros afectados y la cantidad de clientes (si aplica)."
+    ],
+    "inputs": [
+      {"key": "ens_mwh", "label": "ENS total (MWh)", "placeholder": "ej: 12.5", "required": true},
+      {"key": "clientes_afectados", "label": "N° clientes afectados (si aplica)", "placeholder": "ej: 1200", "required": false}
+    ],
+    "checklist": [
+      "Curva de carga obtenida",
+      "ENS calculada y registrada",
+      "Suministros afectados identificados"
+    ],
+    "validacion": "¿La ENS fue calculada correctamente y queda registrada?",
+    "next": "T5"
+  },
+  "T5": {
+    "type": "task",
+    "titulo": "5. Documentar causas y equipos afectados",
+    "rol": "Ingeniero de Turno / Jefe de Ingeniería",
+    "descripcion": "Documentar en detalle las causas de la falla y los equipos involucrados.",
+    "acciones": [
+      "Describir la secuencia de eventos que derivó en la falla.",
+      "Listar todos los equipos afectados con sus datos de placa (código, marca, modelo, año).",
+      "Adjuntar o referenciar fotografías, registros de oscilografía o evidencia técnica disponible."
+    ],
+    "checklist": [
+      "Secuencia de eventos documentada",
+      "Equipos afectados listados con datos técnicos",
+      "Evidencia técnica referenciada o adjunta"
+    ],
+    "validacion": "¿Las causas y equipos afectados están completamente documentados?",
+    "next": "T6"
+  },
+  "T6": {
+    "type": "task",
+    "titulo": "6. Registrar acciones correctivas tomadas",
+    "rol": "Jefe de Turno / Jefe de Mantenimiento",
+    "descripcion": "Registrar todas las acciones operativas y de mantenimiento ejecutadas para restablecer el servicio.",
+    "acciones": [
+      "Describir las maniobras operativas realizadas durante la falla.",
+      "Registrar las acciones de mantenimiento ejecutadas para reparar o aislar el equipo.",
+      "Indicar si se utilizó equipamiento de respaldo o maniobras alternativas.",
+      "Registrar la hora de restablecimiento del servicio."
+    ],
+    "inputs": [
+      {"key": "hora_restablecimiento", "label": "Hora de restablecimiento (HH:MM)", "placeholder": "ej: 15:10", "required": true}
+    ],
+    "checklist": [
+      "Maniobras operativas documentadas",
+      "Acciones de mantenimiento registradas",
+      "Hora de restablecimiento registrada"
+    ],
+    "validacion": "¿Las acciones correctivas están completamente registradas?",
+    "next": "T7"
+  },
+  "T7": {
+    "type": "task",
+    "titulo": "7. Registrar información de protecciones actuadas",
+    "rol": "Ingeniero de Protecciones / Jefe de Turno",
+    "descripcion": "Documentar el comportamiento de los sistemas de protección durante el evento.",
+    "acciones": [
+      "Identificar las protecciones que actuaron (relés, fusibles, interruptores).",
+      "Verificar si las protecciones actuaron de manera correcta o si hubo actuaciones incorrectas.",
+      "Descargar y revisar los registros de relés (si aplica).",
+      "Indicar si se requiere revisión o calibración de protecciones."
+    ],
+    "checklist": [
+      "Protecciones actuadas identificadas",
+      "Corrección de actuación verificada (correcta / incorrecta)",
+      "Registros de relés descargados (si aplica)",
+      "Revisión de protecciones programada (si requiere)"
+    ],
+    "validacion": "¿El comportamiento de las protecciones está completamente documentado?",
+    "next": "T8"
+  },
+  "T8": {
+    "type": "task",
+    "titulo": "8. Completar análisis técnico de causas",
+    "rol": "Ingeniero de Turno / Jefe de Ingeniería",
+    "descripcion": "Completar el análisis técnico de las causas raíz del evento para el informe NT.",
+    "acciones": [
+      "Determinar la causa raíz definitiva de la falla.",
+      "Evaluar si la falla es evitable o no evitable.",
+      "Proponer medidas preventivas o correctivas para evitar recurrencia.",
+      "Revisar si el evento impacta indicadores de calidad de servicio (SAIDI, SAIFI u otros)."
+    ],
+    "checklist": [
+      "Causa raíz definitiva determinada",
+      "Falla clasificada como evitable / no evitable",
+      "Medidas preventivas/correctivas propuestas",
+      "Impacto en indicadores de calidad evaluado"
+    ],
+    "validacion": "¿El análisis técnico de causas está completo?",
+    "next": "T9"
+  },
+  "T9": {
+    "type": "task",
+    "titulo": "9. Verificar plazo de presentación NT",
+    "rol": "Jefe de Turno / Encargado de Regulación",
+    "descripcion": "Verificar que el informe se elabora dentro del plazo establecido por la Norma Técnica.",
+    "acciones": [
+      "Consultar en la NT el plazo máximo de presentación del informe según tipo de evento.",
+      "Calcular la fecha límite de presentación.",
+      "Si el plazo está en riesgo, escalar de inmediato al jefe de área."
+    ],
+    "inputs": [
+      {"key": "fecha_limite_nt", "label": "Fecha límite presentación NT (DD/MM/AAAA)", "placeholder": "ej: 05/03/2026", "required": true}
+    ],
+    "checklist": [
+      "Plazo NT consultado y calculado",
+      "Fecha límite registrada",
+      "Se verifica que hay tiempo suficiente (o se escaló)"
+    ],
+    "validacion": "¿El plazo de presentación fue verificado y el informe está en tiempo?",
+    "next": "T10"
+  },
+  "T10": {
+    "type": "task",
+    "titulo": "10. Revisar y validar el informe completo",
+    "rol": "Jefe de Ingeniería / Jefe de Operaciones",
+    "descripcion": "Revisar internamente el informe antes de su envío al regulador.",
+    "acciones": [
+      "Revisar coherencia de todos los datos técnicos registrados.",
+      "Verificar que el formato del informe cumple con la plantilla NT vigente.",
+      "Obtener validación (V°B°) del jefe de área o subgerencia según corresponda."
+    ],
+    "checklist": [
+      "Coherencia técnica del informe verificada",
+      "Formato NT cumplido",
+      "Revisión interna completada (V°B° jefe de área)"
+    ],
+    "validacion": "¿El informe fue revisado y cuenta con validación interna?",
+    "next": "T11"
+  },
+  "T11": {
+    "type": "task",
+    "titulo": "11. Ingresar informe al sistema regulatorio",
+    "rol": "Encargado de Regulación / Jefe de Turno",
+    "descripcion": "Ingresar el informe de falla en el sistema/plataforma del regulador (CEN/CNE) y en SIGO.",
+    "acciones": [
+      "Acceder a la plataforma regulatoria del CEN/CNE.",
+      "Cargar el informe en el formato exigido.",
+      "Registrar el número de ingreso o folio asignado por el regulador.",
+      "Registrar el ingreso del informe en SIGO."
+    ],
+    "inputs": [
+      {"key": "folio_regulador", "label": "N° folio / ingreso regulador", "placeholder": "ej: CEN-2026-04521", "required": true}
+    ],
+    "checklist": [
+      "Informe ingresado en plataforma CEN/CNE",
+      "Número de folio registrado",
+      "Ingreso registrado en SIGO"
+    ],
+    "validacion": "¿El informe fue ingresado correctamente al sistema regulatorio y queda con folio?",
+    "next": "T12"
+  },
+  "T12": {
+    "type": "task",
+    "titulo": "12. Enviar informe y confirmar recepción",
+    "rol": "Encargado de Regulación / Jefe de Turno",
+    "descripcion": "Confirmar el envío formal del informe al regulador y registrar el acuse de recibo.",
+    "acciones": [
+      "Verificar que el informe fue enviado correctamente al CEN/CNE dentro del plazo NT.",
+      "Registrar el acuse de recibo o confirmación del regulador.",
+      "Informar al jefe de área y a la subgerencia el envío completado."
+    ],
+    "checklist": [
+      "Envío confirmado dentro del plazo NT",
+      "Acuse de recibo del regulador registrado",
+      "Jefe de área y subgerencia informados"
+    ],
+    "validacion": "¿El informe fue enviado y se cuenta con confirmación del regulador?",
+    "next": "T13"
+  },
+  "T13": {
+    "type": "task",
+    "titulo": "13. Archivar y registrar cierre del informe",
+    "rol": "Encargado de Regulación / Jefe de Turno",
+    "descripcion": "Archivar el informe de falla y registrar el cierre formal del proceso en los sistemas internos.",
+    "acciones": [
+      "Archivar el informe completo (con evidencias) en la carpeta digital del área.",
+      "Actualizar el registro de informes NT del período.",
+      "Cerrar la gestión en SIGO con el número de folio del regulador.",
+      "Si corresponde, crear OT de mantenimiento correctivo derivada del análisis de causas."
+    ],
+    "checklist": [
+      "Informe archivado en carpeta digital del área",
+      "Registro de informes NT actualizado",
+      "Gestión cerrada en SIGO",
+      "OT correctiva creada (si aplica)"
+    ],
+    "validacion": "¿El informe fue archivado y el proceso cerrado en todos los sistemas?",
+    "next": "END_OK"
+  },
+  "END_OK": {
+    "type": "end",
+    "titulo": "Informe de Falla NT — Proceso completado",
+    "rol": "Sistema",
+    "descripcion": "El informe de falla según Norma Técnica fue elaborado, enviado al regulador y archivado correctamente.",
+    "mensaje": "El proceso PRO114 finalizó exitosamente. El informe fue presentado al CEN/CNE dentro del plazo NT y registrado en SIGO.",
+    "estado_final": "COMPLETADO"
+  }
+}

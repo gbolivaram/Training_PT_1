@@ -1,39 +1,17 @@
-/* ── PRO141 HMI — main.js ──────────────────────────────────────────────── */
-
-const MOTIVOS_BLOQUEO = [
-  "Falta información mínima para formulario / reporte",
-  "Aprobación rechazada / falta firma",
-  "No se puede ejecutar transacción SAP",
-  "Material no segregado / riesgo de mezcla",
-  "Discrepancia stock físico vs sistema",
-  "Falta respuesta de otra central",
-  "Otro"
-];
-
-const FLOW_ORDER = [
-  "S0_alcance",
-  "AN1_inicio","AN2_crear_reporte","AN3_enviar_reporte",
-  "AN4_registrar_provision","AN5_recepcion_listado","AN6_coordinar_revision","AN7_tratamiento_subproceso",
-  "TR0_inicio",
-  "TR_A1_identificacion","TR_A2_informar_almacen",
-  "TR_B1_solicitar_inspeccion","TR_B2_definir_inspector",
-  "TR_C1_recepcion_masiva","TR_C2_definir_inspeccion",
-  "TR_I1_analizar_obsolescencia",
-  "TR_F1_formulario","TR_F2_solicitar_aprobacion","TR_F3_revisar_firmar","TR_F4_firmar_formulario",
-  "TR_L1_traspasar_AL00","TR_L2_modificar_ubicacion","TR_L3_etiquetar","TR_L4_trasladar",
-  "TR_L5_analizar_utilidad_otras","TR_L6_informar_utilidad",
-  "TR_D1_util","TR_D3_TRASLADO_A_OTRA_PLANTA",
-  "TR_L7_inicio_desguace","TR_L8_comercial","TR_D2_comercial",
-  "END_TRASLADO","END_VENTAS","END_DISPOSICION"
-];
+/* ── HMI Procedimientos — main.js ─────────────────────────────────────────── */
 
 const TYPE_LABEL = { task: "Tarea", decision: "Decisión", end: "Fin" };
 
-// ── State ──────────────────────────────────────────────────────────────────
+// ── App config (se llena al seleccionar PRO) ───────────────────────────────
+let appAreas = null;   // JSON completo de areas.json
+let appPro   = null;   // config del PRO activo (de areas.pros)
+let appArea  = null;   // config del área activa
+
+// ── State (sesión activa) ──────────────────────────────────────────────────
 const state = {
   nodos: {},
   session_id: null,
-  current_node: "S0_alcance",
+  current_node: null,
   history: [],
   decisiones: [],
   bloqueos: [],
@@ -44,63 +22,320 @@ const state = {
   block_ts: null
 };
 
+// Chat state
+const chatHistory = [];
+
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-const elHeader       = $("node-header");
-const elBody         = $("node-body");
-const elBlockPanel   = $("block-panel");
-const elAlert        = $("alert");
-const elProgress     = $("progress-bar");
-const elStepMeta     = $("step-meta");
-const elSummary      = $("summary-panel");
-const elSummaryTbl   = $("summary-tables");
-const elBtnSi        = $("btn-si");
-const elBtnNo        = $("btn-no");
-const elBtnBack      = $("btn-back");
-const elBtnRehacer   = $("btn-rehacer");
-const elBtnExport    = $("btn-export");
-const elBtnReset     = $("btn-reset");
-const elBlockMot     = $("block-motivos");
-const elBlockDet     = $("block-detalle");
-const elToast        = $("toast");
-const elTimeline     = $("timeline");
-const elSidebar      = $("sidebar");
-const elOverlay      = $("sidebar-overlay");
-const elBtnSideToggle= $("btn-sidebar-toggle");
-const elSideSession  = $("sidebar-session");
+
+// screens
+const screenHome      = $("screen-home");
+const screenIntent    = $("screen-intent");
+const screenProSelect = $("screen-pro-select");
+const screenAiChat    = $("screen-ai-chat");
+const screenChecklist = $("screen-checklist");
+
+// header
+const elBtnHome        = $("btn-home");
+const elHeaderCode     = $("header-code");
+const elHeaderTitle    = $("header-title");
+const elHeaderRight    = $("header-right-checklist");
+const elBtnSideToggle  = $("btn-sidebar-toggle");
+
+// checklist
+const elHeader        = $("node-header");
+const elBody          = $("node-body");
+const elBlockPanel    = $("block-panel");
+const elAlert         = $("alert");
+const elProgress      = $("progress-bar");
+const elStepMeta      = $("step-meta");
+const elSummary       = $("summary-panel");
+const elSummaryTbl    = $("summary-tables");
+const elBtnSi         = $("btn-si");
+const elBtnNo         = $("btn-no");
+const elBtnBack       = $("btn-back");
+const elBtnRehacer    = $("btn-rehacer");
+const elBtnExport     = $("btn-export");
+const elBtnReset      = $("btn-reset");
+const elBlockMot      = $("block-motivos");
+const elBlockDet      = $("block-detalle");
+const elToast         = $("toast");
+const elTimeline      = $("timeline");
+const elSidebar       = $("sidebar");
+const elOverlay       = $("sidebar-overlay");
+const elSideSession   = $("sidebar-session");
+const elStopBar       = $("stop-bar");
+const elBtnStop       = $("btn-stop");
+
+// chat
+const elChatMessages  = $("chat-messages");
+const elChatInput     = $("chat-input");
+const elBtnChatSend   = $("btn-chat-send");
+
+// ── Screen management ──────────────────────────────────────────────────────
+const ALL_SCREENS = [screenHome, screenIntent, screenProSelect, screenAiChat, screenChecklist];
+
+function showScreen(target) {
+  ALL_SCREENS.forEach(s => s.classList.add("hidden"));
+  target.classList.remove("hidden");
+
+  const isChecklist = target === screenChecklist;
+  elBtnSideToggle.classList.toggle("hidden", !isChecklist);
+  elHeaderRight.style.display = isChecklist ? "flex" : "none";
+
+  if (target === screenHome) {
+    elHeaderCode.classList.add("hidden");
+    elHeaderTitle.textContent = "Guía de Procedimientos Operativos";
+  }
+}
 
 // ── Init ───────────────────────────────────────────────────────────────────
 async function init() {
-  const res = await fetch("/api/nodos");
+  const res = await fetch("/api/areas");
+  appAreas = await res.json();
+  renderHome();
+  showScreen(screenHome);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCREEN 1: HOME
+// ══════════════════════════════════════════════════════════════════════════
+function renderHome() {
+  const grid = $("areas-grid");
+  if (!grid || !appAreas) return;
+
+  grid.innerHTML = appAreas.areas.map((area, i) => {
+    const hasPros = area.pros.length > 0;
+    return `
+      <button class="area-card ${hasPros ? "" : "area-card-disabled"}"
+              data-area-id="${esc(area.id)}"
+              ${hasPros ? "" : "disabled"}>
+        <span class="area-num">${i + 1}</span>
+        <span class="area-nombre">${esc(area.nombre)}</span>
+        ${!hasPros ? '<span class="area-coming">Próximamente</span>' : ""}
+      </button>`;
+  }).join("");
+
+  grid.querySelectorAll(".area-card:not([disabled])").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const areaId = btn.dataset.areaId;
+      appArea = appAreas.areas.find(a => a.id === areaId);
+      showIntent(appArea);
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCREEN 2: INTENT
+// ══════════════════════════════════════════════════════════════════════════
+function showIntent(area) {
+  $("intent-area-badge").textContent = area.nombre;
+  showScreen(screenIntent);
+  elHeaderTitle.textContent = area.nombre;
+
+  screenIntent.querySelectorAll(".intent-btn").forEach(btn => {
+    btn.onclick = () => {
+      const intent = btn.dataset.intent;
+      handleIntent(area, intent);
+    };
+  });
+}
+
+function handleIntent(area, intent) {
+  if (intent === "ejecutar") {
+    if (area.pros.length === 1) {
+      startPro(area.pros[0], area.id);
+    } else {
+      showProSelect(area);
+    }
+  } else {
+    // Informarme / Resolver / Reportar → IA chat
+    if (area.pros.length === 1) {
+      startAiChat(area.pros[0], area.id, intent);
+    } else {
+      showProSelectForChat(area, intent);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCREEN 3: PRO SELECT
+// ══════════════════════════════════════════════════════════════════════════
+function showProSelect(area) {
+  $("pro-select-badge").textContent = area.nombre;
+
+  const list = $("pro-list");
+  list.innerHTML = area.pros.map(proId => {
+    const pro = appAreas.pros[proId];
+    return `
+      <button class="pro-card" data-pro-id="${esc(proId)}">
+        <span class="pro-id-badge">${esc(proId)}</span>
+        <div class="pro-card-body">
+          <div class="pro-card-nombre">${esc(pro.nombre)}</div>
+          <div class="pro-card-desc">${esc(pro.descripcion)}</div>
+        </div>
+        <span class="pro-card-arrow">›</span>
+      </button>`;
+  }).join("");
+
+  list.querySelectorAll(".pro-card").forEach(btn => {
+    btn.addEventListener("click", () => startPro(btn.dataset.proId, area.id));
+  });
+
+  showScreen(screenProSelect);
+}
+
+function showProSelectForChat(area, intent) {
+  $("pro-select-badge").textContent = area.nombre;
+
+  const list = $("pro-list");
+  list.innerHTML = area.pros.map(proId => {
+    const pro = appAreas.pros[proId];
+    return `
+      <button class="pro-card" data-pro-id="${esc(proId)}" data-intent="${esc(intent)}">
+        <span class="pro-id-badge">${esc(proId)}</span>
+        <div class="pro-card-body">
+          <div class="pro-card-nombre">${esc(pro.nombre)}</div>
+          <div class="pro-card-desc">${esc(pro.descripcion)}</div>
+        </div>
+        <span class="pro-card-arrow">›</span>
+      </button>`;
+  }).join("");
+
+  list.querySelectorAll(".pro-card").forEach(btn => {
+    btn.addEventListener("click", () => startAiChat(btn.dataset.proId, area.id, btn.dataset.intent));
+  });
+
+  showScreen(screenProSelect);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCREEN 4: AI CHAT
+// ══════════════════════════════════════════════════════════════════════════
+const INTENT_LABELS = {
+  informarme: "Informarme sobre el procedimiento",
+  resolver:   "Resolver un problema",
+  reportar:   "Reportar / cerrar"
+};
+
+function startAiChat(proId, areaId, intent) {
+  appPro = appAreas.pros[proId];
+  chatHistory.length = 0;
+
+  const intentLabel = INTENT_LABELS[intent] || intent;
+  $("chat-pro-badge").innerHTML = `
+    <span class="pro-id-badge">${esc(proId)}</span>
+    <span>${esc(appPro.nombre)}</span>
+    <span class="chat-intent-tag">${esc(intentLabel)}</span>`;
+
+  elChatMessages.innerHTML = `
+    <div class="chat-bubble assistant">
+      <strong>Asistente</strong>
+      <p>Hola, estoy aquí para ayudarte con <strong>${esc(appPro.nombre)}</strong>.<br>
+      ¿Cuál es tu consulta?</p>
+    </div>`;
+
+  elHeaderCode.textContent = proId;
+  elHeaderCode.classList.remove("hidden");
+  elHeaderTitle.textContent = appPro.nombre;
+
+  showScreen(screenAiChat);
+
+  elChatInput.value = "";
+  elChatInput.focus();
+
+  elBtnChatSend.onclick = () => sendChatMessage(proId, areaId);
+  elChatInput.onkeydown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChatMessage(proId, areaId); }
+  };
+}
+
+async function sendChatMessage(proId, areaId) {
+  const text = elChatInput.value.trim();
+  if (!text) return;
+
+  elChatInput.value = "";
+  appendChatBubble("user", text);
+  chatHistory.push({ role: "user", content: text });
+
+  const typingEl = appendChatBubble("assistant", "…");
+
+  try {
+    const res = await fetch("/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: chatHistory, pro_id: proId, area_id: areaId })
+    });
+    const data = await res.json();
+    const reply = data.reply || "Sin respuesta.";
+    typingEl.querySelector("p").textContent = reply;
+    chatHistory.push({ role: "assistant", content: reply });
+  } catch (e) {
+    typingEl.querySelector("p").textContent = "Error de conexión. Intenta nuevamente.";
+  }
+  elChatMessages.scrollTop = elChatMessages.scrollHeight;
+}
+
+function appendChatBubble(role, text) {
+  const div = document.createElement("div");
+  div.className = `chat-bubble ${role}`;
+  div.innerHTML = `<strong>${role === "user" ? "Tú" : "Asistente"}</strong><p>${esc(text)}</p>`;
+  elChatMessages.appendChild(div);
+  elChatMessages.scrollTop = elChatMessages.scrollHeight;
+  return div;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCREEN 5: CHECKLIST
+// ══════════════════════════════════════════════════════════════════════════
+async function startPro(proId, areaId) {
+  appPro  = appAreas.pros[proId];
+
+  const res = await fetch(`/api/pro/${proId}/nodos`);
   state.nodos = await res.json();
 
-  const saved = localStorage.getItem("pro141_session_id");
+  // Try to restore saved session for this PRO
+  const savedKey = `hmi_session_${proId}`;
+  const saved = localStorage.getItem(savedKey);
   if (saved) {
     try {
       const r = await fetch(`/api/session/${saved}`);
       if (r.ok) {
         const s = await r.json();
-        state.session_id   = s.session_id;
-        state.current_node = s.current_node;
-        state.history      = s.history;
-        state.decisiones   = s.decisiones;
-        state.bloqueos     = s.bloqueos;
-        state.inputs       = s.inputs;
-        state.logs         = s.logs;
-        state.estado       = s.estado;
-        render();
-        return;
+        if (s.pro_id === proId) {
+          restoreState(s);
+          setupChecklistUI(proId, areaId);
+          render();
+          return;
+        }
       }
     } catch(_) {}
   }
-  await newSession();
+  await newSession(proId, areaId);
 }
 
-async function newSession() {
-  const r = await fetch("/api/session", { method: "POST" });
+function restoreState(s) {
+  state.session_id   = s.session_id;
+  state.current_node = s.current_node;
+  state.history      = s.history;
+  state.decisiones   = s.decisiones;
+  state.bloqueos     = s.bloqueos;
+  state.inputs       = s.inputs;
+  state.logs         = s.logs;
+  state.estado       = s.estado;
+  state.is_blocked   = false;
+  state.block_ts     = null;
+}
+
+async function newSession(proId, areaId) {
+  const r = await fetch("/api/session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pro_id: proId, area_id: areaId })
+  });
   const s = await r.json();
   state.session_id   = s.session_id;
-  state.current_node = "S0_alcance";
+  state.current_node = s.current_node;
   state.history      = [];
   state.decisiones   = [];
   state.bloqueos     = [];
@@ -108,8 +343,25 @@ async function newSession() {
   state.logs         = [];
   state.estado       = "EN_CURSO";
   state.is_blocked   = false;
-  localStorage.setItem("pro141_session_id", s.session_id);
+  state.block_ts     = null;
+  localStorage.setItem(`hmi_session_${proId}`, s.session_id);
+  setupChecklistUI(proId, areaId);
   render();
+}
+
+function setupChecklistUI(proId, areaId) {
+  elHeaderCode.textContent = proId;
+  elHeaderCode.classList.remove("hidden");
+  elHeaderTitle.textContent = appPro.nombre;
+
+  // STOP button visibility
+  if (appPro.has_stop) {
+    elStopBar.classList.remove("hidden");
+  } else {
+    elStopBar.classList.add("hidden");
+  }
+
+  showScreen(screenChecklist);
 }
 
 // ── Persist ────────────────────────────────────────────────────────────────
@@ -135,10 +387,11 @@ function log(tipo, data = {}) {
 
 // ── Progress ───────────────────────────────────────────────────────────────
 function updateProgress() {
-  const idx = FLOW_ORDER.indexOf(state.current_node);
-  const pct = idx < 0 ? 0 : Math.round(((idx + 1) / FLOW_ORDER.length) * 100);
+  const flowOrder = appPro?.flow_order || [];
+  const idx = flowOrder.indexOf(state.current_node);
+  const pct = idx < 0 ? 0 : Math.round(((idx + 1) / flowOrder.length) * 100);
   elProgress.style.width = pct + "%";
-  const step = idx < 0 ? "—" : `Paso ${idx + 1} / ${FLOW_ORDER.length}`;
+  const step = idx < 0 ? "—" : `Paso ${idx + 1} / ${flowOrder.length}`;
   elStepMeta.textContent = `${step}  ·  ID ${state.session_id?.slice(0,8) ?? ""}`;
   if (elSideSession) elSideSession.textContent = state.session_id?.slice(0,8) ?? "";
 }
@@ -146,7 +399,6 @@ function updateProgress() {
 // ── Timeline ───────────────────────────────────────────────────────────────
 function renderTimeline() {
   if (!elTimeline) return;
-
   const path = [...state.history, state.current_node];
 
   elTimeline.innerHTML = path.map((nodeId, idx) => {
@@ -161,7 +413,6 @@ function renderTimeline() {
       ? (wasBlocked ? "blocked" : "current")
       : wasBlocked ? "blocked done" : "done";
     const itemClass = isCurrent ? "tl-item tl-current" : "tl-item tl-done";
-
     const maxLen = 42;
     const label  = n.titulo.length > maxLen ? n.titulo.slice(0, maxLen - 1) + "…" : n.titulo;
     const typeTag = TYPE_LABEL[n.type] || n.type;
@@ -177,11 +428,9 @@ function renderTimeline() {
           <div class="tl-label">${esc(label)}</div>
           ${wasBlocked ? '<div class="tl-blocked-badge">Bloqueado</div>' : ""}
         </div>
-      </div>
-    `;
+      </div>`;
   }).join("");
 
-  // Auto-scroll current item into view inside sidebar
   requestAnimationFrame(() => {
     const active = elTimeline.querySelector(".tl-current");
     if (active) active.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -189,14 +438,8 @@ function renderTimeline() {
 }
 
 // ── Sidebar toggle (mobile) ────────────────────────────────────────────────
-function openSidebar() {
-  elSidebar.classList.add("open");
-  elOverlay.classList.add("visible");
-}
-function closeSidebar() {
-  elSidebar.classList.remove("open");
-  elOverlay.classList.remove("visible");
-}
+function openSidebar()  { elSidebar.classList.add("open");    elOverlay.classList.add("visible"); }
+function closeSidebar() { elSidebar.classList.remove("open"); elOverlay.classList.remove("visible"); }
 elBtnSideToggle?.addEventListener("click", () =>
   elSidebar.classList.contains("open") ? closeSidebar() : openSidebar()
 );
@@ -243,9 +486,9 @@ function renderHeader(n) {
 
 function renderBody(n) {
   elBody.innerHTML = "";
-  if (n.type === "task")     renderTaskBody(n);
-  else if (n.type === "decision") renderDecisionBody(n);
-  else if (n.type === "end") renderEndBody(n);
+  if (n.type === "task")            renderTaskBody(n);
+  else if (n.type === "decision")   renderDecisionBody(n);
+  else if (n.type === "end")        renderEndBody(n);
 }
 
 function renderTaskBody(n) {
@@ -340,6 +583,10 @@ function renderDecisionBody(n) {
 }
 
 function renderEndBody(n) {
+  const isStop    = state.current_node === "END_STOP";
+  const isRechazo = state.current_node === "END_RECHAZO";
+  const boxClass  = isStop || isRechazo ? "end-box end-box-danger" : "end-box";
+
   let inputsHtml = "";
   if (n.inputs?.length) {
     inputsHtml = n.inputs.map(spec => `
@@ -355,9 +602,11 @@ function renderEndBody(n) {
       </div>`).join("");
   }
 
+  const icon = isStop ? "⛔" : isRechazo ? "⚠" : "🏁";
+
   elBody.innerHTML = `
-    <div class="end-box">
-      <div class="end-icon">🏁</div>
+    <div class="${boxClass}">
+      <div class="end-icon">${icon}</div>
       <div class="end-titulo">${esc(n.titulo)}</div>
       <div class="end-mensaje">${esc(n.mensaje || n.descripcion || "")}</div>
       <div class="end-estado">${esc(n.estado_final || "FINALIZADO")}</div>
@@ -386,7 +635,8 @@ function renderFooterState(n) {
 }
 
 function renderBlockPanel() {
-  elBlockMot.innerHTML = MOTIVOS_BLOQUEO.map((m, i) => `
+  const motivos = appPro?.motivos_bloqueo || ["Otro"];
+  elBlockMot.innerHTML = motivos.map((m, i) => `
     <label class="block-motivo-item">
       <input type="checkbox" id="bm_${i}" value="${esc(m)}" />
       ${esc(m)}
@@ -515,6 +765,16 @@ elBtnNo.addEventListener("click", () => {
   render();
 });
 
+elBtnStop?.addEventListener("click", async () => {
+  if (!confirm("¿Detener el proceso? Esto registrará un STOP en la trazabilidad.")) return;
+  log("STOP", { nodo: state.current_node });
+  state.history.push(state.current_node);
+  state.current_node = "END_STOP";
+  state.estado = "DETENIDO";
+  await persist();
+  render();
+});
+
 elBtnRehacer.addEventListener("click", async () => {
   const motivos = [...document.querySelectorAll("#block-motivos input[type='checkbox']:checked")]
     .map(cb => cb.value);
@@ -527,9 +787,9 @@ elBtnRehacer.addEventListener("click", async () => {
 
   state.bloqueos.push({
     ts_inicio: state.block_ts,
-    ts_fin: new Date().toISOString(),
-    nodo: state.current_node,
-    titulo: state.nodos[state.current_node]?.titulo || "",
+    ts_fin:    new Date().toISOString(),
+    nodo:      state.current_node,
+    titulo:    state.nodos[state.current_node]?.titulo || "",
     motivos,
     detalle
   });
@@ -550,25 +810,35 @@ elBtnBack.addEventListener("click", async () => {
   render();
 });
 
-elBtnExport.addEventListener("click", () => triggerExport());
+elBtnExport?.addEventListener("click", () => triggerExport());
 
-elBtnReset.addEventListener("click", async () => {
+elBtnReset?.addEventListener("click", async () => {
   if (!confirm("¿Reiniciar sesión? Se perderá el progreso actual.")) return;
-  localStorage.removeItem("pro141_session_id");
-  await newSession();
+  const proId = appPro?.id;
+  if (proId) localStorage.removeItem(`hmi_session_${proId}`);
+  await newSession(appPro.id, appArea?.id || "");
   showToast("Sesión reiniciada");
 });
 
-// ── Export — fetch + blob download ─────────────────────────────────────────
+// ── Home button ────────────────────────────────────────────────────────────
+elBtnHome?.addEventListener("click", () => {
+  appPro  = null;
+  appArea = null;
+  chatHistory.length = 0;
+  elHeaderCode.classList.add("hidden");
+  showScreen(screenHome);
+});
+
+// ── Export ─────────────────────────────────────────────────────────────────
 async function triggerExport() {
   await persist();
   try {
-    const r = await fetch(`/api/session/${state.session_id}/export`);
+    const r    = await fetch(`/api/session/${state.session_id}/export`);
     const blob = await r.blob();
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
     a.href     = url;
-    a.download = `PRO141_${state.session_id.slice(0,8)}.json`;
+    a.download = `${appPro?.id || "PRO"}_${state.session_id.slice(0,8)}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();

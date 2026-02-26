@@ -1,0 +1,229 @@
+{
+  "T1": {
+    "type": "task",
+    "titulo": "1. Detectar y confirmar la falla en instalación",
+    "rol": "Operador de Turno / Jefe de Turno",
+    "descripcion": "Detectar la falla en la instalación y confirmar su existencia antes de proceder con el aviso formal.",
+    "acciones": [
+      "Identificar la alarma o señal de falla recibida en el sistema de control (SIGO / SCADA).",
+      "Confirmar visualmente o mediante telemetría el estado anormal del equipo o instalación.",
+      "Registrar la hora exacta de detección de la falla."
+    ],
+    "inputs": [
+      {"key": "hora_deteccion", "label": "Hora de detección (HH:MM)", "placeholder": "ej: 09:45", "required": true},
+      {"key": "instalacion_afectada", "label": "Instalación / equipo afectado", "placeholder": "ej: S/E Quillota, Feeder F3", "required": true}
+    ],
+    "checklist": [
+      "Alarma / señal de falla identificada en sistema",
+      "Falla confirmada (visual o telemetría)",
+      "Hora de detección registrada"
+    ],
+    "validacion": "¿La falla fue detectada y confirmada correctamente?",
+    "next": "T2"
+  },
+  "T2": {
+    "type": "task",
+    "titulo": "2. Informar al COC (Centro de Operaciones)",
+    "rol": "Operador de Turno / Jefe de Turno",
+    "descripcion": "Comunicar de inmediato la falla al Centro de Operaciones (COC) según el protocolo de aviso.",
+    "acciones": [
+      "Contactar al COC por el canal de comunicación establecido (radio, teléfono, sistema).",
+      "Informar: instalación afectada, tipo de falla, hora de inicio y estado actual.",
+      "Registrar el nombre del operador COC que recibe el aviso."
+    ],
+    "inputs": [
+      {"key": "operador_coc", "label": "Nombre operador COC receptor", "placeholder": "ej: Juan Pérez", "required": true}
+    ],
+    "checklist": [
+      "COC contactado y notificado",
+      "Información de falla comunicada (instalación, tipo, hora)",
+      "Operador COC receptor registrado"
+    ],
+    "validacion": "¿El COC fue informado correctamente de la falla?",
+    "next": "T3"
+  },
+  "T3": {
+    "type": "task",
+    "titulo": "3. Ejecutar maniobras iniciales de seguridad",
+    "rol": "Operador de Turno / Jefe de Turno",
+    "descripcion": "Ejecutar las maniobras operativas iniciales para aislar la falla y garantizar la seguridad de las personas e instalaciones.",
+    "acciones": [
+      "Aislar el equipo o tramo de línea afectado según el protocolo de maniobras.",
+      "Verificar que no existan riesgos para el personal en el área afectada.",
+      "Comunicar al COC el estado luego de las maniobras iniciales.",
+      "Si la situación representa riesgo crítico, activar protocolo de emergencia y PARAR el proceso."
+    ],
+    "checklist": [
+      "Equipo / tramo aislado correctamente",
+      "Seguridad del personal verificada",
+      "COC informado del estado post-maniobras",
+      "No hay riesgo crítico que requiera detención del proceso"
+    ],
+    "validacion": "¿Las maniobras iniciales de seguridad fueron ejecutadas correctamente?",
+    "next": "T4"
+  },
+  "T4": {
+    "type": "task",
+    "titulo": "4. Crear aviso de falla en SIGO",
+    "rol": "Operador de Turno / Jefe de Turno",
+    "descripcion": "Registrar formalmente el aviso de falla en el sistema SIGO (SAP PM).",
+    "acciones": [
+      "Acceder a SIGO y crear el aviso de falla M2 o M1 según corresponda.",
+      "Completar los campos: instalación, equipo, descripción de la falla, fecha/hora.",
+      "Registrar el número de aviso generado."
+    ],
+    "inputs": [
+      {"key": "numero_aviso_sigo", "label": "N° Aviso SIGO", "placeholder": "ej: 10045621", "required": true}
+    ],
+    "checklist": [
+      "Aviso SIGO creado con datos correctos",
+      "Número de aviso registrado",
+      "Aviso asignado al equipo/instalación correcta"
+    ],
+    "validacion": "¿El aviso de falla fue creado correctamente en SIGO?",
+    "next": "T5"
+  },
+  "T5": {
+    "type": "task",
+    "titulo": "5. Clasificar el tipo y severidad de la falla",
+    "rol": "Jefe de Turno / Ingeniero de Turno",
+    "descripcion": "Clasificar la falla según su tipo y severidad para determinar el flujo de gestión apropiado.",
+    "acciones": [
+      "Clasificar la falla según tipo: eléctrica, mecánica, civil, instrumentación, externa.",
+      "Determinar si la falla es catastrófica, mayor, menor o de bajo impacto.",
+      "Determinar si el equipo tiene posibilidad de reconexión inmediata o requiere reparación previa."
+    ],
+    "checklist": [
+      "Tipo de falla clasificado",
+      "Severidad de falla determinada",
+      "Posibilidad de reconexión evaluada"
+    ],
+    "validacion": "¿La falla fue correctamente clasificada en tipo y severidad?",
+    "next": "T6"
+  },
+  "T6": {
+    "type": "task",
+    "titulo": "6. Coordinar con CDC/CDEC para evaluación de reconexión",
+    "rol": "Jefe de Turno / Operador COC",
+    "descripcion": "Coordinar con el Centro de Despacho y Control (CDC) o el Coordinador Eléctrico Nacional (CEN) la posibilidad de reconectar el equipo o realizar prueba de unidad.",
+    "acciones": [
+      "Contactar al despachador del CDC/CEN para informar el estado de la falla.",
+      "Proporcionar los datos técnicos del equipo afectado y el resultado de las maniobras.",
+      "Consultar si el CDC/CEN autoriza intentar la reconexión o realizar prueba de unidad.",
+      "Si no se logra contacto con COC/CDC, evaluar PARAR el proceso."
+    ],
+    "inputs": [
+      {"key": "despachador_cdc", "label": "Nombre despachador CDC/CEN contactado", "placeholder": "ej: Carlos Fuentes", "required": true}
+    ],
+    "checklist": [
+      "CDC/CEN contactado",
+      "Datos técnicos de falla comunicados",
+      "Respuesta del CDC/CEN recibida y registrada"
+    ],
+    "validacion": "¿El CDC/CEN fue contactado y su respuesta fue recibida?",
+    "next": "D_PRUEBA_UNIDAD"
+  },
+  "D_PRUEBA_UNIDAD": {
+    "type": "decision",
+    "titulo": "Decisión CDC/CEN — ¿Se autoriza prueba de unidad?",
+    "rol": "Despachador CDC / Operador COC",
+    "descripcion": "El CDC/CEN evalúa las condiciones del sistema eléctrico y decide si autoriza realizar prueba de unidad (reconexión controlada) del equipo afectado.",
+    "pregunta": "¿Cuál es la decisión del CDC/CEN respecto a la prueba de unidad?",
+    "opciones": [
+      {"label": "SÍ — autoriza realizar prueba de unidad", "next": "T7"},
+      {"label": "NO — no autoriza prueba (gestión sin reconexión)", "next": "T9"},
+      {"label": "RECHAZA / NO AUTORIZA reconexión en ninguna condición", "next": "END_RECHAZO"}
+    ]
+  },
+  "T7": {
+    "type": "task",
+    "titulo": "7. Coordinar y ejecutar prueba de unidad",
+    "rol": "Jefe de Turno / Operador COC / Despachador CDC",
+    "descripcion": "Coordinar con CDC/CEN y ejecutar la prueba de unidad (reconexión controlada) del equipo afectado.",
+    "acciones": [
+      "Confirmar con CDC/CEN la ventana horaria autorizada para realizar la prueba.",
+      "Verificar que el personal de campo esté fuera del área de peligro antes de reconectar.",
+      "Ejecutar la prueba de unidad según las instrucciones del despachador CDC.",
+      "Registrar el resultado de la prueba (exitosa / fallida)."
+    ],
+    "checklist": [
+      "Ventana horaria confirmada con CDC/CEN",
+      "Personal de campo en zona segura confirmado",
+      "Prueba de unidad ejecutada según instrucción CDC",
+      "Resultado registrado (exitosa / fallida)"
+    ],
+    "validacion": "¿La prueba de unidad fue coordinada y ejecutada según protocolo?",
+    "next": "T8"
+  },
+  "T8": {
+    "type": "task",
+    "titulo": "8. Registrar resultado de la prueba de unidad",
+    "rol": "Jefe de Turno / Operador COC",
+    "descripcion": "Registrar en SIGO y comunicar al COC el resultado de la prueba de unidad.",
+    "acciones": [
+      "Si la prueba fue exitosa: registrar reconexión en SIGO y actualizar el aviso.",
+      "Si la prueba fue fallida: registrar el resultado, mantener el equipo fuera de servicio y coordinar reparación.",
+      "Comunicar el resultado al COC y al CDC/CEN.",
+      "Si la prueba resultó fallida con riesgo crítico, evaluar activar protocolo de emergencia."
+    ],
+    "inputs": [
+      {"key": "resultado_prueba", "label": "Resultado de la prueba de unidad", "placeholder": "ej: Exitosa / Fallida — descripción", "required": true}
+    ],
+    "checklist": [
+      "Resultado de la prueba registrado en SIGO",
+      "COC y CDC/CEN informados del resultado",
+      "Aviso SIGO actualizado con resultado"
+    ],
+    "validacion": "¿El resultado de la prueba fue registrado y comunicado correctamente?",
+    "next": "T9"
+  },
+  "T9": {
+    "type": "task",
+    "titulo": "9. Registrar resolución y cerrar aviso de falla",
+    "rol": "Jefe de Turno / Operador de Turno",
+    "descripcion": "Registrar la resolución final del aviso de falla y cerrarlo en SIGO una vez solucionado.",
+    "acciones": [
+      "Actualizar el aviso SIGO con todos los datos de resolución: acciones tomadas, estado final del equipo.",
+      "Registrar la hora de cierre de la falla.",
+      "Si el equipo quedó fuera de servicio, programar OT de mantenimiento correctivo.",
+      "Comunicar al COC el cierre formal del aviso.",
+      "Verificar que no queden tareas pendientes asociadas al aviso."
+    ],
+    "inputs": [
+      {"key": "hora_cierre", "label": "Hora de cierre del aviso (HH:MM)", "placeholder": "ej: 11:30", "required": true}
+    ],
+    "checklist": [
+      "Aviso SIGO actualizado con resolución completa",
+      "Hora de cierre registrada",
+      "OT correctiva creada (si equipo quedó fuera de servicio)",
+      "COC informado del cierre",
+      "Sin tareas pendientes"
+    ],
+    "validacion": "¿El aviso de falla fue completamente resuelto y cerrado en SIGO?",
+    "next": "END_OK"
+  },
+  "END_OK": {
+    "type": "end",
+    "titulo": "Aviso de Falla — Proceso completado",
+    "rol": "Sistema",
+    "descripcion": "El aviso de falla fue procesado, gestionado y cerrado correctamente en todos los sistemas.",
+    "mensaje": "El proceso PRO115 finalizó exitosamente. El aviso de falla fue creado, gestionado con COC/CDC y cerrado en SIGO.",
+    "estado_final": "COMPLETADO"
+  },
+  "END_RECHAZO": {
+    "type": "end",
+    "titulo": "Solicitud rechazada por CDC/CEN",
+    "rol": "Sistema",
+    "descripcion": "El CDC/CEN rechazó la autorización de reconexión o prueba de unidad. Se debe escalar y coordinar plan de reparación.",
+    "mensaje": "El CDC/CEN rechazó la prueba de unidad. Registre el motivo del rechazo en SIGO, mantenga el equipo fuera de servicio y coordine plan de reparación con el área de mantenimiento.",
+    "estado_final": "RECHAZADO — ESCALAR A MANTENIMIENTO"
+  },
+  "END_STOP": {
+    "type": "end",
+    "titulo": "Proceso detenido — Condición crítica",
+    "rol": "Sistema",
+    "descripcion": "El proceso fue detenido debido a una condición de riesgo crítico o imposibilidad de continuar.",
+    "mensaje": "El proceso fue detenido. Registre el motivo en SIGO, notifique al jefe de área y al COC, y active el protocolo de emergencia si corresponde.",
+    "estado_final": "DETENIDO — REQUIERE INTERVENCIÓN"
+  }
+}

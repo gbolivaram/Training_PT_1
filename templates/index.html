@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PRO141 — Guía de Procedimiento</title>
+  <title>Guía de Procedimientos Operativos</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
@@ -12,83 +12,169 @@
   <header class="header">
     <div class="header-inner">
       <div class="header-left">
-        <button id="btn-sidebar-toggle" class="btn-ghost btn-icon" title="Mostrar/ocultar progreso">☰</button>
-        <span class="header-code">PRO141</span>
-        <span class="header-title">Tratamiento de materiales obsoletos y análisis de obsolescencia</span>
+        <button id="btn-home" class="btn-ghost btn-icon" title="Volver al inicio">⌂</button>
+        <button id="btn-sidebar-toggle" class="btn-ghost btn-icon hidden" title="Mostrar/ocultar progreso">☰</button>
+        <span class="header-code hidden" id="header-code"></span>
+        <span class="header-title" id="header-title">Guía de Procedimientos Operativos</span>
       </div>
-      <div class="header-right">
-        <a href="/static/docs/PRO141.pdf" target="_blank" class="doc-link">Procedimiento</a>
-        <a href="/static/docs/Sintesis.pdf" target="_blank" class="doc-link">Síntesis</a>
+      <div class="header-right" id="header-right-checklist" style="display:none;">
+        <a id="doc-link-pro" href="#" target="_blank" class="doc-link hidden">Procedimiento</a>
         <button id="btn-export" class="btn-ghost" title="Exportar trazabilidad JSON">Exportar</button>
         <button id="btn-reset" class="btn-ghost btn-danger-ghost" title="Reiniciar sesión">Reiniciar</button>
       </div>
     </div>
   </header>
 
-  <!-- ── Layout ── -->
-  <div class="layout">
-
-    <!-- ── Sidebar timeline ── -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <span class="sidebar-title">Progreso</span>
-        <span class="sidebar-session" id="sidebar-session"></span>
+  <!-- ══════════════════════════════════════════════════════════════
+       SCREEN 1: HOME — Selección de área
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="screen-home" class="screen">
+    <div class="home-wrap">
+      <div class="home-hero">
+        <div class="home-hero-title">¿Con qué área necesitas trabajar?</div>
+        <div class="home-hero-sub">Selecciona el área para iniciar</div>
       </div>
-      <div class="timeline" id="timeline"></div>
-    </aside>
-
-    <!-- ── Main content ── -->
-    <main class="main">
-
-      <!-- Progress bar -->
-      <div class="progress-bar-wrap">
-        <div class="progress-bar" id="progress-bar"></div>
+      <div class="areas-grid" id="areas-grid">
+        <!-- Renderizado por JS -->
       </div>
+    </div>
+  </div>
 
-      <!-- Step counter -->
-      <div class="step-meta" id="step-meta"></div>
+  <!-- ══════════════════════════════════════════════════════════════
+       SCREEN 2: INTENT — ¿Qué quieres hacer?
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="screen-intent" class="screen hidden">
+    <div class="intent-wrap">
+      <div class="intent-area-badge" id="intent-area-badge"></div>
+      <div class="intent-title">¿Qué quieres hacer?</div>
+      <div class="intent-grid">
+        <button class="intent-btn" data-intent="informarme">
+          <span class="intent-icon">ℹ</span>
+          <span class="intent-label">Informarme</span>
+          <span class="intent-desc">Consultar el procedimiento y resolverme dudas</span>
+        </button>
+        <button class="intent-btn" data-intent="ejecutar">
+          <span class="intent-icon">▶</span>
+          <span class="intent-label">Ejecutar tarea</span>
+          <span class="intent-desc">Seguir el procedimiento paso a paso con trazabilidad</span>
+        </button>
+        <button class="intent-btn" data-intent="resolver">
+          <span class="intent-icon">⚙</span>
+          <span class="intent-label">Resolver problema</span>
+          <span class="intent-desc">Diagnosticar una situación y encontrar la solución</span>
+        </button>
+        <button class="intent-btn" data-intent="reportar">
+          <span class="intent-icon">📋</span>
+          <span class="intent-label">Reportar / cerrar</span>
+          <span class="intent-desc">Reportar una situación o cerrar un proceso abierto</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
-      <!-- Card ── Node content -->
-      <div class="card" id="card">
+  <!-- ══════════════════════════════════════════════════════════════
+       SCREEN 3: PRO SELECT — Selección de procedimiento
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="screen-pro-select" class="screen hidden">
+    <div class="pro-select-wrap">
+      <div class="pro-select-header">
+        <div class="intent-area-badge" id="pro-select-badge"></div>
+        <div class="pro-select-title">Selecciona el procedimiento</div>
+      </div>
+      <div class="pro-list" id="pro-list">
+        <!-- Renderizado por JS -->
+      </div>
+    </div>
+  </div>
 
-        <!-- Node header -->
-        <div class="node-header" id="node-header"></div>
+  <!-- ══════════════════════════════════════════════════════════════
+       SCREEN 4: AI CHAT — Asistente IA
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="screen-ai-chat" class="screen hidden">
+    <div class="chat-wrap">
+      <div class="chat-pro-badge" id="chat-pro-badge"></div>
+      <div class="chat-messages" id="chat-messages">
+        <!-- Renderizado por JS -->
+      </div>
+      <div class="chat-input-area">
+        <textarea id="chat-input" class="chat-textarea" placeholder="Escribe tu consulta aquí…" rows="2"></textarea>
+        <button id="btn-chat-send" class="btn btn-si">Enviar</button>
+      </div>
+    </div>
+  </div>
 
-        <!-- Node body -->
-        <div class="node-body" id="node-body"></div>
+  <!-- ══════════════════════════════════════════════════════════════
+       SCREEN 5: CHECKLIST — Ejecución de procedimiento
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="screen-checklist" class="screen hidden">
+    <div class="layout">
 
-        <!-- Block panel (hidden by default) -->
-        <div class="block-panel hidden" id="block-panel">
-          <div class="block-title">Paso bloqueado — registre motivo(s)</div>
-          <div class="block-motivos" id="block-motivos"></div>
-          <label class="input-label">Detalle adicional</label>
-          <textarea id="block-detalle" class="block-textarea" placeholder="Describa el motivo. Obligatorio si selecciona 'Otro'."></textarea>
-          <button class="btn btn-info" id="btn-rehacer">Rehacer paso</button>
+      <!-- Sidebar timeline -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">Progreso</span>
+          <span class="sidebar-session" id="sidebar-session"></span>
+        </div>
+        <div class="timeline" id="timeline"></div>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+
+        <!-- Progress bar -->
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
         </div>
 
-        <!-- Alert message -->
-        <div class="alert hidden" id="alert"></div>
+        <!-- Step counter -->
+        <div class="step-meta" id="step-meta"></div>
 
-        <!-- Footer actions -->
-        <div class="card-footer" id="card-footer">
-          <button class="btn btn-back" id="btn-back">Volver</button>
-          <div class="footer-main-btns">
-            <button class="btn btn-no" id="btn-no">NO</button>
-            <button class="btn btn-si" id="btn-si">SÍ / Avanzar</button>
+        <!-- STOP button (solo PROs con has_stop) -->
+        <div id="stop-bar" class="hidden">
+          <button class="btn-stop" id="btn-stop" title="Detener proceso por condición crítica">⛔ PARAR proceso</button>
+        </div>
+
+        <!-- Card — Node content -->
+        <div class="card" id="card">
+
+          <!-- Node header -->
+          <div class="node-header" id="node-header"></div>
+
+          <!-- Node body -->
+          <div class="node-body" id="node-body"></div>
+
+          <!-- Block panel (hidden by default) -->
+          <div class="block-panel hidden" id="block-panel">
+            <div class="block-title">Paso bloqueado — registre motivo(s)</div>
+            <div class="block-motivos" id="block-motivos"></div>
+            <label class="input-label">Detalle adicional</label>
+            <textarea id="block-detalle" class="block-textarea" placeholder="Describa el motivo. Obligatorio si selecciona 'Otro'."></textarea>
+            <button class="btn btn-info" id="btn-rehacer">Rehacer paso</button>
           </div>
+
+          <!-- Alert message -->
+          <div class="alert hidden" id="alert"></div>
+
+          <!-- Footer actions -->
+          <div class="card-footer" id="card-footer">
+            <button class="btn btn-back" id="btn-back">Volver</button>
+            <div class="footer-main-btns">
+              <button class="btn btn-no" id="btn-no">NO</button>
+              <button class="btn btn-si" id="btn-si">SÍ / Avanzar</button>
+            </div>
+          </div>
+
         </div>
 
-      </div>
+        <!-- End summary -->
+        <div class="summary-panel hidden" id="summary-panel">
+          <div class="summary-title">Resumen de sesión</div>
+          <div id="summary-tables"></div>
+        </div>
 
-      <!-- End summary (hidden until end node) -->
-      <div class="summary-panel hidden" id="summary-panel">
-        <div class="summary-title">Resumen de sesión</div>
-        <div id="summary-tables"></div>
-      </div>
-
-    </main>
-
-  </div><!-- /.layout -->
+      </main>
+    </div><!-- /.layout -->
+  </div><!-- /#screen-checklist -->
 
   <!-- ── Sidebar overlay (mobile) ── -->
   <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
