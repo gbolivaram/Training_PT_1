@@ -8,7 +8,10 @@
       "Generar reserva según necesidad y fecha de requerimiento."
     ],
     "validacion": "¿La reserva quedó generada y registrada según necesidad y fecha de requerimiento?",
-    "next": "T2_generar_mrp_solped"
+    "next": "T2_generar_mrp_solped",
+    "checklist": [
+      "Generar reserva según necesidad y fecha de requerimiento."
+    ]
   },
   "T2_generar_mrp_solped": {
     "type": "task",
@@ -21,7 +24,12 @@
       "Registrar motivo de la SOLPED: Material para cubrir reserva / Material para cubrir stock de seguridad."
     ],
     "validacion": "¿La SOLPED quedó creada por las diferencias de inventario y con motivo correctamente registrado (reserva / stock seguridad)?",
-    "next": "T3_almacen_revisar_mrp_confirmar"
+    "next": "T3_almacen_revisar_mrp_confirmar",
+    "checklist": [
+      "Verificar en sistema el stock vigente v/s las reservas generadas.",
+      "Crear SOLPED para las diferencias de inventario.",
+      "Registrar motivo de la SOLPED: Material para cubrir reserva / Material para cubrir stock de seguridad."
+    ]
   },
   "T3_almacen_revisar_mrp_confirmar": {
     "type": "task",
@@ -34,7 +42,12 @@
       "Verificar que todas las reservas cuenten con su respectiva SOLPED cuando corresponda."
     ],
     "validacion": "¿Todas las reservas que requieren compra cuentan con su respectiva SOLPED asociada (sin quiebres en la trazabilidad)?",
-    "next": "T4_abast_revisar_solped_mrp"
+    "next": "T4_abast_revisar_solped_mrp",
+    "checklist": [
+      "Revisar las reservas en sistema.",
+      "Contrarrestar las reservas con las SOLPED gatilladas por el MRP.",
+      "Verificar que todas las reservas cuenten con su respectiva SOLPED cuando corresponda."
+    ]
   },
   "T4_abast_revisar_solped_mrp": {
     "type": "task",
@@ -54,7 +67,12 @@
       }
     ],
     "validacion": "¿La revisión de SOLPED determinó si existe o no falta de información (y se actuó en consecuencia)?",
-    "next": "D1_falta_informacion"
+    "next": "D1_falta_informacion",
+    "checklist": [
+      "Revisar la información de los materiales indicados en el MRP.",
+      "Determinar si la SOLPED presenta información incompleta.",
+      "Si presenta información incompleta: bloquear la SOLPED y notificar a los especialistas de almacén para aplicación de PRO-141."
+    ]
   },
   "D1_falta_informacion": {
     "type": "decision",
@@ -83,7 +101,11 @@
       "Notificar a los especialistas de almacén para que apliquen PRO-141 (Análisis de Obsolescencia)."
     ],
     "validacion": "¿La SOLPED quedó bloqueada y Almacén fue notificado para aplicar PRO-141?",
-    "next": "D4_obsoleto"
+    "next": "D4_obsoleto",
+    "checklist": [
+      "Bloquear la SOLPED correspondiente por información incompleta.",
+      "Notificar a los especialistas de almacén para que apliquen PRO-141 (Análisis de Obsolescencia)."
+    ]
   },
   "D4_obsoleto": {
     "type": "decision",
@@ -119,7 +141,11 @@
       "Definir el proceso que corresponda para el material."
     ],
     "validacion": "¿Se verificó la clasificación del material y/o disponibilidad de proveedores para definir el camino de cotización?",
-    "next": "D2_tipo_clasificacion"
+    "next": "D2_tipo_clasificacion",
+    "checklist": [
+      "Verificar el tipo de clasificación del material y/o cantidad de proveedores disponibles.",
+      "Definir el proceso que corresponda para el material."
+    ]
   },
   "D2_tipo_clasificacion": {
     "type": "decision",
@@ -148,7 +174,11 @@
       "Enviar un correo detallado con toda la información técnica y relevante para la cotización."
     ],
     "validacion": "¿Se envió al proveedor el correo con toda la información técnica y relevante para la cotización?",
-    "next": "MAIL_3_recibe_cotizacion"
+    "next": "MAIL_3_recibe_cotizacion",
+    "checklist": [
+      "Identificar proveedor único y/o urgencia en función de las características del material solicitado.",
+      "Enviar un correo detallado con toda la información técnica y relevante para la cotización."
+    ]
   },
   "MAIL_3_recibe_cotizacion": {
     "type": "task",
@@ -160,7 +190,11 @@
       "Revisar que la oferta venga con toda la información requerida."
     ],
     "validacion": "¿La oferta recibida contiene toda la información requerida?",
-    "next": "T8_evaluar_oferta"
+    "next": "T8_evaluar_oferta",
+    "checklist": [
+      "Recibir oferta por parte del proveedor.",
+      "Revisar que la oferta venga con toda la información requerida."
+    ]
   },
   "RFQ_1_crear_peticion_oferta": {
     "type": "task",
@@ -175,7 +209,14 @@
       "Dirigir al proveedor 1000012999 que realiza la conexión con Ariba."
     ],
     "validacion": "¿La petición de oferta (ME41) quedó creada referenciando SOLPED y con documentación adjunta, dirección de entrega y organización de compra verificadas?",
-    "next": "RFQ_2_iniciar_cotizacion_ariba"
+    "next": "RFQ_2_iniciar_cotizacion_ariba",
+    "checklist": [
+      "Realizar petición de oferta con transacción ME41 referenciando la(s) SOLPED.",
+      "Verificar documentación adjunta.",
+      "Verificar dirección de entrega.",
+      "Verificar organización de compra.",
+      "Dirigir al proveedor 1000012999 que realiza la conexión con Ariba."
+    ]
   },
   "RFQ_2_iniciar_cotizacion_ariba": {
     "type": "task",
@@ -189,7 +230,13 @@
       "Aprobar RFP."
     ],
     "validacion": "¿El RFQ viajó a Ariba y el RFP fue aprobado tras verificar que los datos viajaran correctamente?",
-    "next": "RFQ_3_ajustar_plantilla"
+    "next": "RFQ_3_ajustar_plantilla",
+    "checklist": [
+      "Verificar que la solicitud RFQ viaje a Ariba.",
+      "Proceder con la creación del proyecto RFP.",
+      "Revisar que los datos de la petición de oferta viajen correctamente.",
+      "Aprobar RFP."
+    ]
   },
   "RFQ_3_ajustar_plantilla": {
     "type": "task",
@@ -205,7 +252,15 @@
       "Habilitar tipos de monedas para cotizar."
     ],
     "validacion": "¿La plantilla quedó verificada con duración, cabecera, (HDS/ISP si aplica), ESG, adjuntos por ítem y monedas habilitadas?",
-    "next": "RFQ_4_seleccionar_proveedores"
+    "next": "RFQ_4_seleccionar_proveedores",
+    "checklist": [
+      "Verificar duración del proceso.",
+      "Verificar datos de cabecera (contacto interno, tipo de licitación, nota de entrega, entre otros).",
+      "Solicitar hoja de seguridad y/o Registro de ISP en caso de que aplique.",
+      "Solicitar información ESG.",
+      "Verificar adjuntos de cada ítem.",
+      "Habilitar tipos de monedas para cotizar."
+    ]
   },
   "RFQ_4_seleccionar_proveedores": {
     "type": "task",
@@ -218,7 +273,12 @@
       "Si no están registrados, tomar contacto para validar información."
     ],
     "validacion": "¿Los proveedores fueron seleccionados y se verificó su registro en Ariba?",
-    "next": "D3_proveedor_enrolado"
+    "next": "D3_proveedor_enrolado",
+    "checklist": [
+      "Realizar búsqueda de proveedores para invitar al proceso.",
+      "Verificar si los proveedores están registrados en Ariba.",
+      "Si no están registrados, tomar contacto para validar información."
+    ]
   },
   "D3_proveedor_enrolado": {
     "type": "decision",
@@ -249,7 +309,13 @@
       "Solicitar ANID."
     ],
     "validacion": "¿Se recibieron y validaron correo, persona de contacto y ANID del proveedor?",
-    "next": "RFQ_6_incorporar_proceso"
+    "next": "RFQ_6_incorporar_proceso",
+    "checklist": [
+      "Contactar al proveedor.",
+      "Solicitar correo.",
+      "Solicitar persona de contacto.",
+      "Solicitar ANID."
+    ]
   },
   "RFQ_6_incorporar_proceso": {
     "type": "task",
@@ -261,7 +327,11 @@
       "Incorporar a los proveedores al proceso."
     ],
     "validacion": "¿Los proveedores fueron incorporados al proceso una vez confirmados correctamente enrolados?",
-    "next": "RFQ_7_publicar_proceso"
+    "next": "RFQ_7_publicar_proceso",
+    "checklist": [
+      "Confirmar que los proveedores se encuentran correctamente enrolados.",
+      "Incorporar a los proveedores al proceso."
+    ]
   },
   "RFQ_7_publicar_proceso": {
     "type": "task",
@@ -273,7 +343,11 @@
       "Generar invitación a los participantes."
     ],
     "validacion": "¿El proceso fue publicado y se generó la invitación a los participantes?",
-    "next": "RFQ_8_notificar_participacion"
+    "next": "RFQ_8_notificar_participacion",
+    "checklist": [
+      "Publicar el proceso una vez completa la plantilla con todos los campos necesarios.",
+      "Generar invitación a los participantes."
+    ]
   },
   "RFQ_8_notificar_participacion": {
     "type": "task",
@@ -285,7 +359,11 @@
       "Confirmar que el proveedor puede revisar requisitos, cantidades e insumos a ofertar."
     ],
     "validacion": "¿La invitación fue notificada y el proveedor puede acceder al evento para revisar requisitos e insumos a ofertar?",
-    "next": "RFQ_9_recibe_oferta"
+    "next": "RFQ_9_recibe_oferta",
+    "checklist": [
+      "Verificar que se envió/recibió la invitación a participar con enlace directo al evento.",
+      "Confirmar que el proveedor puede revisar requisitos, cantidades e insumos a ofertar."
+    ]
   },
   "RFQ_9_recibe_oferta": {
     "type": "task",
@@ -297,7 +375,11 @@
       "Verificar información cargada."
     ],
     "validacion": "¿Los proveedores confirmaron participación y la información cargada fue verificada?",
-    "next": "T8_evaluar_oferta"
+    "next": "T8_evaluar_oferta",
+    "checklist": [
+      "Revisar que los proveedores confirmen participación en la cotización.",
+      "Verificar información cargada."
+    ]
   },
   "T8_evaluar_oferta": {
     "type": "task",
@@ -314,7 +396,16 @@
       "Si la oferta no se ajusta a lo requerido: proceder a bloquear SOLPED."
     ],
     "validacion": "¿Se evaluó la oferta verificando especificaciones técnicas y comparando precio/tiempo de entrega, determinando el curso (OC directa / Informe / bloqueo)?",
-    "next": "D5_cumplen_especificaciones"
+    "next": "D5_cumplen_especificaciones",
+    "checklist": [
+      "Evaluar las ofertas recibidas.",
+      "Verificar si cumple con especificaciones técnicas.",
+      "Comparar precios y tiempos de entrega.",
+      "Determinar la mejor alternativa y aplicar protocolo de abastecimiento.",
+      "Si el monto total de la compra es inferior a USD 25.000: emitir la OC de forma directa.",
+      "Si el monto total de la compra supera USD 25.000: proceder a crear un Informe.",
+      "Si la oferta no se ajusta a lo requerido: proceder a bloquear SOLPED."
+    ]
   },
   "D5_cumplen_especificaciones": {
     "type": "decision",
@@ -343,7 +434,11 @@
       "Informar a Almacén que se bloqueó solicitud de pedido."
     ],
     "validacion": "¿La SOLPED quedó bloqueada con motivo de rechazo adjunto y Almacén fue informado?",
-    "next": "D4_obsoleto"
+    "next": "D4_obsoleto",
+    "checklist": [
+      "Bloquear SOLPED adjuntando motivo por el cual fue rechazada.",
+      "Informar a Almacén que se bloqueó solicitud de pedido."
+    ]
   },
   "F1_formalizacion_oc": {
     "type": "task",
@@ -355,7 +450,11 @@
       "Revisar que SOLPED se encuentre disponible."
     ],
     "validacion": "¿Se revisó creación de proveedor en SAP y que SOLPED esté disponible para continuar con la formalización?",
-    "next": "D6_proveedor_creado_sap"
+    "next": "D6_proveedor_creado_sap",
+    "checklist": [
+      "Revisar la creación de proveedor en sistema SAP.",
+      "Revisar que SOLPED se encuentre disponible."
+    ]
   },
   "D6_proveedor_creado_sap": {
     "type": "decision",
@@ -384,7 +483,11 @@
       "Reunir/validar datos mínimos del proveedor (correo, contacto, ANID u otros definidos en el flujo)."
     ],
     "validacion": "¿Se ejecutó el flujo PRO145 y quedó el proveedor en condición de ser utilizado en el proceso?",
-    "next": "D_PRO145_creado_post"
+    "next": "D_PRO145_creado_post",
+    "checklist": [
+      "Completar el flujo PRO145 para creación/alta del proveedor (según estándar vigente).",
+      "Reunir/validar datos mínimos del proveedor (correo, contacto, ANID u otros definidos en el flujo)."
+    ]
   },
   "D_PRO145_creado_post": {
     "type": "decision",
@@ -413,7 +516,11 @@
       "Determinar si el monto será superior a 25.000 USD para definir creación de Informe de Adjudicación."
     ],
     "validacion": "¿Se revisaron antecedentes de oferta y se determinó si requiere Informe de Adjudicación (por monto > 25.000 USD)?",
-    "next": "D7_requiere_ia"
+    "next": "D7_requiere_ia",
+    "checklist": [
+      "Revisar antecedentes de la oferta.",
+      "Determinar si el monto será superior a 25.000 USD para definir creación de Informe de Adjudicación."
+    ]
   },
   "D7_requiere_ia": {
     "type": "decision",
@@ -459,7 +566,11 @@
       "Enviar el informe para revisión y aprobación conforme a niveles de autorización establecidos según DOA-2."
     ],
     "validacion": "¿El IA fue elaborado según plantilla y enviado a revisión/aprobación conforme DOA-2?",
-    "next": "F4_revisar_ia"
+    "next": "F4_revisar_ia",
+    "checklist": [
+      "Elaborar informe de adjudicación según plantilla para compra de materiales y repuestos.",
+      "Enviar el informe para revisión y aprobación conforme a niveles de autorización establecidos según DOA-2."
+    ]
   },
   "F4_revisar_ia": {
     "type": "task",
@@ -472,7 +583,12 @@
       "Aprobar IA en IDOK si está conforme; en caso de observaciones, rechazar y devolver a Ingeniero de Abastecimiento para corrección."
     ],
     "validacion": "¿El IA fue revisado y quedó aprobado en IDOK (o devuelto con observaciones para corrección)?",
-    "next": "D8_ia_aprobada"
+    "next": "D8_ia_aprobada",
+    "checklist": [
+      "Revisar IA según niveles de autorización DOA-2.",
+      "Validar que la adjudicación esté debidamente fundamentada en aspectos técnicos y comerciales.",
+      "Aprobar IA en IDOK si está conforme; en caso de observaciones, rechazar y devolver a Ingeniero de Abastecimiento para corrección."
+    ]
   },
   "D8_ia_aprobada": {
     "type": "decision",
@@ -518,7 +634,11 @@
       "Completar los campos críticos definidos en el flujo (proveedor, condiciones comerciales, fechas de entrega, moneda/precio y destinatarios/correos si aplica)."
     ],
     "validacion": "¿La Orden de Compra quedó generada en SAP (ME21N) posterior a IA aprobada, con campos críticos completos?",
-    "next": "F8_verificar_creacion_oc"
+    "next": "F8_verificar_creacion_oc",
+    "checklist": [
+      "Generar la Orden de Compra en SAP (ME21N) utilizando los antecedentes de la oferta aprobada y el IA aprobado en IDOK.",
+      "Completar los campos críticos definidos en el flujo (proveedor, condiciones comerciales, fechas de entrega, moneda/precio y destinatarios/correos si aplica)."
+    ]
   },
   "F6b_generar_oc_me21n": {
     "type": "task",
@@ -530,7 +650,11 @@
       "Completar campos críticos: número de cotización, fechas de entrega, moneda y precio, correo(s) de destino, tipo de licitación y comercio."
     ],
     "validacion": "¿La OC fue creada en ME21N con los campos críticos completos (cotización, fechas, moneda/precio, correos, tipo licitación y comercio)?",
-    "next": "F8_verificar_creacion_oc"
+    "next": "F8_verificar_creacion_oc",
+    "checklist": [
+      "Gestionar la creación de la orden de compra para cotizaciones por correo electrónico en transacción ME21N.",
+      "Completar campos críticos: número de cotización, fechas de entrega, moneda y precio, correo(s) de destino, tipo de licitación y comercio."
+    ]
   },
   "F7_cargar_conexion_ariba": {
     "type": "task",
@@ -542,7 +666,11 @@
       "Incorporar clave de conexión entre SAP HANNA y Ariba NETWORK."
     ],
     "validacion": "¿Se incorporó código SAP del proveedor y clave de conexión SAP–Ariba Network?",
-    "next": "F8_crear_supuesto_adjudicacion"
+    "next": "F8_crear_supuesto_adjudicacion",
+    "checklist": [
+      "Incorporar código SAP del proveedor.",
+      "Incorporar clave de conexión entre SAP HANNA y Ariba NETWORK."
+    ]
   },
   "F8_crear_supuesto_adjudicacion": {
     "type": "task",
@@ -553,7 +681,10 @@
       "Crear supuesto en Ariba seleccionando el o los proponentes adjudicados."
     ],
     "validacion": "¿Se creó el supuesto de adjudicación en Ariba seleccionando proponentes adjudicados?",
-    "next": "F8b_genera_oc_automatica"
+    "next": "F8b_genera_oc_automatica",
+    "checklist": [
+      "Crear supuesto en Ariba seleccionando el o los proponentes adjudicados."
+    ]
   },
   "F8b_genera_oc_automatica": {
     "type": "task",
@@ -565,7 +696,11 @@
       "Verificar completitud de campos: tipo de licitación, comercio, correo electrónico para notificar OC y adjunto de la oferta adjudicada."
     ],
     "validacion": "¿La OC automática se generó y completó campos (tipo licitación, comercio, correo, adjunto oferta adjudicada)?",
-    "next": "F8c_revisar_creacion_oc"
+    "next": "F8c_revisar_creacion_oc",
+    "checklist": [
+      "Verificar que se gatilló orden de compra automática vía conexión SAP–Ariba.",
+      "Verificar completitud de campos: tipo de licitación, comercio, correo electrónico para notificar OC y adjunto de la oferta adjudicada."
+    ]
   },
   "F8c_revisar_creacion_oc": {
     "type": "task",
@@ -578,7 +713,12 @@
       "Revisar llenado de campos tipo de licitación, comercio y correo electrónico."
     ],
     "validacion": "¿Se verificó ejecución correcta del proceso y completitud de respaldo/campos críticos?",
-    "next": "F9_revisar_oc_sap"
+    "next": "F9_revisar_oc_sap",
+    "checklist": [
+      "Revisar que el proceso se ejecutó de manera correcta.",
+      "Revisar envío de archivos de respaldo.",
+      "Revisar llenado de campos tipo de licitación, comercio y correo electrónico."
+    ]
   },
   "F8_verificar_creacion_oc": {
     "type": "task",
@@ -591,7 +731,12 @@
       "Verificar que la OC está trazable respecto de la SOLPED y antecedentes de oferta/cotización usados para la adjudicación."
     ],
     "validacion": "¿La Orden de Compra quedó creada correctamente en SAP y con campos críticos/respaldos completos para revisión del Solicitante/Jefatura?",
-    "next": "F9_revisar_oc_sap"
+    "next": "F9_revisar_oc_sap",
+    "checklist": [
+      "Verificar que la Orden de Compra se generó en SAP (ME21N) y que quedó liberada/pendiente según corresponda.",
+      "Revisar completitud de campos críticos definidos en el flujo (proveedor, condiciones comerciales, fechas de entrega, moneda/precio, centros/direcciones, correos/destinatarios si aplica).",
+      "Verificar que la OC está trazable respecto de la SOLPED y antecedentes de oferta/cotización usados para la adjudicación."
+    ]
   },
   "F9_revisar_oc_sap": {
     "type": "task",
@@ -611,7 +756,12 @@
       }
     ],
     "validacion": "¿La OC fue revisada por Jefatura y liberada en SAP (o devuelta a Abastecimiento por inconsistencia)?",
-    "next": "D9_oc_liberada"
+    "next": "D9_oc_liberada",
+    "checklist": [
+      "Revisar Orden de Compra generada en el sistema.",
+      "Validar que los datos ingresados coincidan con lo aprobado, incluyendo proveedor, montos y plazos.",
+      "Si conforme, liberar orden en el sistema; si inconsistencia, devolver a Ingeniero de Abastecimiento."
+    ]
   },
   "D9_oc_liberada": {
     "type": "decision",
@@ -663,7 +813,10 @@
       "Realizar seguimiento a la orden de compra hasta que la entrega se realice en la instalación."
     ],
     "validacion": "¿El seguimiento a la OC está en curso hasta concretar la entrega en la instalación?",
-    "next": "END_pro130"
+    "next": "END_pro130",
+    "checklist": [
+      "Realizar seguimiento a la orden de compra hasta que la entrega se realice en la instalación."
+    ]
   },
   "END_pro130": {
     "type": "end",

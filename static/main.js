@@ -47,15 +47,20 @@ const state = {
 // Chat state
 const chatHistory = [];
 
+// Manuales state
+let appManuales = null;   // JSON completo de manuales.json
+
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
 // screens
-const screenHome      = $("screen-home");
-const screenIntent    = $("screen-intent");
-const screenProSelect = $("screen-pro-select");
-const screenAiChat    = $("screen-ai-chat");
-const screenChecklist = $("screen-checklist");
+const screenHome          = $("screen-home");
+const screenIntent        = $("screen-intent");
+const screenProSelect     = $("screen-pro-select");
+const screenInformChoice  = $("screen-inform-choice");
+const screenManual        = $("screen-manual");
+const screenAiChat        = $("screen-ai-chat");
+const screenChecklist     = $("screen-checklist");
 
 // header
 const elBtnHome        = $("btn-home");
@@ -95,7 +100,7 @@ const elChatInput     = $("chat-input");
 const elBtnChatSend   = $("btn-chat-send");
 
 // ── Screen management ──────────────────────────────────────────────────────
-const ALL_SCREENS = [screenHome, screenIntent, screenProSelect, screenAiChat, screenChecklist];
+const ALL_SCREENS = [screenHome, screenIntent, screenProSelect, screenInformChoice, screenManual, screenAiChat, screenChecklist];
 
 function showScreen(target) {
   ALL_SCREENS.forEach(s => s.classList.add("hidden"));
@@ -113,8 +118,12 @@ function showScreen(target) {
 
 // ── Init ───────────────────────────────────────────────────────────────────
 async function init() {
-  const res = await fetch("/api/areas");
-  appAreas = await res.json();
+  const [resAreas, resManuales] = await Promise.all([
+    fetch("/api/areas"),
+    fetch("/api/manuales")
+  ]);
+  appAreas    = await resAreas.json();
+  appManuales = await resManuales.json();
   renderHome();
   showScreen(screenHome);
 }
@@ -170,14 +179,120 @@ function handleIntent(area, intent) {
     } else {
       showProSelect(area);
     }
+  } else if (intent === "informarme") {
+    showInformChoice(area);
   } else {
-    // Informarme / Resolver / Reportar → IA chat
+    // Resolver / Reportar → IA chat
     if (area.pros.length === 1) {
       startAiChat(area.pros[0], area.id, intent);
     } else {
       showProSelectForChat(area, intent);
     }
   }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCREEN 3b: INFORM CHOICE
+// ══════════════════════════════════════════════════════════════════════════
+function showInformChoice(area) {
+  $("inform-choice-badge").textContent = area.nombre;
+  elHeaderTitle.textContent = area.nombre;
+
+  const manualIds = appManuales?.por_area?.[area.id] || [];
+  const manuales  = manualIds.map(id => appManuales.manuales[id]).filter(Boolean);
+
+  const grid = $("inform-choice-grid");
+  let html = `
+    <button class="intent-btn" id="ic-btn-ia">
+      <span class="intent-icon">🤖</span>
+      <span class="intent-label">Preguntar a la IA</span>
+      <span class="intent-desc">Consultar dudas con el asistente inteligente</span>
+    </button>`;
+
+  manuales.forEach(m => {
+    html += `
+      <button class="intent-btn ic-btn-manual" data-manual-id="${esc(m.id)}">
+        <span class="intent-icon">📖</span>
+        <span class="intent-label">Ver manual</span>
+        <span class="intent-desc">${esc(m.codigo)} — ${esc(m.nombre)}</span>
+      </button>`;
+  });
+
+  if (!manuales.length) {
+    html += `
+      <div class="intent-btn" style="opacity:.5;cursor:default;">
+        <span class="intent-icon">📖</span>
+        <span class="intent-label">Ver manual</span>
+        <span class="intent-desc">No hay manuales disponibles para esta área aún</span>
+      </div>`;
+  }
+
+  grid.innerHTML = html;
+
+  $("ic-btn-ia").onclick = () => {
+    if (area.pros.length === 1) {
+      startAiChat(area.pros[0], area.id, "informarme");
+    } else {
+      showProSelectForChat(area, "informarme");
+    }
+  };
+
+  grid.querySelectorAll(".ic-btn-manual").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const manual = appManuales.manuales[btn.dataset.manualId];
+      if (manual) showManual(manual, area.nombre);
+    });
+  });
+
+  showScreen(screenInformChoice);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCREEN 3c: MANUAL VIEWER
+// ══════════════════════════════════════════════════════════════════════════
+const SECCION_ICONS = {
+  stop:     "⛔",
+  conexion: "🔗",
+  pasos:    "📋",
+  lista:    "👥",
+  texto:    "ℹ"
+};
+
+function showManual(manual, areaNombre) {
+  elHeaderTitle.textContent = manual.nombre;
+
+  $("manual-header").innerHTML = `
+    <div class="manual-codigo-badge">${esc(manual.codigo)}</div>
+    <div class="manual-nombre">${esc(manual.nombre)}</div>
+    <div class="manual-foco">${esc(manual.foco)}</div>
+    <div class="manual-area-tag">${esc(areaNombre)}</div>`;
+
+  const body = $("manual-body");
+  body.innerHTML = manual.secciones.map(sec => {
+    const icon = SECCION_ICONS[sec.tipo] || "ℹ";
+    const isStop = sec.tipo === "stop";
+    const sectionClass = isStop ? "manual-section manual-section-stop" : "manual-section";
+
+    let contenidoHtml = "";
+    if (sec.contenido) {
+      contenidoHtml = `<p class="manual-text">${esc(sec.contenido)}</p>`;
+    }
+    if (sec.items?.length) {
+      const liItems = sec.items.map(item => `<li>${esc(item)}</li>`).join("");
+      contenidoHtml += `<ul class="manual-list">${liItems}</ul>`;
+    }
+
+    return `
+      <div class="${sectionClass}">
+        <div class="manual-section-header">
+          <span class="manual-section-icon">${icon}</span>
+          <span class="manual-section-title">${esc(sec.titulo)}</span>
+        </div>
+        <div class="manual-section-body">${contenidoHtml}</div>
+      </div>`;
+  }).join("");
+
+  showScreen(screenManual);
 }
 
 // ══════════════════════════════════════════════════════════════════════════

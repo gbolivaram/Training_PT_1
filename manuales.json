@@ -1,0 +1,421 @@
+{
+  "por_area": {
+    "mantenimiento": ["MOC_506", "MAC010"],
+    "ma_suspel": ["MAC006", "PO04"],
+    "fallas": ["PA17", "MAC014"],
+    "seguridad": ["MAC016"],
+    "bodega": [],
+    "inventario": []
+  },
+  "manuales": {
+    "MOC_506": {
+      "id": "MOC_506",
+      "codigo": "MOC 5.06",
+      "nombre": "Estándar Permiso de Trabajo",
+      "foco": "Control operativo de intervenciones en instalaciones de generación",
+      "secciones": [
+        {
+          "titulo": "Objetivo",
+          "tipo": "texto",
+          "contenido": "Asegurar que toda intervención en instalaciones de generación se realice bajo autorización formal, con condiciones de seguridad definidas y controladas por Operaciones."
+        },
+        {
+          "titulo": "Roles y Responsabilidades",
+          "tipo": "lista",
+          "items": [
+            "Jefe de Faena (JF): Ejecutar la faena conforme al PT aprobado y controlar el área de trabajo.",
+            "Jefe de Servicio: Autoriza retiro y reposición del equipo del sistema.",
+            "Encargado de Maniobras: Ejecuta maniobras para cumplir la condición del PT.",
+            "Reemplazante JF: Obligatorio en faenas críticas; asume responsabilidad total cuando aplique."
+          ]
+        },
+        {
+          "titulo": "Cuándo es obligatorio el PT",
+          "tipo": "lista",
+          "items": [
+            "Se ejecuta en instalaciones energizadas.",
+            "Se realiza próximo a instalaciones energizadas, con riesgo de inducción o contacto.",
+            "Requiere desenergización, bloqueo o intervención física del equipo.",
+            "Excepción: No requiere PT el Mantenimiento Operacional (controles, mediciones o recarga de fluidos con equipos en operación normal y sin maniobras)."
+          ]
+        },
+        {
+          "titulo": "Procedimiento",
+          "tipo": "pasos",
+          "items": [
+            "1. Solicitud del PT: Definir claramente el alcance, identificar equipos, riesgos y duración estimada.",
+            "2. Revisión y aprobación: Validación por Jefe de Servicio. Confirmación de recursos y personal habilitado.",
+            "3. Preparación de la faena: Ejecución del AST en terreno. Coordinación de maniobras con Operaciones.",
+            "4. Ejecución: Aplicar bloqueos según PO.07. Delimitar físicamente el área de trabajo. Mantener control de accesos.",
+            "5. Seguimiento: Verificar cumplimiento del PT durante la faena. Registrar prórrogas si corresponde.",
+            "6. Cierre: Retiro de personal y herramientas. Pruebas operativas antes de reposición. Cancelación formal del PT."
+          ]
+        },
+        {
+          "titulo": "Criterios de Detención (STOP)",
+          "tipo": "stop",
+          "items": [
+            "PT no aprobado o vencido.",
+            "Faena crítica sin reemplazante consignado.",
+            "Área no delimitada físicamente.",
+            "Bloqueos incorrectos o incompletos.",
+            "Cambios no autorizados en el alcance de la faena.",
+            "Condiciones de seguridad no implementadas."
+          ]
+        },
+        {
+          "titulo": "Conexión Operativa",
+          "tipo": "conexion",
+          "items": [
+            "MAC016: Seguridad eléctrica.",
+            "PO.07: Bloqueo de energías.",
+            "PRO168: Gestión de incidentes."
+          ]
+        }
+      ]
+    },
+    "MAC010": {
+      "id": "MAC010",
+      "codigo": "MAC010",
+      "nombre": "Levantamiento de Riesgos Operacionales",
+      "foco": "Salud, confiabilidad y disponibilidad de activos de generación",
+      "secciones": [
+        {
+          "titulo": "Objetivo",
+          "tipo": "texto",
+          "contenido": "Asegurar que los activos de la instalación operen dentro de sus condiciones de diseño durante todo su ciclo de vida, detectando oportunamente degradaciones, fallas incipientes o desviaciones operacionales, para prevenir fallas mayores, accidentes y pérdidas de disponibilidad."
+        },
+        {
+          "titulo": "Roles y Responsabilidades",
+          "tipo": "lista",
+          "items": [
+            "Operador / Mantenedor: Ejecutar rondas, inspecciones y tareas asignadas. Detectar, reportar y documentar anomalías en terreno.",
+            "Supervisor de Planta: Validar condición técnica del activo, priorizar acciones y asegurar que las intervenciones respeten el diseño original.",
+            "Gestión de Activos: Definir criticidad, estrategias de mantenimiento y criterios técnicos de integridad.",
+            "Planificador de Mantenimiento: Programar y asegurar la ejecución oportuna de mantenimientos PM y PdM."
+          ]
+        },
+        {
+          "titulo": "Registro y Detección de Anomalías",
+          "tipo": "lista",
+          "items": [
+            "Todo activo debe estar correctamente identificado físicamente en terreno y con codificación en SAP.",
+            "Durante rondas, observar: ruidos anormales, vibraciones excesivas, fugas (aceite, refrigerante, electrolito), temperaturas fuera de rango, alarmas repetitivas.",
+            "Toda desviación debe ser considerada potencial riesgo de integridad, incluso si el equipo sigue operando.",
+            "Toda anomalía debe reportarse mediante Aviso en SAP (M1 u otro definido) con descripción, ubicación y evidencia.",
+            "Regla de oro: Si no está registrado en SAP, el defecto no existe para la organización."
+          ]
+        },
+        {
+          "titulo": "Estrategia de Mantenimiento",
+          "tipo": "lista",
+          "items": [
+            "Mantenimiento Preventivo (PM): Tareas periódicas programadas (lubricación, ajustes, reemplazos).",
+            "Mantenimiento Predictivo (PdM): Termografía, análisis de vibraciones, análisis de aceite.",
+            "Criticidad A: Equipos cuya falla puede detener la planta, generar incidentes graves o provocar daños mayores.",
+            "Las tareas deben respetar frecuencias, métodos y tolerancias del fabricante.",
+            "Toda intervención debe contar con Orden de Trabajo en SAP y ejecutarse bajo PT."
+          ]
+        },
+        {
+          "titulo": "Criterios de Detención (STOP)",
+          "tipo": "stop",
+          "items": [
+            "Opera fuera de los parámetros de diseño (temperatura, presión, vibración).",
+            "Existe fuga crítica de fluidos esenciales.",
+            "Los sistemas de protección o alarmas críticas están inoperativos.",
+            "La única alternativa disponible es una reparación provisoria que compromete la integridad futura."
+          ]
+        },
+        {
+          "titulo": "Conexión Operativa",
+          "tipo": "conexion",
+          "items": [
+            "MOC 5.06: Permiso de Trabajo para intervenciones.",
+            "MAC016: Seguridad eléctrica en inspecciones y pruebas.",
+            "PRO130: Recepción e inspección técnica de repuestos críticos.",
+            "PRO168: Reporte de incidentes derivados de fallas de activos."
+          ]
+        }
+      ]
+    },
+    "MAC006": {
+      "id": "MAC006",
+      "codigo": "MAC006",
+      "nombre": "Gestión Ambiental",
+      "foco": "Gestión y control ambiental en operaciones, mantenimiento y proyectos",
+      "secciones": [
+        {
+          "titulo": "Objetivo",
+          "tipo": "texto",
+          "contenido": "Asegurar que las actividades en terreno se ejecuten controlando los impactos ambientales, cumpliendo la normativa vigente, las Resoluciones de Calificación Ambiental (RCA) y los compromisos ambientales corporativos."
+        },
+        {
+          "titulo": "Roles y Responsabilidades",
+          "tipo": "lista",
+          "items": [
+            "Encargado de Medio Ambiente (MA): Gestión ambiental, reportabilidad y relación con autoridades.",
+            "Jefe de Faena / Supervisor: Asegurar cumplimiento ambiental durante la ejecución de trabajos.",
+            "Contratistas y Personal: Cumplir procedimientos ambientales y reportar desviaciones."
+          ]
+        },
+        {
+          "titulo": "Procedimiento",
+          "tipo": "pasos",
+          "items": [
+            "1. Identificar aspectos e impactos ambientales antes de ejecutar trabajos (conforme a Matriz PA.08). Incorporar controles al PT y al AST.",
+            "2. Toda actividad debe ejecutarse dentro del marco de los permisos ambientales aplicables (RCA). Cualquier desviación informar al Encargado MA antes de continuar.",
+            "3. Residuos: segregar en origen (No Peligrosos / Peligrosos), almacenar en áreas autorizadas, registrar en Trazapp. Prohibida la disposición fuera de sistemas autorizados.",
+            "4. Derrames: detener fuente si es seguro, contener evitando propagación a suelo o cuerpos de agua, recuperar material absorbente, gestionar como Residuo Peligroso. Todo derrame debe reportarse.",
+            "5. Incidentes ambientales: informar inmediatamente al Encargado MA, registrar en Zyght y gestionar conforme al PRO168.",
+            "6. Fiscalizaciones: informar de inmediato a Gerencia/Encargado MA, acompañar al fiscalizador, validar información según procedimiento corporativo antes de entrega oficial."
+          ]
+        },
+        {
+          "titulo": "Criterios de Detención (STOP)",
+          "tipo": "stop",
+          "items": [
+            "Derrame ambiental no controlado.",
+            "Incumplimiento de condiciones de la RCA.",
+            "Manejo inadecuado de residuos peligrosos.",
+            "Instrucción del Encargado MA o autoridad competente."
+          ]
+        },
+        {
+          "titulo": "Conexión Operativa",
+          "tipo": "conexion",
+          "items": [
+            "PA.08: Identificación de aspectos e impactos ambientales.",
+            "PA.17: Respuesta ante emergencias ambientales.",
+            "PRO168: Investigación y seguimiento de incidentes."
+          ]
+        }
+      ]
+    },
+    "PO04": {
+      "id": "PO04",
+      "codigo": "PO.04",
+      "nombre": "Gestión de Sustancias Peligrosas",
+      "foco": "Manejo seguro de Sustancias Peligrosas (SUSPEL) en instalaciones de Colbún",
+      "secciones": [
+        {
+          "titulo": "Objetivo",
+          "tipo": "texto",
+          "contenido": "Asegurar que la selección, adquisición, transporte, almacenamiento, uso y control de Sustancias Peligrosas (SUSPEL) se realice de forma segura, controlada y conforme a la normativa vigente, minimizando riesgos para las personas, el medio ambiente y la operación."
+        },
+        {
+          "titulo": "Roles y Responsabilidades",
+          "tipo": "lista",
+          "items": [
+            "Comprador / Abastecimiento: Adquirir SUSPEL cumpliendo normativa, solicitar HDS actualizadas y mantener registros.",
+            "Vigilante / Guardia: Verificar estado de la carga, documentación y condiciones antes de autorizar el ingreso.",
+            "Supervisor de Almacén: Controlar descarga, almacenamiento, registros e inspecciones periódicas.",
+            "Jefe de Área (Operaciones/Mantenimiento): Responsable de la custodia de SUSPEL utilizadas directamente en la operación.",
+            "Supervisor MASSO / SSO: Verificar cumplimiento normativo, capacitación, simulacros y disponibilidad de información.",
+            "Personal que manipula SUSPEL: Manipular sustancias conforme a HDS, usar EPP y reportar desviaciones."
+          ]
+        },
+        {
+          "titulo": "Procedimiento",
+          "tipo": "pasos",
+          "items": [
+            "1. Adquisición: Solicitar HDS actualizada, en español y conforme a NCh 2245/2015 (16 puntos). Compras nacionales: PRO128. Compras internacionales: PRO148.",
+            "2. Transporte: Cumplir DS 298/1995. Proveedor debe asegurar vehículo y personal habilitado, y elementos de respuesta a emergencias.",
+            "3. Control de ingreso: Verificar guía de despacho, revisar estado del embalaje, confirmar ausencia de filtraciones.",
+            "4. Descarga: Solo en áreas definidas y señalizadas. EPP correspondiente. Confirmar disponibilidad de kits de derrames.",
+            "5. Almacenamiento: Acceso restringido, sustancias rotuladas, respetar incompatibilidades químicas (DS 43/2015). Registro en PO.04-RE.01.",
+            "6. Uso y manipulación: Personal capacitado con HDS conocida, EPP completo y envases compatibles.",
+            "7. Seguimiento: Inspecciones mensuales con PO.04-RE.02. Simulacros periódicos coordinados por Supervisor MASSO/SSO."
+          ]
+        },
+        {
+          "titulo": "Criterios de Detención (STOP)",
+          "tipo": "stop",
+          "items": [
+            "No se cuenta con HDS actualizada.",
+            "Existen filtraciones, envases dañados o embalaje defectuoso.",
+            "No se respetan incompatibilidades químicas.",
+            "No están disponibles EPP o kits de emergencia.",
+            "Las condiciones de almacenamiento incumplen DS 43."
+          ]
+        },
+        {
+          "titulo": "Conexión Operativa",
+          "tipo": "conexion",
+          "items": [
+            "PA.17: Respuesta ante emergencias por derrames o incendios.",
+            "MAC006: Gestión ambiental de residuos peligrosos.",
+            "MAC014: Evaluación de riesgos asociados a SUSPEL.",
+            "PRO128 / PRO148: Procesos de compra e importación."
+          ]
+        }
+      ]
+    },
+    "PA17": {
+      "id": "PA17",
+      "codigo": "PA.17",
+      "nombre": "Respuesta Ante Emergencias",
+      "foco": "Gestión, control y mitigación de emergencias operacionales, ambientales y de seguridad",
+      "secciones": [
+        {
+          "titulo": "Objetivo",
+          "tipo": "texto",
+          "contenido": "Establecer una respuesta estructurada y coordinada ante situaciones de emergencia, protegiendo la vida de las personas como prioridad absoluta, controlando el evento y minimizando impactos operacionales, ambientales y reputacionales."
+        },
+        {
+          "titulo": "Roles y Responsabilidades",
+          "tipo": "lista",
+          "items": [
+            "Testigo / Descubridor: Detectar la emergencia y dar la alarma inmediata. No interviene.",
+            "Líder de Emergencia: Asumir el control del sitio, coordinar recursos y decidir evacuación.",
+            "Brigada de Emergencia: Ejecutar acciones de control inicial (incendio, derrames, primeros auxilios).",
+            "Operaciones / Sala de Control: Apoyar con corte de energías, coordinación y registro del evento.",
+            "Encargado Medio Ambiente: Gestionar impactos ambientales y comunicaciones regulatorias."
+          ]
+        },
+        {
+          "titulo": "Metodología ACCEDER",
+          "tipo": "pasos",
+          "items": [
+            "A — ALERTAR: Cualquier persona que detecte una emergencia debe alertar de inmediato. Indicar qué ocurrió, dónde ocurrió y si existen lesionados.",
+            "C — CONTROLAR: El Líder de Emergencia evalúa si la situación puede ser controlada con recursos locales. Corte de energías si corresponde. Activación de brigadas.",
+            "C — COORDINAR: Asignar funciones claras (brigada, primeros auxilios, control de accesos). Coordinar con Sala de Control.",
+            "E — EVALUAR: Evaluar continuamente la evolución, riesgo para personas e impacto ambiental. Si supera capacidad local, escalar a apoyo externo.",
+            "D — DERIVAR: Solicitar apoyo externo (Bomberos, Ambulancia/Mutual, Carabineros) si existe riesgo para la vida o no se logra control inicial.",
+            "E — EVACUAR: Solo por instrucción del Líder de Emergencia. Usar rutas y puntos de encuentro definidos. Verificar presencia de todo el personal.",
+            "R — REGISTRAR: Declarar Zona Segura, ejecutar registro en Zyght, iniciar investigación según PRO168."
+          ]
+        },
+        {
+          "titulo": "Criterios de Detención (STOP)",
+          "tipo": "stop",
+          "items": [
+            "Riesgo inminente para la vida de las personas.",
+            "Pérdida de control del evento.",
+            "Falta de comunicación efectiva.",
+            "Condiciones inseguras para brigadas o terceros."
+          ]
+        },
+        {
+          "titulo": "Conexión Operativa",
+          "tipo": "conexion",
+          "items": [
+            "MAC006: Gestión ambiental y derrames.",
+            "MOC 5.06: Coordinación con Permisos de Trabajo activos.",
+            "PRO168: Investigación y seguimiento.",
+            "Planes de Emergencia por Instalación: Rutas, puntos de encuentro y recursos."
+          ]
+        }
+      ]
+    },
+    "MAC014": {
+      "id": "MAC014",
+      "codigo": "MAC014",
+      "nombre": "Gestión de Riesgos",
+      "foco": "Identificación, evaluación y control de riesgos operacionales, de seguridad y ambientales en terreno",
+      "secciones": [
+        {
+          "titulo": "Objetivo",
+          "tipo": "texto",
+          "contenido": "Establecer una metodología sistemática para identificar peligros, evaluar riesgos y aplicar controles efectivos antes y durante la ejecución de cualquier actividad, asegurando que la faena se realice dentro de niveles de riesgo aceptables."
+        },
+        {
+          "titulo": "Roles y Responsabilidades",
+          "tipo": "lista",
+          "items": [
+            "Dueño del Riesgo (Jefe de Planta/Instalación): Responsable final de que los riesgos estén identificados, evaluados y controlados.",
+            "Supervisor de Faena: Asegurar que el AST refleje las condiciones reales del terreno antes de iniciar el trabajo.",
+            "Personal de Ejecución: Identificar peligros en su entorno, cumplir los controles definidos y alertar desviaciones.",
+            "Asesor SSO / MA: Facilitar la metodología IPER, verificar la calidad de las evaluaciones y la eficacia de los controles."
+          ]
+        },
+        {
+          "titulo": "Procedimiento",
+          "tipo": "pasos",
+          "items": [
+            "1. Identificar peligros: Personas (fatiga, inexperiencia, error humano), equipos y herramientas, energías presentes (eléctrica, mecánica, química, térmica), entorno (clima, terreno, interferencias).",
+            "2. Evaluación IPER: Evaluar probabilidad de ocurrencia y severidad del daño. Niveles: Bajo, Medio, Alto, Crítico. Riesgos Altos o Críticos requieren controles adicionales.",
+            "3. Controles (Jerarquía): Eliminación → Sustitución → Ingeniería → Administrativos → EPP. El EPP nunca reemplaza controles de nivel superior.",
+            "4. Riesgos Críticos: Aquellos con potencial de fatalidad o lesiones graves. Cada uno debe tener Controles Críticos definidos y verificados antes de iniciar.",
+            "5. AST obligatorio: Antes de iniciar, en el lugar exacto. El Supervisor valida que refleje la condición real. Si cambian las condiciones, el AST debe revisarse.",
+            "6. Seguimiento: Registrar hallazgos y desviaciones en la plataforma correspondiente. Incidentes obligan a revisar la evaluación de riesgos."
+          ]
+        },
+        {
+          "titulo": "Criterios de Detención (STOP)",
+          "tipo": "stop",
+          "items": [
+            "El nivel de riesgo es Crítico y no existen controles adicionales efectivos.",
+            "Las condiciones del entorno cambian y el AST no las considera.",
+            "Un Control Crítico no está implementado o presenta fallas.",
+            "Existe presión operativa que induzca a saltarse pasos de seguridad."
+          ]
+        },
+        {
+          "titulo": "Conexión Operativa",
+          "tipo": "conexion",
+          "items": [
+            "MAC016: Aplicación de gestión de riesgos eléctricos.",
+            "MAC006: Gestión de riesgos ambientales.",
+            "PRO168: Incidentes y cuasi-incidentes retroalimentan la evaluación de riesgos."
+          ]
+        }
+      ]
+    },
+    "MAC016": {
+      "id": "MAC016",
+      "codigo": "MAC016",
+      "nombre": "Seguridad Eléctrica",
+      "foco": "Intervención de equipos eléctricos y prevención de choque y arco eléctrico",
+      "secciones": [
+        {
+          "titulo": "Objetivo",
+          "tipo": "texto",
+          "contenido": "Establecer los requisitos mínimos de seguridad para la intervención de instalaciones eléctricas, asegurando que solo personal debidamente calificado realice trabajos bajo condiciones eléctricamente seguras."
+        },
+        {
+          "titulo": "Roles y Responsabilidades",
+          "tipo": "lista",
+          "items": [
+            "Supervisor de Trabajo: Verificar que la intervención se realice bajo condición de trabajo eléctricamente segura.",
+            "Personal Calificado: Ejecutar trabajos eléctricos conforme a su habilitación y capacitación vigente.",
+            "Encargado de Maniobras: Ejecutar la desenergización y maniobras eléctricas según procedimientos operativos.",
+            "Personal No Calificado: Mantenerse fuera de zonas de riesgo eléctrico, salvo autorización y escolta."
+          ]
+        },
+        {
+          "titulo": "Procedimiento (LOTO)",
+          "tipo": "pasos",
+          "items": [
+            "1. Planificación previa: Confirmar alcance del trabajo y equipos involucrados. Verificar que el personal esté habilitado y con certificaciones vigentes.",
+            "2. Identificación de energías: Identificar todas las fuentes eléctricas (principales, auxiliares, respaldo, AC y DC). Confirmar planos y rotulación del equipo.",
+            "3. Desenergización: Abrir interruptores o disyuntores desde el punto autorizado. Verificar apertura física cuando sea posible.",
+            "4. Bloqueo y etiquetado (LOTO): Aplicar candado y tarjeta personal en cada punto de corte. Registrar bloqueo según estándar vigente.",
+            "5. Verificación de ausencia de tensión: Probar el instrumento antes de medir. Medir el equipo. Probar nuevamente el instrumento.",
+            "6. Puesta a tierra temporal: Instalar tierras cuando exista riesgo de inducción o retorno de energía.",
+            "7. Delimitación del área: Instalar barreras físicas y señalización. Controlar accesos durante toda la intervención."
+          ]
+        },
+        {
+          "titulo": "Criterios de Detención (STOP)",
+          "tipo": "stop",
+          "items": [
+            "No se puede verificar ausencia de tensión.",
+            "Personal sin certificación NFPA 70E vigente.",
+            "El EPP requerido no está disponible o en condiciones adecuadas.",
+            "No se cumplen las condiciones definidas en el procedimiento."
+          ]
+        },
+        {
+          "titulo": "Conexión Operativa",
+          "tipo": "conexion",
+          "items": [
+            "MOC 5.06: Permiso de Trabajo vigente.",
+            "PO.07: Bloqueo de energías.",
+            "PRO168: Reporte e investigación de incidentes eléctricos."
+          ]
+        }
+      ]
+    }
+  }
+}
