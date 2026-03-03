@@ -1,5 +1,27 @@
 /* ── HMI Procedimientos — main.js ─────────────────────────────────────────── */
 
+// ── Theme toggle ───────────────────────────────────────────────────────────
+(function initTheme() {
+  const saved = localStorage.getItem("colbun_theme") || "corporativo";
+  document.documentElement.setAttribute("data-theme", saved);
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("btn-theme");
+    const lbl = document.getElementById("theme-label");
+    const themes = ["corporativo", "verde"];
+    const names  = { corporativo: "Corporativo", verde: "Verde Natural" };
+    if (lbl) lbl.textContent = names[saved] || "Corporativo";
+    if (btn) {
+      btn.addEventListener("click", () => {
+        const cur = document.documentElement.getAttribute("data-theme") || "corporativo";
+        const next = themes[(themes.indexOf(cur) + 1) % themes.length];
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("colbun_theme", next);
+        lbl.textContent = names[next];
+      });
+    }
+  });
+})();
+
 const TYPE_LABEL = { task: "Tarea", decision: "Decisión", end: "Fin" };
 
 // ── App config (se llena al seleccionar PRO) ───────────────────────────────
@@ -112,7 +134,7 @@ function renderHome() {
               ${hasPros ? "" : "disabled"}>
         <span class="area-num">${i + 1}</span>
         <span class="area-nombre">${esc(area.nombre)}</span>
-        ${!hasPros ? '<span class="area-coming">Próximamente</span>' : ""}
+        ${hasPros ? `<span class="area-pro-count">${area.pros.length} procedimiento${area.pros.length > 1 ? "s" : ""}</span>` : '<span class="area-coming">Próximamente</span>'}
       </button>`;
   }).join("");
 
