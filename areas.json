@@ -3,7 +3,7 @@
     {
       "id": "bodega",
       "nombre": "Bodega y abastecimiento",
-      "pros": []
+      "pros": ["PRO128"]
     },
     {
       "id": "fallas",
@@ -13,12 +13,12 @@
     {
       "id": "inventario",
       "nombre": "Inventario y almacén",
-      "pros": ["PRO141"]
+      "pros": ["PRO139", "PRO141"]
     },
     {
       "id": "mantenimiento",
       "nombre": "Mantenimiento y operación",
-      "pros": []
+      "pros": ["PRO173", "PRO174"]
     },
     {
       "id": "ma_suspel",
@@ -73,6 +73,69 @@
         "Otro"
       ]
     },
+    "PRO128": {
+      "id": "PRO128",
+      "nombre": "Compra de Materiales y Repuestos",
+      "descripcion": "Gestionar la compra de materiales y repuestos desde la solicitud hasta la emisión y seguimiento de la Orden de Compra, asegurando trazabilidad vía SAP.",
+      "data": "pro128.json",
+      "has_stop": true,
+      "primer_nodo": "T1_reservar_aumentar",
+      "flow_order": [
+        "T1_reservar_aumentar","T2_generar_mrp_solped","T3_almacen_revisar_mrp_confirmar",
+        "T4_abast_revisar_solped_mrp","D1_falta_informacion","T4b_bloquear_solped_info",
+        "D4_obsoleto","END_pro141","T5_iniciar_proceso_cotizacion","D2_tipo_clasificacion",
+        "MAIL_1_generar_cotizacion_correo","MAIL_3_recibe_cotizacion","RFQ_1_crear_peticion_oferta",
+        "RFQ_2_iniciar_cotizacion_ariba","RFQ_3_ajustar_plantilla","RFQ_4_seleccionar_proveedores",
+        "D3_proveedor_enrolado","RFQ_5_validar_datos","RFQ_6_incorporar_proceso",
+        "RFQ_7_publicar_proceso","RFQ_8_notificar_participacion","RFQ_9_recibe_oferta",
+        "T8_evaluar_oferta","D5_cumplen_especificaciones","T8b_bloquear_solped_no_cumple",
+        "F1_formalizacion_oc","D6_proveedor_creado_sap","T_PRO145_completar","D_PRO145_creado_post",
+        "F2_revisar_antecedentes_oferta","D7_requiere_ia","D7b_necesita_ariba",
+        "F3_crear_ia_idok","F4_revisar_ia","D8_ia_aprobada","F6_generar_oc",
+        "F6c_generar_oc_post_ia","F6b_generar_oc_me21n","F7_cargar_conexion_ariba",
+        "F8_crear_supuesto_adjudicacion","F8b_genera_oc_automatica","F8c_revisar_creacion_oc",
+        "F8_verificar_creacion_oc","F9_revisar_oc_sap","D9_oc_liberada",
+        "D9B_motivo_oc_no_liberada","END_cancelar_compra_bloquear_solped",
+        "F10_seguimiento_entrega","END_pro130"
+      ],
+      "motivos_bloqueo": [
+        "Información de la solicitud incompleta",
+        "Material posiblemente obsoleto — requiere análisis",
+        "Proveedor no cumple especificaciones técnicas",
+        "Sistema SAP / Ariba no disponible",
+        "Aprobación de jefatura pendiente",
+        "Otro"
+      ],
+      "motivos_stop": [
+        "Condición insegura detectada",
+        "Falta de información crítica",
+        "Sistema no disponible",
+        "No se logra contacto",
+        "Otro"
+      ]
+    },
+    "PRO139": {
+      "id": "PRO139",
+      "nombre": "Devolución de Materiales y Repuestos a Almacén",
+      "descripcion": "Procedimiento para devolver materiales y repuestos no utilizados al almacén, verificando su estado y registrando la entrada correctamente en SAP.",
+      "data": "pro139.json",
+      "has_stop": false,
+      "primer_nodo": "T1_necesidad",
+      "flow_order": [
+        "T1_necesidad","T2_verificar_estado","D1_apto_devolucion",
+        "T3_identificar_reserva","T4_trasladar_almacen","T5_revision_almacen",
+        "D2_apto_almacenar","T6_registrar_devolucion","T7_realizar_etiqueta",
+        "D3_con_etiqueta","T8_etiquetar","T9_ubicar","T10_fin_stock",
+        "END_DESECHO","END_VENTAS_VARIAS","END_OK","T8b_registrar_entrega"
+      ],
+      "motivos_bloqueo": [
+        "Material en mal estado — no apto para devolución",
+        "Reserva SAP no identificada",
+        "Discrepancia stock físico vs sistema",
+        "Material sin etiqueta o sin identificación",
+        "Otro"
+      ]
+    },
     "PRO141": {
       "id": "PRO141",
       "nombre": "Tratamiento de materiales obsoletos y análisis de obsolescencia",
@@ -103,6 +166,63 @@
         "Material no segregado / riesgo de mezcla",
         "Discrepancia stock físico vs sistema",
         "Falta respuesta de otra central",
+        "Otro"
+      ]
+    },
+    "PRO173": {
+      "id": "PRO173",
+      "nombre": "Mantenimiento Correctivo",
+      "descripcion": "Procedimiento para gestionar la ejecución de mantenimiento correctivo, desde la creación de OT hasta el cierre técnico y administrativo.",
+      "data": "pro173.json",
+      "has_stop": false,
+      "primer_nodo": "S0_inicio",
+      "flow_order": [
+        "S0_inicio","I1_Liberacion_aviso_A0A1A2","I2_Liberacion_aviso_A3",
+        "T1_Crear_OT_OT01","T2_Preparar_OT","D2_Modo_CECO_PEP",
+        "T2A_Asignar_PEP","T2B_Asignar_CECO","T3_Liberar_OT","T3_Liberar_OT_NO",
+        "T4_Preparar_trabajos_SI","T4_Preparar_trabajos_NO","D1_Gestionar_recursos",
+        "T5_Gestion_de_recursos","T6_Recepcion_materiales_servicios",
+        "T8_Programacion_de_trabajos","T7_PT_en_vigencia","T9_Retirar_materiales",
+        "T10_Ejecutar_trabajos","D2_Reemplazo_equipo","T11_Gestion_de_Renovacion",
+        "T12_Notificar_trabajos","D4_Informe_requerido","T13_Realizar_informe",
+        "T14_Revisar_informe_y_cargar","D5_Informe_completo","T15_Revisar_OT",
+        "T16_Cerrar_OT_CTEC","D6_A_la_falla","T17_Analisis_efectividad",
+        "D7_Modificar_plan","T18_PRO181","T19_Fin_de_mantenimiento",
+        "D3_Problema_solucionado","T_UPLOAD_ARCHIVOS","END_OK","END_NO"
+      ],
+      "motivos_bloqueo": [
+        "OT no se puede crear / liberar en SAP",
+        "Falta permiso de trabajo vigente",
+        "Recursos o materiales no disponibles",
+        "Falla no resuelta — requiere escalamiento",
+        "Informe técnico incompleto o rechazado",
+        "Otro"
+      ]
+    },
+    "PRO174": {
+      "id": "PRO174",
+      "nombre": "Mantenimiento Preventivo",
+      "descripcion": "Procedimiento para gestionar la ejecución de mantenimiento preventivo, desde la planificación de la OT hasta el cierre técnico con carga de archivos.",
+      "data": "pro174.json",
+      "has_stop": false,
+      "primer_nodo": "S0_inicio",
+      "flow_order": [
+        "S0_inicio","T1_Creacion_OT","T2_Preparar_OT","D1_Necesita_recursos",
+        "D2_Modo_escoges","T3_Asignar_PEP","T3b_Asignar_CECO","T4_Liberar_OT",
+        "T5_Preparar_trabajos","R1_Ruta_post_preparar_trabajos","T6_Gestion_de_recursos",
+        "T7_Recepcion_materiales_servicios","T8_Programacion_de_trabajos",
+        "T9_PT_en_vigencia","R2_Ruta_post_PT","T10_Retirar_materiales",
+        "T11_Ejecutar_trabajos","T12_Notificar_trabajos","D2_Informe_requerido",
+        "T13_Realizar_informe","T14_Revisar_informe_y_cargar","D3_Informe_completo",
+        "T16_Revisar_OT","T17_Cerrar_OT_CTEC","D4_Hallazgos",
+        "T18_Gestionar_aviso_A3","T19_Subir_archivos_pertinentes","END_FIN"
+      ],
+      "motivos_bloqueo": [
+        "OT no se puede crear / liberar en SAP",
+        "Falta permiso de trabajo vigente",
+        "Recursos o materiales no disponibles",
+        "Informe técnico incompleto o rechazado",
+        "Hallazgos sin gestionar",
         "Otro"
       ]
     }

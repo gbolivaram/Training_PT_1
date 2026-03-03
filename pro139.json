@@ -1,0 +1,256 @@
+{
+  "T1_necesidad": {
+    "type": "task",
+    "titulo": "Necesidad de devolución",
+    "rol": "Solicitante de materiales y repuestos",
+    "descripcion": "Se identifica en terreno la necesidad de devolver materiales/repuestos no utilizados al almacén.",
+    "acciones": [
+      "Identificar material/repuesto no utilizado a devolver."
+    ],
+    "checklist": [
+      "Material/repuesto identificado para devolución"
+    ],
+    "validacion": "¿Existe material/repuesto no utilizado que requiere devolución al almacén?",
+    "next": "T2_verificar_estado"
+  },
+  "T2_verificar_estado": {
+    "type": "task",
+    "titulo": "Verificar estado de material/repuesto",
+    "rol": "Solicitante",
+    "descripcion": "Se verifica condición del material/repuesto previo a su devolución.",
+    "acciones": [
+      "Verificar condición física (daño, contaminación, uso).",
+      "Confirmar que corresponde al material/repuesto retirado."
+    ],
+    "checklist": [
+      "Condición física verificada",
+      "Correspondencia validada (material correcto)"
+    ],
+    "validacion": "¿El material/repuesto está en condición conocida y corresponde a lo retirado?",
+    "next": "D1_apto_devolucion"
+  },
+  "D1_apto_devolucion": {
+    "type": "decision",
+    "titulo": "¿El material está en estado apto para devolución?",
+    "rol": "Solicitante",
+    "descripcion": "Decisión sobre si el material puede devolverse al almacén según su condición.",
+    "pregunta": "¿El material está en estado apto para devolución?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "T3_identificar_reserva"
+      },
+      {
+        "label": "NO",
+        "next": "END_DESECHO"
+      }
+    ]
+  },
+  "T3_identificar_reserva": {
+    "type": "task",
+    "titulo": "Identificar reserva solicitada",
+    "rol": "Solicitante",
+    "descripcion": "Se identifica la reserva/OT asociada al material para asegurar trazabilidad.",
+    "acciones": [
+      "Identificar reserva y/o OT asociada al material a devolver."
+    ],
+    "checklist": [
+      "Reserva/OT identificada"
+    ],
+    "validacion": "¿La reserva/OT asociada al material fue identificada correctamente?",
+    "next": "T4_trasladar_almacen"
+  },
+  "T4_trasladar_almacen": {
+    "type": "task",
+    "titulo": "Trasladar material/repuesto a almacén",
+    "rol": "Solicitante",
+    "descripcion": "Se traslada físicamente el material/repuesto al almacén para su recepción.",
+    "acciones": [
+      "Trasladar material/repuesto al almacén.",
+      "Entregar físicamente al especialista de almacén."
+    ],
+    "checklist": [
+      "Material/repuesto trasladado",
+      "Entrega física realizada en almacén"
+    ],
+    "validacion": "¿El material/repuesto fue entregado físicamente al almacén?",
+    "next": "T5_revision_almacen"
+  },
+  "T5_revision_almacen": {
+    "type": "task",
+    "titulo": "Realizar revisión del material / repuesto",
+    "rol": "Especialista de almacén",
+    "descripcion": "El especialista de almacén revisa material/repuesto recibido para decidir su almacenaje.",
+    "acciones": [
+      "Revisar condición física del material/repuesto.",
+      "Confirmar correspondencia con reserva/OT indicada."
+    ],
+    "checklist": [
+      "Condición física revisada",
+      "Correspondencia con reserva/OT confirmada"
+    ],
+    "validacion": "¿Se revisó el material/repuesto y corresponde a la reserva/OT indicada?",
+    "next": "D2_apto_almacenar"
+  },
+  "D2_apto_almacenar": {
+    "type": "decision",
+    "titulo": "¿Material en estado para ser almacenado?",
+    "rol": "Especialista de almacén",
+    "descripcion": "Decisión de almacén sobre si el material puede volver a stock.",
+    "pregunta": "¿Material en estado para ser almacenado?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "T6_registrar_devolucion"
+      },
+      {
+        "label": "NO",
+        "next": "END_VENTAS_VARIAS"
+      }
+    ]
+  },
+  "T6_registrar_devolucion": {
+    "type": "task",
+    "titulo": "Registrar devolución de material / repuesto a almacén",
+    "rol": "Especialista de almacén",
+    "descripcion": "Se registra la devolución en sistema para mantener control de inventario.",
+    "acciones": [
+      "Registrar devolución de material/repuesto en el sistema (MIGO).",
+      "Si aplica: anular reserva asociada (regularización)."
+    ],
+    "checklist": [
+      "Devolución registrada en sistema (MIGO)",
+      "Si aplica: reserva anulada"
+    ],
+    "validacion": "¿La devolución quedó registrada en el sistema y (si aplica) la reserva quedó anulada?",
+    "next": "T7_realizar_etiqueta"
+  },
+  "T7_realizar_etiqueta": {
+    "type": "task",
+    "titulo": "Realizar etiqueta de material",
+    "rol": "Especialista de almacén",
+    "descripcion": "Se genera la etiqueta del material para identificación y almacenamiento.",
+    "acciones": [
+      "Generar etiqueta del material (ZMM_IMP_ETIQUETA / ZMM_MART_CARACT según aplique)."
+    ],
+    "checklist": [
+      "Etiqueta generada"
+    ],
+    "validacion": "¿La etiqueta del material fue generada correctamente?",
+    "next": "D3_con_etiqueta"
+  },
+  "D3_con_etiqueta": {
+    "type": "decision",
+    "titulo": "¿Material devuelto con etiqueta?",
+    "rol": "Especialista de almacén",
+    "descripcion": "Control de que el material está efectivamente etiquetado.",
+    "pregunta": "¿Material devuelto con etiqueta?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "T8b_registrar_entrega"
+      },
+      {
+        "label": "NO",
+        "next": "T8_etiquetar"
+      }
+    ]
+  },
+  "T8_etiquetar": {
+    "type": "task",
+    "titulo": "Etiquetar material y repuesto",
+    "rol": "Especialista de almacén",
+    "descripcion": "Se asegura que el material y repuesto queden etiquetados antes de su ubicación.",
+    "acciones": [
+      "Etiquetar material y repuesto."
+    ],
+    "checklist": [
+      "Material/repuesto etiquetado"
+    ],
+    "validacion": "¿El material/repuesto quedó correctamente etiquetado?",
+    "next": "T8b_registrar_entrega"
+  },
+  "T9_ubicar": {
+    "type": "task",
+    "titulo": "Ubicar material / repuesto en el almacén",
+    "rol": "Especialista de almacén",
+    "descripcion": "Se ubica el material/repuesto en su ubicación definitiva (idealmente dentro de 24 hrs desde el etiquetado).",
+    "acciones": [
+      "Ubicar material/repuesto en estantería/posición definitiva del almacén.",
+      "Registrar ubicación si corresponde."
+    ],
+    "checklist": [
+      "Ubicación definida",
+      "Material/repuesto ubicado en almacén",
+      "Ubicación registrada si aplica"
+    ],
+    "validacion": "¿El material/repuesto quedó ubicado en su ubicación definitiva (dentro de 24 hrs desde etiquetado)?",
+    "next": "T10_fin_stock"
+  },
+  "T10_fin_stock": {
+    "type": "task",
+    "titulo": "Material / repuesto almacenado en ubicación definitiva",
+    "rol": "Especialista de almacén",
+    "descripcion": "El material/repuesto queda almacenado en su ubicación definitiva. Fin del proceso.",
+    "acciones": [
+      "Confirmar material/repuesto en ubicación definitiva."
+    ],
+    "checklist": [
+      "Confirmación de almacenamiento realizada"
+    ],
+    "validacion": "¿El material/repuesto quedó almacenado en ubicación definitiva?",
+    "next": "END_OK"
+  },
+  "END_DESECHO": {
+    "type": "end",
+    "titulo": "🏁 Proceso finalizado",
+    "rol": "HMI",
+    "descripcion": "El material no está apto para devolución. Se gestiona como desecho según estándar local.",
+    "mensaje": "Ya está en el final/cierre (salida por NO apto para devolución).",
+    "estado_final": "FINALIZADO"
+  },
+  "END_VENTAS_VARIAS": {
+    "type": "end",
+    "titulo": "🏁 Proceso finalizado",
+    "rol": "HMI",
+    "descripcion": "El material no está en estado para ser almacenado. Se deriva a Gestión de ventas varias.",
+    "mensaje": "Ya está en el final/cierre (salida por NO apto para almacenar).",
+    "estado_final": "FINALIZADO"
+  },
+  "END_OK": {
+    "type": "end",
+    "titulo": "🏁 Proceso finalizado",
+    "rol": "HMI",
+    "descripcion": "Se completaron los pasos del PRO139. Puede exportar el JSON auditable si lo requiere.",
+    "mensaje": "Ya está en el final/cierre del procedimiento.",
+    "estado_final": "FINALIZADO"
+  },
+  "T8b_registrar_entrega": {
+    "type": "task",
+    "titulo": "Registrar entrega (Etiqueta + Observaciones)",
+    "rol": "Especialista de almacén",
+    "descripcion": "Registrar el número de etiqueta y observaciones/comentario sobre la entrega.",
+    "acciones": [
+      "Registrar el número de etiqueta.",
+      "Registrar observaciones/comentario (si aplica)."
+    ],
+    "inputs": [
+      {
+        "key": "numero_etiqueta",
+        "label": "Ingrese número de etiqueta",
+        "required": true
+      },
+      {
+        "key": "comentario_entrega",
+        "label": "Observaciones / comentario sobre la entrega (opcional)",
+        "required": false,
+        "multiline": true
+      }
+    ],
+    "checklist": [
+      "Entrega registrada"
+    ],
+    "validacion": "¿Se registró el número de etiqueta y la entrega quedó registrada?",
+    "next": "T9_ubicar"
+  }
+}

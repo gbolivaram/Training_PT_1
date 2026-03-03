@@ -1,0 +1,675 @@
+{
+  "T1_reservar_aumentar": {
+    "type": "task",
+    "titulo": "Reservar y/o aumentar stock",
+    "rol": "Solicitante / Jefatura",
+    "descripcion": "El solicitante genera reserva según necesidad y fecha de requerimiento.",
+    "acciones": [
+      "Generar reserva según necesidad y fecha de requerimiento."
+    ],
+    "validacion": "¿La reserva quedó generada y registrada según necesidad y fecha de requerimiento?",
+    "next": "T2_generar_mrp_solped"
+  },
+  "T2_generar_mrp_solped": {
+    "type": "task",
+    "titulo": "Generar MRP/SOLPED",
+    "rol": "Planificación",
+    "descripcion": "Ingeniero de planificación debe verificar en sistema el stock vigente v/s las reservas generadas y crear SOLPED para las diferencias de inventario.",
+    "acciones": [
+      "Verificar en sistema el stock vigente v/s las reservas generadas.",
+      "Crear SOLPED para las diferencias de inventario.",
+      "Registrar motivo de la SOLPED: Material para cubrir reserva / Material para cubrir stock de seguridad."
+    ],
+    "validacion": "¿La SOLPED quedó creada por las diferencias de inventario y con motivo correctamente registrado (reserva / stock seguridad)?",
+    "next": "T3_almacen_revisar_mrp_confirmar"
+  },
+  "T3_almacen_revisar_mrp_confirmar": {
+    "type": "task",
+    "titulo": "Revisar MRP y confirmar para compra",
+    "rol": "Almacén",
+    "descripcion": "Especialista de almacén debe revisar las reservas en sistema y contrarrestar con las SOLPED gatilladas por el MRP, de manera que todas las reservas cuenten con su respectiva SOLPED en caso de requerir.",
+    "acciones": [
+      "Revisar las reservas en sistema.",
+      "Contrarrestar las reservas con las SOLPED gatilladas por el MRP.",
+      "Verificar que todas las reservas cuenten con su respectiva SOLPED cuando corresponda."
+    ],
+    "validacion": "¿Todas las reservas que requieren compra cuentan con su respectiva SOLPED asociada (sin quiebres en la trazabilidad)?",
+    "next": "T4_abast_revisar_solped_mrp"
+  },
+  "T4_abast_revisar_solped_mrp": {
+    "type": "task",
+    "titulo": "Revisar SOLPED (MRP)",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento revisa la información de los materiales indicados en el MRP. En caso de información incompleta, la SOLPED se bloquea y se notifica a los especialistas de almacén, quienes aplican el PRO-141.",
+    "acciones": [
+      "Revisar la información de los materiales indicados en el MRP.",
+      "Determinar si la SOLPED presenta información incompleta.",
+      "Si presenta información incompleta: bloquear la SOLPED y notificar a los especialistas de almacén para aplicación de PRO-141."
+    ],
+    "inputs": [
+      {
+        "key": "numero_solped",
+        "label": "Ingresa número de SOLPED",
+        "required": true
+      }
+    ],
+    "validacion": "¿La revisión de SOLPED determinó si existe o no falta de información (y se actuó en consecuencia)?",
+    "next": "D1_falta_informacion"
+  },
+  "D1_falta_informacion": {
+    "type": "decision",
+    "titulo": "Falta información",
+    "rol": "Ingeniero de Abastecimiento",
+    "pregunta": "¿La SOLPED presenta información incompleta?",
+    "opciones": [
+      {
+        "label": "NO (SOLPED completa) → Continuar",
+        "next": "T5_iniciar_proceso_cotizacion"
+      },
+      {
+        "label": "SÍ (información incompleta) → Bloquear SOLPED",
+        "next": "T4b_bloquear_solped_info"
+      }
+    ],
+    "ayuda": "Si falta información, el PRO128 indica bloquear SOLPED y notificar a Almacén para aplicar PRO-141."
+  },
+  "T4b_bloquear_solped_info": {
+    "type": "task",
+    "titulo": "Bloquear SOLPED",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "En caso de información incompleta, la SOLPED correspondiente se bloquea y se notifica a los especialistas de almacén, quienes aplican el PRO-141.",
+    "acciones": [
+      "Bloquear la SOLPED correspondiente por información incompleta.",
+      "Notificar a los especialistas de almacén para que apliquen PRO-141 (Análisis de Obsolescencia)."
+    ],
+    "validacion": "¿La SOLPED quedó bloqueada y Almacén fue notificado para aplicar PRO-141?",
+    "next": "D4_obsoleto"
+  },
+  "D4_obsoleto": {
+    "type": "decision",
+    "titulo": "¿Obsoleto?",
+    "rol": "Almacén",
+    "pregunta": "¿El material/repuesto corresponde a un caso de obsolescencia?",
+    "opciones": [
+      {
+        "label": "SÍ → Derivar a PRO-141 (Análisis de Obsolescencia)",
+        "next": "END_pro141"
+      },
+      {
+        "label": "NO → Volver a Revisar SOLPED (MRP) tras corrección de antecedentes",
+        "next": "T4_abast_revisar_solped_mrp"
+      }
+    ],
+    "ayuda": "El diagrama del PRO128 deriva a PRO-141 cuando corresponde; si NO, retorna al ciclo de revisión/corrección."
+  },
+  "END_pro141": {
+    "type": "end",
+    "titulo": "Derivar a PRO-141 – Análisis de Obsolescencia",
+    "rol": "Almacén",
+    "mensaje": "Caso derivado a PRO-141 (Análisis de Obsolescencia) según flujo PRO128.",
+    "estado_final": "DERIVADO_PRO141"
+  },
+  "T5_iniciar_proceso_cotizacion": {
+    "type": "task",
+    "titulo": "Iniciar proceso de Cotización",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento verifica el tipo de clasificación del material y/o cantidad de proveedores disponibles para continuar con el proceso que corresponda para cada uno de estos.",
+    "acciones": [
+      "Verificar el tipo de clasificación del material y/o cantidad de proveedores disponibles.",
+      "Definir el proceso que corresponda para el material."
+    ],
+    "validacion": "¿Se verificó la clasificación del material y/o disponibilidad de proveedores para definir el camino de cotización?",
+    "next": "D2_tipo_clasificacion"
+  },
+  "D2_tipo_clasificacion": {
+    "type": "decision",
+    "titulo": "Tipo de Clasificación",
+    "rol": "Ingeniero de Abastecimiento",
+    "pregunta": "Seleccione el tipo de clasificación del material para continuar el proceso.",
+    "opciones": [
+      {
+        "label": "Genérico / OEM → Inicio del proceso de cotización por Ariba con RFQ",
+        "next": "RFQ_1_crear_peticion_oferta"
+      },
+      {
+        "label": "OCM / Urgencia (emergencia) → Inicio de cotización mediante correo electrónico",
+        "next": "MAIL_1_generar_cotizacion_correo"
+      }
+    ],
+    "ayuda": "Según PRO128: Genérico/OEM se cotiza por Ariba (RFQ). OCM/Urgencia se cotiza por correo electrónico."
+  },
+  "MAIL_1_generar_cotizacion_correo": {
+    "type": "task",
+    "titulo": "Generar cotización por correo electrónico",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento identifica proveedor único y/o urgencia y le envía un correo detallado con toda la información técnica y relevante para la cotización.",
+    "acciones": [
+      "Identificar proveedor único y/o urgencia en función de las características del material solicitado.",
+      "Enviar un correo detallado con toda la información técnica y relevante para la cotización."
+    ],
+    "validacion": "¿Se envió al proveedor el correo con toda la información técnica y relevante para la cotización?",
+    "next": "MAIL_3_recibe_cotizacion"
+  },
+  "MAIL_3_recibe_cotizacion": {
+    "type": "task",
+    "titulo": "Recibe cotización",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento recibe oferta por parte del proveedor, luego revisar que venga con toda la información requerida.",
+    "acciones": [
+      "Recibir oferta por parte del proveedor.",
+      "Revisar que la oferta venga con toda la información requerida."
+    ],
+    "validacion": "¿La oferta recibida contiene toda la información requerida?",
+    "next": "T8_evaluar_oferta"
+  },
+  "RFQ_1_crear_peticion_oferta": {
+    "type": "task",
+    "titulo": "Crear petición de oferta (ME41)",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento realiza petición de oferta con transacción ME41 referenciando la(s) SOLPED. Verificar documentación adjunta, dirección de entrega y organización de compra. Dirigido siempre al mismo proveedor (1000012999) que realiza la conexión con Ariba.",
+    "acciones": [
+      "Realizar petición de oferta con transacción ME41 referenciando la(s) SOLPED.",
+      "Verificar documentación adjunta.",
+      "Verificar dirección de entrega.",
+      "Verificar organización de compra.",
+      "Dirigir al proveedor 1000012999 que realiza la conexión con Ariba."
+    ],
+    "validacion": "¿La petición de oferta (ME41) quedó creada referenciando SOLPED y con documentación adjunta, dirección de entrega y organización de compra verificadas?",
+    "next": "RFQ_2_iniciar_cotizacion_ariba"
+  },
+  "RFQ_2_iniciar_cotizacion_ariba": {
+    "type": "task",
+    "titulo": "Iniciar proceso de cotización por Ariba",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento verifica que viaje solicitud RFQ a Ariba para proceder con la creación del proyecto RFP. Una vez revisado que los datos viajaran correctamente se aprueba RFP.",
+    "acciones": [
+      "Verificar que la solicitud RFQ viaje a Ariba.",
+      "Proceder con la creación del proyecto RFP.",
+      "Revisar que los datos de la petición de oferta viajen correctamente.",
+      "Aprobar RFP."
+    ],
+    "validacion": "¿El RFQ viajó a Ariba y el RFP fue aprobado tras verificar que los datos viajaran correctamente?",
+    "next": "RFQ_3_ajustar_plantilla"
+  },
+  "RFQ_3_ajustar_plantilla": {
+    "type": "task",
+    "titulo": "Ajustar plantilla acorde al proceso",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de Abastecimiento verifica estructura de plantilla (duración del proceso, datos de cabecera, hoja de seguridad/ISP si aplica, información ESG, adjuntos por ítem, habilitar monedas).",
+    "acciones": [
+      "Verificar duración del proceso.",
+      "Verificar datos de cabecera (contacto interno, tipo de licitación, nota de entrega, entre otros).",
+      "Solicitar hoja de seguridad y/o Registro de ISP en caso de que aplique.",
+      "Solicitar información ESG.",
+      "Verificar adjuntos de cada ítem.",
+      "Habilitar tipos de monedas para cotizar."
+    ],
+    "validacion": "¿La plantilla quedó verificada con duración, cabecera, (HDS/ISP si aplica), ESG, adjuntos por ítem y monedas habilitadas?",
+    "next": "RFQ_4_seleccionar_proveedores"
+  },
+  "RFQ_4_seleccionar_proveedores": {
+    "type": "task",
+    "titulo": "Seleccionar proveedores",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de Abastecimiento realiza búsqueda de proveedores para invitar al proceso. Una vez identificados, verifica si están registrados en Ariba, en caso contrario, se toma contacto para validar información.",
+    "acciones": [
+      "Realizar búsqueda de proveedores para invitar al proceso.",
+      "Verificar si los proveedores están registrados en Ariba.",
+      "Si no están registrados, tomar contacto para validar información."
+    ],
+    "validacion": "¿Los proveedores fueron seleccionados y se verificó su registro en Ariba?",
+    "next": "D3_proveedor_enrolado"
+  },
+  "D3_proveedor_enrolado": {
+    "type": "decision",
+    "titulo": "¿Proveedor enrolado?",
+    "rol": "Ingeniero de Abastecimiento",
+    "pregunta": "¿El proveedor está registrado (enrolado) en Ariba?",
+    "opciones": [
+      {
+        "label": "SÍ → Incorporar al proceso",
+        "next": "RFQ_6_incorporar_proceso"
+      },
+      {
+        "label": "NO → Validar datos (correo, contacto y ANID)",
+        "next": "RFQ_5_validar_datos"
+      }
+    ],
+    "ayuda": "Si el proveedor no está enrolado, el PRO128 indica solicitar correo, persona de contacto y ANID."
+  },
+  "RFQ_5_validar_datos": {
+    "type": "task",
+    "titulo": "Validar datos (correo, contacto y ANID)",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Si el proveedor no está enrolado, el Ingeniero de Abastecimiento se contacta con él para solicitar: correo, persona de contacto y ANID.",
+    "acciones": [
+      "Contactar al proveedor.",
+      "Solicitar correo.",
+      "Solicitar persona de contacto.",
+      "Solicitar ANID."
+    ],
+    "validacion": "¿Se recibieron y validaron correo, persona de contacto y ANID del proveedor?",
+    "next": "RFQ_6_incorporar_proceso"
+  },
+  "RFQ_6_incorporar_proceso": {
+    "type": "task",
+    "titulo": "Incorporar al proceso",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Cuando se confirma que los proveedores se encuentran correctamente enrolados, el Ingeniero de Abastecimiento los incorpora al proceso.",
+    "acciones": [
+      "Confirmar que los proveedores se encuentran correctamente enrolados.",
+      "Incorporar a los proveedores al proceso."
+    ],
+    "validacion": "¿Los proveedores fueron incorporados al proceso una vez confirmados correctamente enrolados?",
+    "next": "RFQ_7_publicar_proceso"
+  },
+  "RFQ_7_publicar_proceso": {
+    "type": "task",
+    "titulo": "Publicar proceso",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento una vez completa la plantilla con todos los campos necesarios publica el proceso y genera invitación a los participantes.",
+    "acciones": [
+      "Publicar el proceso una vez completa la plantilla con todos los campos necesarios.",
+      "Generar invitación a los participantes."
+    ],
+    "validacion": "¿El proceso fue publicado y se generó la invitación a los participantes?",
+    "next": "RFQ_8_notificar_participacion"
+  },
+  "RFQ_8_notificar_participacion": {
+    "type": "task",
+    "titulo": "Notificar la participación",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "El proveedor recibe un correo electrónico con la invitación a participar al proceso de cotización con un enlace directo al evento, para revisar los requisitos, cantidades e insumos a ofertar.",
+    "acciones": [
+      "Verificar que se envió/recibió la invitación a participar con enlace directo al evento.",
+      "Confirmar que el proveedor puede revisar requisitos, cantidades e insumos a ofertar."
+    ],
+    "validacion": "¿La invitación fue notificada y el proveedor puede acceder al evento para revisar requisitos e insumos a ofertar?",
+    "next": "RFQ_9_recibe_oferta"
+  },
+  "RFQ_9_recibe_oferta": {
+    "type": "task",
+    "titulo": "Recibe oferta",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento revisa que proveedores confirmen participación en la cotización, y verifica información cargada.",
+    "acciones": [
+      "Revisar que los proveedores confirmen participación en la cotización.",
+      "Verificar información cargada."
+    ],
+    "validacion": "¿Los proveedores confirmaron participación y la información cargada fue verificada?",
+    "next": "T8_evaluar_oferta"
+  },
+  "T8_evaluar_oferta": {
+    "type": "task",
+    "titulo": "Evaluar Oferta",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento evalúa las ofertas recibidas, si cumple con especificaciones técnicas, compara precios y tiempos de entrega. En base a esta evaluación determina la mejor alternativa y aplica protocolo de abastecimiento. Si el monto total es inferior a USD 25.000, se emite la OC directa; si supera, se crea un Informe. Si no se ajusta a lo requerido se bloquea SOLPED.",
+    "acciones": [
+      "Evaluar las ofertas recibidas.",
+      "Verificar si cumple con especificaciones técnicas.",
+      "Comparar precios y tiempos de entrega.",
+      "Determinar la mejor alternativa y aplicar protocolo de abastecimiento.",
+      "Si el monto total de la compra es inferior a USD 25.000: emitir la OC de forma directa.",
+      "Si el monto total de la compra supera USD 25.000: proceder a crear un Informe.",
+      "Si la oferta no se ajusta a lo requerido: proceder a bloquear SOLPED."
+    ],
+    "validacion": "¿Se evaluó la oferta verificando especificaciones técnicas y comparando precio/tiempo de entrega, determinando el curso (OC directa / Informe / bloqueo)?",
+    "next": "D5_cumplen_especificaciones"
+  },
+  "D5_cumplen_especificaciones": {
+    "type": "decision",
+    "titulo": "¿Cumplen las especificaciones técnicas y económica?",
+    "rol": "Ingeniero de Abastecimiento",
+    "pregunta": "¿La oferta cumple con las especificaciones técnicas y económica?",
+    "opciones": [
+      {
+        "label": "SÍ → Continuar a Formalización de orden de compra",
+        "next": "F1_formalizacion_oc"
+      },
+      {
+        "label": "NO → Bloquear SOLPED (motivo rechazo) y notificar a Almacén",
+        "next": "T8b_bloquear_solped_no_cumple"
+      }
+    ],
+    "ayuda": "Si NO cumple, el flujo indica bloqueo de SOLPED."
+  },
+  "T8b_bloquear_solped_no_cumple": {
+    "type": "task",
+    "titulo": "Bloquear SOLPED",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "El ingeniero de abastecimiento si detecta que hay que anular o pausar el proceso mientras se hace evaluación de la compra por el área especialista correspondiente.",
+    "acciones": [
+      "Bloquear SOLPED adjuntando motivo por el cual fue rechazada.",
+      "Informar a Almacén que se bloqueó solicitud de pedido."
+    ],
+    "validacion": "¿La SOLPED quedó bloqueada con motivo de rechazo adjunto y Almacén fue informado?",
+    "next": "D4_obsoleto"
+  },
+  "F1_formalizacion_oc": {
+    "type": "task",
+    "titulo": "Formalización de orden de compra",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento inicia el flujo de formalización donde debe revisar la creación de proveedor en SAP y que SOLPED se encuentre disponible.",
+    "acciones": [
+      "Revisar la creación de proveedor en sistema SAP.",
+      "Revisar que SOLPED se encuentre disponible."
+    ],
+    "validacion": "¿Se revisó creación de proveedor en SAP y que SOLPED esté disponible para continuar con la formalización?",
+    "next": "D6_proveedor_creado_sap"
+  },
+  "D6_proveedor_creado_sap": {
+    "type": "decision",
+    "titulo": "¿Proveedor creado en SAP?",
+    "rol": "Ingeniero de Abastecimiento",
+    "pregunta": "¿El proveedor está creado en el sistema SAP?",
+    "opciones": [
+      {
+        "label": "SÍ → Revisar antecedentes oferta",
+        "next": "F2_revisar_antecedentes_oferta"
+      },
+      {
+        "label": "NO → Derivar a PRO-145 (Creación de Proveedores)",
+        "next": "T_PRO145_completar"
+      }
+    ],
+    "ayuda": "PRO128 indica chequear creación del proveedor; si no está, gestionar según PRO-145."
+  },
+  "T_PRO145_completar": {
+    "type": "task",
+    "titulo": "Completar PRO145 – Creación de Proveedores",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Gestionar la creación del proveedor en SAP según PRO145 antes de continuar el proceso de compra.",
+    "acciones": [
+      "Completar el flujo PRO145 para creación/alta del proveedor (según estándar vigente).",
+      "Reunir/validar datos mínimos del proveedor (correo, contacto, ANID u otros definidos en el flujo)."
+    ],
+    "validacion": "¿Se ejecutó el flujo PRO145 y quedó el proveedor en condición de ser utilizado en el proceso?",
+    "next": "D_PRO145_creado_post"
+  },
+  "D_PRO145_creado_post": {
+    "type": "decision",
+    "titulo": "¿Proveedor creado según PRO145?",
+    "rol": "Ingeniero de Abastecimiento",
+    "pregunta": "¿El proveedor quedó creado/activo en SAP según PRO145?",
+    "opciones": [
+      {
+        "label": "SÍ → Volver al flujo y revisar antecedentes de oferta",
+        "next": "F2_revisar_antecedentes_oferta"
+      },
+      {
+        "label": "NO → Rehacer PRO145 (crear/regularizar proveedor)",
+        "next": "T_PRO145_completar"
+      }
+    ],
+    "ayuda": "Si no está creado/activo, no continúes con OC. Completa PRO145 y revalida."
+  },
+  "F2_revisar_antecedentes_oferta": {
+    "type": "task",
+    "titulo": "Revisar antecedentes oferta",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Revisar antecedentes de la oferta para la creación de orden de compra. Si el monto será superior a 25.000 USD se crea informe de adjudicación; si no, avanza a creación de pedido.",
+    "acciones": [
+      "Revisar antecedentes de la oferta.",
+      "Determinar si el monto será superior a 25.000 USD para definir creación de Informe de Adjudicación."
+    ],
+    "validacion": "¿Se revisaron antecedentes de oferta y se determinó si requiere Informe de Adjudicación (por monto > 25.000 USD)?",
+    "next": "D7_requiere_ia"
+  },
+  "D7_requiere_ia": {
+    "type": "decision",
+    "titulo": "¿Requiere Informe de Adjudicación?",
+    "rol": "Ingeniero de Abastecimiento",
+    "pregunta": "¿El monto total de la compra requiere Informe de Adjudicación (IA)?",
+    "opciones": [
+      {
+        "label": "SÍ → Crear informe de adjudicación (IDOK)",
+        "next": "F3_crear_ia_idok"
+      },
+      {
+        "label": "NO → Evaluar si requiere cotización por Ariba",
+        "next": "D7b_necesita_ariba"
+      }
+    ],
+    "ayuda": "PRO128: si monto supera USD 25.000 se procede a crear un Informe; de lo contrario se crea pedido."
+  },
+  "D7b_necesita_ariba": {
+    "type": "decision",
+    "titulo": "¿Requiere cotización por Ariba?",
+    "rol": "Ingeniero de Abastecimiento",
+    "pregunta": "Si NO requiere Informe de Adjudicación, ¿se necesita realizar cotización vía Ariba (RFQ) antes de formalizar la compra?",
+    "opciones": [
+      {
+        "label": "SÍ → Cargar conexión en Ariba (formalización con Ariba)",
+        "next": "F7_cargar_conexion_ariba"
+      },
+      {
+        "label": "NO → Generar orden de compra en SAP (ME21N)",
+        "next": "F6b_generar_oc_me21n"
+      }
+    ],
+    "ayuda": "PRO128: si la compra requiere cotización por Ariba, continúa con la formalización vía Ariba. Si no, la OC se genera directamente en SAP (ME21N)."
+  },
+  "F3_crear_ia_idok": {
+    "type": "task",
+    "titulo": "Crear informe de adjudicación (IDOK)",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento elabora informe de adjudicación según plantilla. Una vez completado, se envía para revisión y aprobación conforme a niveles DOA-2.",
+    "acciones": [
+      "Elaborar informe de adjudicación según plantilla para compra de materiales y repuestos.",
+      "Enviar el informe para revisión y aprobación conforme a niveles de autorización establecidos según DOA-2."
+    ],
+    "validacion": "¿El IA fue elaborado según plantilla y enviado a revisión/aprobación conforme DOA-2?",
+    "next": "F4_revisar_ia"
+  },
+  "F4_revisar_ia": {
+    "type": "task",
+    "titulo": "Revisar IA",
+    "rol": "Solicitante / Jefatura",
+    "descripcion": "El Informe de adjudicación es revisado por responsables según DOA-2. Cada firmante valida fundamentación técnica y comercial. Si conforme, se aprueba IA en IDOK; si hay observaciones, se rechaza y devuelve a Ingeniero de Abastecimiento para corrección.",
+    "acciones": [
+      "Revisar IA según niveles de autorización DOA-2.",
+      "Validar que la adjudicación esté debidamente fundamentada en aspectos técnicos y comerciales.",
+      "Aprobar IA en IDOK si está conforme; en caso de observaciones, rechazar y devolver a Ingeniero de Abastecimiento para corrección."
+    ],
+    "validacion": "¿El IA fue revisado y quedó aprobado en IDOK (o devuelto con observaciones para corrección)?",
+    "next": "D8_ia_aprobada"
+  },
+  "D8_ia_aprobada": {
+    "type": "decision",
+    "titulo": "¿Aprueba IA?",
+    "rol": "Solicitante / Jefatura",
+    "pregunta": "¿El Informe de Adjudicación quedó aprobado en IDOK?",
+    "opciones": [
+      {
+        "label": "SÍ → Generar orden de compra (SAP) inmediatamente",
+        "next": "F6c_generar_oc_post_ia"
+      },
+      {
+        "label": "NO → Volver a Crear IA (corregir y reenviar)",
+        "next": "F3_crear_ia_idok"
+      }
+    ],
+    "ayuda": "Si hay observaciones, el IA se rechaza y vuelve a Ingeniero de Abastecimiento para corrección."
+  },
+  "F6_generar_oc": {
+    "type": "decision",
+    "titulo": "¿Cotización por Ariba?",
+    "rol": "Ingeniero de Abastecimiento",
+    "pregunta": "¿La cotización fue por Ariba?",
+    "opciones": [
+      {
+        "label": "SÍ → Cargar conexión en Ariba y generar OC automática",
+        "next": "F7_cargar_conexion_ariba"
+      },
+      {
+        "label": "NO → Generar orden de compra (ME21N) por correo",
+        "next": "F6b_generar_oc_me21n"
+      }
+    ],
+    "ayuda": "PRO128 distingue formalización según si la cotización fue por Ariba o por correo."
+  },
+  "F6c_generar_oc_post_ia": {
+    "type": "task",
+    "titulo": "Generar orden de compra (SAP) – Post IA aprobada",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Con el Informe de Adjudicación aprobado (IDOK), se debe generar la Orden de Compra en SAP de forma inmediata (sin cargar conexión en Ariba).",
+    "acciones": [
+      "Generar la Orden de Compra en SAP (ME21N) utilizando los antecedentes de la oferta aprobada y el IA aprobado en IDOK.",
+      "Completar los campos críticos definidos en el flujo (proveedor, condiciones comerciales, fechas de entrega, moneda/precio y destinatarios/correos si aplica)."
+    ],
+    "validacion": "¿La Orden de Compra quedó generada en SAP (ME21N) posterior a IA aprobada, con campos críticos completos?",
+    "next": "F8_verificar_creacion_oc"
+  },
+  "F6b_generar_oc_me21n": {
+    "type": "task",
+    "titulo": "Generar orden de compra (ME21N)",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de Abastecimiento gestiona creación de OC para cotizaciones por correo electrónico en ME21N. Campos críticos: número de cotización, fechas de entrega, moneda y precio, correo(s) de destino, tipo de licitación y comercio.",
+    "acciones": [
+      "Gestionar la creación de la orden de compra para cotizaciones por correo electrónico en transacción ME21N.",
+      "Completar campos críticos: número de cotización, fechas de entrega, moneda y precio, correo(s) de destino, tipo de licitación y comercio."
+    ],
+    "validacion": "¿La OC fue creada en ME21N con los campos críticos completos (cotización, fechas, moneda/precio, correos, tipo licitación y comercio)?",
+    "next": "F8_verificar_creacion_oc"
+  },
+  "F7_cargar_conexion_ariba": {
+    "type": "task",
+    "titulo": "Cargar conexión en Ariba",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Una vez creado el proveedor en SAP y aprobado IA cuando aplique, se incorpora código SAP del proveedor y clave de conexión entre SAP HANNA y Ariba NETWORK.",
+    "acciones": [
+      "Incorporar código SAP del proveedor.",
+      "Incorporar clave de conexión entre SAP HANNA y Ariba NETWORK."
+    ],
+    "validacion": "¿Se incorporó código SAP del proveedor y clave de conexión SAP–Ariba Network?",
+    "next": "F8_crear_supuesto_adjudicacion"
+  },
+  "F8_crear_supuesto_adjudicacion": {
+    "type": "task",
+    "titulo": "Crear supuesto adjudicación",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "A través de Ariba, Ingeniero de Abastecimiento crea supuesto seleccionando el o los proponentes adjudicados, lo que hace que se generen las OC en SAP.",
+    "acciones": [
+      "Crear supuesto en Ariba seleccionando el o los proponentes adjudicados."
+    ],
+    "validacion": "¿Se creó el supuesto de adjudicación en Ariba seleccionando proponentes adjudicados?",
+    "next": "F8b_genera_oc_automatica"
+  },
+  "F8b_genera_oc_automatica": {
+    "type": "task",
+    "titulo": "Genera orden de compra automática",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "A través de la conexión SAP–Ariba se gatilla orden de compra automática que completa campos tipo de licitación, comercio, correo electrónico y adjunto de la oferta adjudicada; el resto de las ofertas se visualizan en Ariba.",
+    "acciones": [
+      "Verificar que se gatilló orden de compra automática vía conexión SAP–Ariba.",
+      "Verificar completitud de campos: tipo de licitación, comercio, correo electrónico para notificar OC y adjunto de la oferta adjudicada."
+    ],
+    "validacion": "¿La OC automática se generó y completó campos (tipo licitación, comercio, correo, adjunto oferta adjudicada)?",
+    "next": "F8c_revisar_creacion_oc"
+  },
+  "F8c_revisar_creacion_oc": {
+    "type": "task",
+    "titulo": "Revisar creación orden de compra",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento revisa que el proceso se ejecutó de manera correcta enviando archivos de respaldo y llenado de campos (tipo de licitación, comercio, correo electrónico).",
+    "acciones": [
+      "Revisar que el proceso se ejecutó de manera correcta.",
+      "Revisar envío de archivos de respaldo.",
+      "Revisar llenado de campos tipo de licitación, comercio y correo electrónico."
+    ],
+    "validacion": "¿Se verificó ejecución correcta del proceso y completitud de respaldo/campos críticos?",
+    "next": "F9_revisar_oc_sap"
+  },
+  "F8_verificar_creacion_oc": {
+    "type": "task",
+    "titulo": "Verificar creación de Orden de Compra en SAP",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Antes de que el Solicitante/Jefatura revise la Orden de Compra, el Ingeniero de Abastecimiento debe verificar que la OC se generó correctamente en SAP y que los campos críticos y respaldos asociados están completos.",
+    "acciones": [
+      "Verificar que la Orden de Compra se generó en SAP (ME21N) y que quedó liberada/pendiente según corresponda.",
+      "Revisar completitud de campos críticos definidos en el flujo (proveedor, condiciones comerciales, fechas de entrega, moneda/precio, centros/direcciones, correos/destinatarios si aplica).",
+      "Verificar que la OC está trazable respecto de la SOLPED y antecedentes de oferta/cotización usados para la adjudicación."
+    ],
+    "validacion": "¿La Orden de Compra quedó creada correctamente en SAP y con campos críticos/respaldos completos para revisión del Solicitante/Jefatura?",
+    "next": "F9_revisar_oc_sap"
+  },
+  "F9_revisar_oc_sap": {
+    "type": "task",
+    "titulo": "Revisar Orden de Compra SAP",
+    "rol": "Solicitante / Jefatura",
+    "descripcion": "Jefatura revisa OC en sistema, validando que los datos coincidan con lo aprobado (proveedor, montos y plazos). Si conforme, libera OC; si inconsistencia, devuelve a Ing. Abastecimiento.",
+    "acciones": [
+      "Revisar Orden de Compra generada en el sistema.",
+      "Validar que los datos ingresados coincidan con lo aprobado, incluyendo proveedor, montos y plazos.",
+      "Si conforme, liberar orden en el sistema; si inconsistencia, devolver a Ingeniero de Abastecimiento."
+    ],
+    "inputs": [
+      {
+        "key": "numero_oc",
+        "label": "Ingresa número de OC",
+        "required": true
+      }
+    ],
+    "validacion": "¿La OC fue revisada por Jefatura y liberada en SAP (o devuelta a Abastecimiento por inconsistencia)?",
+    "next": "D9_oc_liberada"
+  },
+  "D9_oc_liberada": {
+    "type": "decision",
+    "titulo": "¿OC liberada?",
+    "rol": "Solicitante / Jefatura",
+    "pregunta": "¿La Orden de Compra quedó liberada en el sistema?",
+    "opciones": [
+      {
+        "label": "SÍ → Realizar seguimiento a la entrega",
+        "next": "F10_seguimiento_entrega"
+      },
+      {
+        "label": "NO → Seleccionar motivo (no avanza)",
+        "next": "D9B_motivo_oc_no_liberada"
+      }
+    ],
+    "ayuda": "Si NO se libera, define motivo: (1) volver a evaluar oferta o (2) cancelar compra y bloquear SOLPED."
+  },
+  "D9B_motivo_oc_no_liberada": {
+    "type": "decision",
+    "titulo": "Motivo OC NO liberada",
+    "rol": "Ingeniero de Abastecimiento / Solicitante",
+    "pregunta": "Selecciona el motivo principal por el cual la OC no se libera o no seguirá:",
+    "opciones": [
+      {
+        "label": "Precio / calidad / tiempo → volver a Evaluar Oferta",
+        "next": "T8_evaluar_oferta"
+      },
+      {
+        "label": "No se requiere comprar → eliminar OC, bloquear SOLPED e informar a Almacén",
+        "next": "END_cancelar_compra_bloquear_solped"
+      }
+    ],
+    "ayuda": "La alternativa 'No se requiere comprar' implica cierre del proceso con eliminación OC + bloqueo SOLPED + aviso a Almacén."
+  },
+  "END_cancelar_compra_bloquear_solped": {
+    "type": "end",
+    "titulo": "Cierre: Cancelar compra y bloquear SOLPED",
+    "rol": "Ingeniero de Abastecimiento",
+    "mensaje": "Gestionar eliminación de la Orden de Compra, bloquear SOLPED adjuntando el motivo de rechazo y notificar a Almacén que la Solicitud de Pedido quedó bloqueada.",
+    "estado_final": "BLOQUEADO"
+  },
+  "F10_seguimiento_entrega": {
+    "type": "task",
+    "titulo": "Realizar seguimiento a la entrega",
+    "rol": "Ingeniero de Abastecimiento",
+    "descripcion": "Ingeniero de abastecimiento realiza seguimiento a la orden de compra hasta que la entrega se realice en la instalación.",
+    "acciones": [
+      "Realizar seguimiento a la orden de compra hasta que la entrega se realice en la instalación."
+    ],
+    "validacion": "¿El seguimiento a la OC está en curso hasta concretar la entrega en la instalación?",
+    "next": "END_pro130"
+  },
+  "END_pro130": {
+    "type": "end",
+    "titulo": "Derivar a PRO-130 – Recepción de materiales y repuestos",
+    "rol": "Almacén",
+    "mensaje": "La recepción/verificación de mercadería se ejecuta según PRO-130 (fuera del alcance de PRO128).",
+    "estado_final": "DERIVADO_PRO130"
+  }
+}

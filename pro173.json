@@ -1,0 +1,651 @@
+{
+  "S0_inicio": {
+    "type": "decision",
+    "titulo": "¿Cómo iniciar el PRO173?",
+    "rol": "HMI (selección de inicio)",
+    "descripcion": "Seleccione el punto de entrada operativo según el contexto real (en terreno / SAP).",
+    "pregunta": "Seleccione una opción para iniciar:",
+    "opciones": [
+      {
+        "label": "Inicio 1: Liberación de aviso A0/A1/A2",
+        "next": "I1_Liberacion_aviso_A0A1A2"
+      },
+      {
+        "label": "Inicio 2: Liberación de aviso A3",
+        "next": "I2_Liberacion_aviso_A3"
+      }
+    ],
+    "ayuda": "Selector HMI: no modifica el flujo del PRO, solo define desde dónde comenzar."
+  },
+  "I1_Liberacion_aviso_A0A1A2": {
+    "type": "task",
+    "titulo": "Liberación de aviso A0/A1/A2",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Entrada del flujo por liberación de aviso A0/A1/A2 (según diagrama del PRO173).",
+    "acciones": [
+      "Confirmar que el aviso está liberado y habilita la gestión del correctivo."
+    ],
+    "checklist": [
+      "Aviso A0/A1/A2 liberado confirmado",
+      "Corresponde iniciar correctivo"
+    ],
+    "validacion": "¿El aviso A0/A1/A2 está liberado y corresponde iniciar la gestión del correctivo?",
+    "next": "T1_Crear_OT_OT01"
+  },
+  "I2_Liberacion_aviso_A3": {
+    "type": "task",
+    "titulo": "Liberación de aviso A3",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Entrada del flujo por liberación de aviso A3 (según diagrama del PRO173).",
+    "acciones": [
+      "Confirmar que el aviso A3 está liberado y habilita la gestión del correctivo."
+    ],
+    "checklist": [
+      "Aviso A3 liberado confirmado",
+      "Corresponde iniciar correctivo"
+    ],
+    "validacion": "¿El aviso A3 está liberado y corresponde iniciar la gestión del correctivo?",
+    "next": "T1_Crear_OT_OT01"
+  },
+  "T1_Crear_OT_OT01": {
+    "type": "task",
+    "titulo": "Crear OT (OT01)",
+    "rol": "Especialización de Mantenimiento",
+    "descripcion": "Crear Orden de Trabajo manual.\n- Crear OT01*\n- Definir una prioridad para su ejecución\n- Definir una denominación\n- Asignar el sistema/proceso (UT-Proceso)\n- Completar campos obligatorios.\n(*) Clase de actividad MCF para órdenes creadas a partir de avisos A0, A1 y A2\n(*) Clase de actividad MPC para órdenes creadas a partir de avisos A3\nEn caso de que operaciones requiera una prueba funcional para evaluar la efectividad, se debe incorporar una operación adicional de prueba de funcionalidad del equipo.\nTransacción: IW31",
+    "acciones": [
+      "Crear OT01 manual en IW31.",
+      "Definir prioridad, denominación y UT-Proceso.",
+      "Completar campos obligatorios.",
+      "Si aplica, incorporar operación adicional de prueba funcional."
+    ],
+    "checklist": [
+      "OT creada en IW31",
+      "Prioridad definida",
+      "Denominación definida",
+      "UT-Proceso asignada",
+      "Campos obligatorios completos",
+      "Si aplica: operación de prueba funcional incorporada"
+    ],
+    "validacion": "¿La OT quedó creada en IW31 con prioridad, denominación, UT-Proceso y campos obligatorios completos (y prueba funcional si aplica)?",
+    "next": "T2_Preparar_OT"
+  },
+  "T2_Preparar_OT": {
+    "type": "task",
+    "titulo": "Preparar OT",
+    "rol": "Especialización de mantenimiento",
+    "descripcion": "Documentar el requerimiento de mantenimiento.\n- Definir las tares de mantenimiento (operaciones)\n- Definir duración de los trabajos y N° de personal requerido por tarea.\n- Definir el Ubicación Técnica por función.\n- Definir de materiales requeridos.\n- Incorporar Servicios como Operación (PM03)\nTransacción: IW32",
+    "acciones": [
+      "En IW32, documentar requerimiento y definir operaciones.",
+      "Definir duración y dotación por tarea.",
+      "Definir Ubicación Técnica por función.",
+      "Definir materiales requeridos.",
+      "Incorporar servicios como operación (PM03) si aplica."
+    ],
+    "checklist": [
+      "Operaciones definidas en OT",
+      "Duración definida",
+      "Dotación definida",
+      "Ubicación Técnica por función definida",
+      "Si aplica: Materiales requeridos definidos",
+      "Si aplica: servicios incorporados como operación (PM03)"
+    ],
+    "validacion": "¿La OT quedó preparada en IW32 con operaciones, duración/dotación, UT por función, materiales y servicios (PM03) si aplica?",
+    "next": "D1_Gestionar_recursos",
+    "text_inputs": [
+      {
+        "key": "numero_ot",
+        "label": "Ingrese número de OT",
+        "placeholder": "Ej: 4500123456",
+        "required": true
+      }
+    ]
+  },
+  "T3_Liberar_OT": {
+    "type": "task",
+    "titulo": "Liberar OT",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Una vez creada y Preparada la OT, pasa por una revisión y confirmación de los trabajos requeridos por parte de la supervisión de mantenimiento llamada \"Liberar OT\".\nTransacción: IW32\nConsideración: En caso de que se evidencie previo a la liberación de una OT que esta no corresponde para su ejecución, se debe asignar el estatus NEJE a nivel de cabecera de la OT.",
+    "acciones": [
+      "Revisar y confirmar trabajos requeridos.",
+      "Liberar OT en IW32.",
+      "Si NO corresponde ejecutar, asignar estatus NEJE (cabecera) antes de liberar."
+    ],
+    "checklist": [
+      "OT revisada por supervisión",
+      "OT liberada en IW32 o estatus NEJE aplicado (si no corresponde ejecutar)"
+    ],
+    "validacion": "¿La OT fue revisada y liberada correctamente (o se aplicó estatus NEJE si no corresponde ejecutar)?",
+    "next": "T4_Preparar_trabajos_SI"
+  },
+  "T3_Liberar_OT_NO": {
+    "type": "task",
+    "titulo": "Liberar OT",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Una vez creada y Preparada la OT, pasa por una revisión y confirmación de los trabajos requeridos por parte de la supervisión de mantenimiento llamada \"Liberar OT\".\nTransacción: IW32\nConsideración: En caso de que se evidencie previo a la liberación de una OT que esta no corresponde para su ejecución, se debe asignar el estatus NEJE a nivel de cabecera de la OT.",
+    "acciones": [
+      "Revisar y confirmar trabajos requeridos.",
+      "Liberar OT en IW32.",
+      "Si NO corresponde ejecutar, asignar estatus NEJE (cabecera) antes de liberar."
+    ],
+    "checklist": [
+      "OT revisada por supervisión",
+      "OT liberada en IW32 o estatus NEJE aplicado (si no corresponde ejecutar)"
+    ],
+    "validacion": "¿La OT fue revisada y liberada correctamente (o se aplicó estatus NEJE si no corresponde ejecutar)?",
+    "next": "T4_Preparar_trabajos_NO"
+  },
+  "T4_Preparar_trabajos_SI": {
+    "type": "task",
+    "titulo": "Preparar trabajos",
+    "rol": "Especialización de Mantenimiento",
+    "descripcion": "Asegurar que tengo todo lo necesario para ejecutar los trabajos requeridos.\n- Procedimientos\n- Licitación de servicios\n- Permiso de Trabajo\n- Revisión de informes anteriores\nTransacción: No aplica",
+    "acciones": [
+      "Verificar procedimientos aplicables.",
+      "Verificar licitación/servicios si aplica.",
+      "Verificar Permiso de Trabajo (PT).",
+      "Revisar informes anteriores si existen."
+    ],
+    "checklist": [
+      "Procedimientos disponibles",
+      "Servicios/licitación verificados (si aplica)",
+      "PT considerado (previo a ejecución)",
+      "Informes anteriores revisados (si aplica)"
+    ],
+    "validacion": "¿Está todo lo necesario para ejecutar (procedimientos, servicios si aplica, PT y revisión de informes anteriores)?",
+    "next": "T5_Gestion_de_recursos",
+    "text_inputs": [
+      {
+        "key": "numero_pt",
+        "label": "Ingrese número de PT",
+        "placeholder": "Ej: PT-2026-0001",
+        "required": true
+      }
+    ]
+  },
+  "T4_Preparar_trabajos_NO": {
+    "type": "task",
+    "titulo": "Preparar trabajos",
+    "rol": "Especialización de Mantenimiento",
+    "descripcion": "Asegurar que tengo todo lo necesario para ejecutar los trabajos requeridos.\n- Procedimientos\n- Licitación de servicios\n- Permiso de Trabajo\n- Revisión de informes anteriores\nTransacción: No aplica",
+    "acciones": [
+      "Verificar procedimientos aplicables.",
+      "Verificar licitación/servicios si aplica.",
+      "Verificar Permiso de Trabajo (PT).",
+      "Revisar informes anteriores si existen."
+    ],
+    "checklist": [
+      "Procedimientos disponibles",
+      "Servicios/licitación verificados (si aplica)",
+      "PT considerado (previo a ejecución)",
+      "Informes anteriores revisados (si aplica)"
+    ],
+    "validacion": "¿Está todo lo necesario para ejecutar (procedimientos, servicios si aplica, PT y revisión de informes anteriores)?",
+    "next": "T8_Programacion_de_trabajos",
+    "text_inputs": [
+      {
+        "key": "numero_pt",
+        "label": "Ingrese número de PT",
+        "placeholder": "Ej: PT-2026-0001",
+        "required": true
+      }
+    ]
+  },
+  "D1_Gestionar_recursos": {
+    "type": "decision",
+    "titulo": "¿Se requiere gestionar recursos?",
+    "rol": "Planificación / Programación",
+    "descripcion": "Decisión del flujo PRO173 para determinar si se requiere gestión de recursos (materiales/servicios).",
+    "pregunta": "¿Se necesitan recursos?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "D2_Modo_CECO_PEP"
+      },
+      {
+        "label": "NO",
+        "next": "T3_Liberar_OT_NO"
+      }
+    ]
+  },
+  "T5_Gestion_de_recursos": {
+    "type": "task",
+    "titulo": "Gestión de recursos",
+    "rol": "Abastecimiento y Compras",
+    "descripcion": "Gestión de recursos (según diagrama del PRO173).",
+    "acciones": [
+      "Gestionar recursos requeridos (materiales/servicios) para habilitar ejecución."
+    ],
+    "checklist": [
+      "Recursos gestionados/confirmados"
+    ],
+    "validacion": "¿Los recursos necesarios fueron gestionados/confirmados para la ejecución?",
+    "next": "T6_Recepcion_materiales_servicios"
+  },
+  "T6_Recepcion_materiales_servicios": {
+    "type": "task",
+    "titulo": "Recepción de materiales/servicios",
+    "rol": "Abastecimiento y Compras",
+    "descripcion": "Recepción de materiales/servicios (según diagrama del PRO173).",
+    "acciones": [
+      "Confirmar recepción y disponibilidad de materiales/servicios para ejecución."
+    ],
+    "checklist": [
+      "Materiales recepcionados (si aplica)",
+      "Servicios disponibles/confirmados (si aplica)"
+    ],
+    "validacion": "¿Materiales/servicios están recepcionados y disponibles para ejecutar?",
+    "next": "T8_Programacion_de_trabajos"
+  },
+  "T8_Programacion_de_trabajos": {
+    "type": "task",
+    "titulo": "Programación de trabajos",
+    "rol": "Planificación / Programación",
+    "descripcion": "Programación de trabajos (según diagrama del PRO173).",
+    "acciones": [
+      "Programar ventana/fecha de ejecución y coordinación operativa."
+    ],
+    "checklist": [
+      "Trabajo programado",
+      "Coordinación comunicada"
+    ],
+    "validacion": "¿El trabajo quedó programado y coordinado para su ejecución?",
+    "next": "T7_PT_en_vigencia"
+  },
+  "T7_PT_en_vigencia": {
+    "type": "task",
+    "titulo": "PT en estado “En vigencia”",
+    "rol": "Planificación / Programación",
+    "descripcion": "Condición habilitante para ejecución: PT en estado “En vigencia” (según diagrama del PRO173).",
+    "acciones": [
+      "Verificar que el Permiso de Trabajo (PT) se encuentra vigente antes de ejecutar."
+    ],
+    "checklist": [
+      "PT vigente confirmado"
+    ],
+    "validacion": "¿El PT está en estado “En vigencia” y cubre el alcance real del trabajo?",
+    "next": null
+  },
+  "T9_Retirar_materiales": {
+    "type": "task",
+    "titulo": "Retirar materiales",
+    "rol": "Mantenimiento",
+    "descripcion": "El mantenedor procede al retiro de materiales de bodega/almacén y solicita la aprobación de servicios externos contratados en caso de que esto aplique.\nTransacción: No aplica",
+    "acciones": [
+      "Retirar materiales desde bodega/almacén.",
+      "Solicitar aprobación de servicios externos contratados (si aplica)."
+    ],
+    "checklist": [
+      "Materiales retirados",
+      "Si aplica: aprobación servicios externos solicitada/obtenida"
+    ],
+    "validacion": "¿Materiales retirados y (si aplica) servicios externos aprobados para ejecutar?",
+    "next": "T10_Ejecutar_trabajos"
+  },
+  "T10_Ejecutar_trabajos": {
+    "type": "task",
+    "titulo": "Ejecutar trabajos",
+    "rol": "Mantenimiento",
+    "descripcion": "El mantenedor procederá con la ejecución de las tareas descritas como operaciones en la Orden de Trabajo.\nTransacción: No aplica",
+    "acciones": [
+      "Ejecutar las operaciones de la OT en terreno, bajo PT vigente y estándares aplicables."
+    ],
+    "checklist": [
+      "Operaciones ejecutadas en terreno",
+      "Condición segura mantenida durante ejecución"
+    ],
+    "validacion": "¿Se ejecutaron las operaciones de la OT en terreno bajo condiciones seguras y PT vigente?",
+    "next": "D2_Reemplazo_equipo"
+  },
+  "D2_Reemplazo_equipo": {
+    "type": "decision",
+    "titulo": "¿El mantenimiento implicó reemplazo de equipo?",
+    "rol": "Mantenimiento",
+    "descripcion": "Decisión del flujo PRO173 respecto a reemplazo de equipo.",
+    "pregunta": "¿El mantenimiento implicó reemplazo de equipo?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "T11_Gestion_de_Renovacion"
+      },
+      {
+        "label": "NO",
+        "next": "T12_Notificar_trabajos"
+      }
+    ]
+  },
+  "T11_Gestion_de_Renovacion": {
+    "type": "task",
+    "titulo": "Gestión de Renovación",
+    "rol": "Mantenimiento",
+    "descripcion": "Gestión de Renovación (según diagrama del PRO173).",
+    "acciones": [
+      "Derivar/iniciar gestión de renovación asociada al reemplazo del equipo."
+    ],
+    "checklist": [
+      "Gestión de renovación iniciada/derivada"
+    ],
+    "validacion": "¿Se inició/derivó correctamente la Gestión de Renovación por reemplazo de equipo?",
+    "next": "T12_Notificar_trabajos"
+  },
+  "T12_Notificar_trabajos": {
+    "type": "task",
+    "titulo": "Notificar trabajos",
+    "rol": "Mantenimiento",
+    "descripcion": "Una vez concluidos los trabajos, los mantenedores que participaron del trabajo realizado, deben proceder a registrar sus tiempos por operación asignada y para el caso de no haber realizado alguna tarea se debe dejar por escrito el motivo de la desviación.\nTransacción: IW41 / IW48",
+    "acciones": [
+      "Notificar trabajos en IW41 o IW48.",
+      "Registrar tiempos por operación asignada.",
+      "Si no se realizó alguna tarea, dejar por escrito el motivo de la desviación."
+    ],
+    "checklist": [
+      "Notificación registrada (IW41/IW48)",
+      "Tiempos por operación registrados",
+      "Si aplica: desviaciones justificadas por escrito"
+    ],
+    "validacion": "¿Se notificaron los trabajos con tiempos por operación y (si aplica) desviaciones justificadas por escrito?",
+    "next": "D4_Informe_requerido"
+  },
+  "D4_Informe_requerido": {
+    "type": "decision",
+    "titulo": "¿Se requiere un informe de los trabajos realizados?",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Decisión del supervisor de mantenimiento según PRO173.",
+    "pregunta": "¿Se requiere un informe de los trabajos realizados?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "T13_Realizar_informe"
+      },
+      {
+        "label": "NO",
+        "next": "T15_Revisar_OT"
+      }
+    ]
+  },
+  "T13_Realizar_informe": {
+    "type": "task",
+    "titulo": "Realizar informe de trabajos realizados",
+    "rol": "Mantenimiento",
+    "descripcion": "Es decisión del supervisor de mantenimiento definir si los trabajos realizados, requieren un informe. Algunas de las situaciones donde se puede dar son:\n▪ La especificidad de los trabajos amerita documentar y evidenciar lo realizado.\n▪ Actividades en las cuales se realizan mediciones que se deben documentar.\n▪ Trabajos con servicios externos, entre otros.\nEste informe debe ser realizado por el ejecutor de los trabajos y debe incluir los detalles de lo realizado.\nTransacción: No aplica",
+    "acciones": [
+      "Realizar informe de trabajos realizados con detalle de lo ejecutado.",
+      "Incluir mediciones/evidencia cuando corresponda.",
+      "Incluir participación de terceros/servicios cuando aplique."
+    ],
+    "checklist": [
+      "Informe elaborado por ejecutor",
+      "Detalle de lo realizado incluido",
+      "Si aplica: mediciones/evidencia incorporadas",
+      "Si aplica: participación de terceros documentada"
+    ],
+    "validacion": "¿El informe fue realizado por el ejecutor e incluye el detalle de lo realizado (y mediciones/evidencia si aplica)?",
+    "next": "T14_Revisar_informe_y_cargar"
+  },
+  "T14_Revisar_informe_y_cargar": {
+    "type": "task",
+    "titulo": "Revisar informe de trabajos realizados y cargar en SAP",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "El supervisor de mantenimiento debe revisar el informe realizado y evaluar si este se encuentra completo.\nLuego debe almacenar el informe en el gestor documental de la compañía (Sharepoint).\nTransacción: No aplica",
+    "acciones": [
+      "Revisar informe realizado.",
+      "Evaluar completitud del informe.",
+      "Almacenar informe en Sharepoint (gestor documental)."
+    ],
+    "checklist": [
+      "Informe revisado por supervisor",
+      "Informe almacenado en Sharepoint"
+    ],
+    "validacion": "¿El supervisor revisó el informe y quedó almacenado en Sharepoint?",
+    "next": "D5_Informe_completo"
+  },
+  "D5_Informe_completo": {
+    "type": "decision",
+    "titulo": "¿Informe completo?",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Rombo del flujo PRO173 para validar completitud del informe.",
+    "pregunta": "¿Informe completo?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "T15_Revisar_OT"
+      },
+      {
+        "label": "NO",
+        "next": "T13_Realizar_informe"
+      }
+    ]
+  },
+  "T15_Revisar_OT": {
+    "type": "task",
+    "titulo": "Revisar OT",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "El supervisor revisará desde la OT que los trabajos fueron ejecutados y notificados, conforme a los recursos y tiempos planificados.\nTransacción: IW32 / IW33",
+    "acciones": [
+      "Revisar en IW32/IW33 consistencia entre ejecución/notificación y plan (recursos/tiempos)."
+    ],
+    "checklist": [
+      "OT revisada en IW32/IW33",
+      "Consistencia ejecución/notificación vs plan confirmada"
+    ],
+    "validacion": "¿La OT fue revisada en IW32/IW33 y es consistente con recursos/tiempos planificados?",
+    "next": "T16_Cerrar_OT_CTEC"
+  },
+  "T16_Cerrar_OT_CTEC": {
+    "type": "task",
+    "titulo": "Cerrar OT (CTEC)",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Una vez concluidos los trabajos de mantenimiento y notificados en el sistema, el supervisor procede a cerrar técnicamente la OT.\nTransacción: IW32",
+    "acciones": [
+      "Cerrar técnicamente la OT (CTEC) en IW32."
+    ],
+    "checklist": [
+      "OT cerrada técnicamente (CTEC)"
+    ],
+    "validacion": "¿La OT fue cerrada técnicamente (CTEC) en IW32?",
+    "next": "D6_A_la_falla"
+  },
+  "D6_A_la_falla": {
+    "type": "decision",
+    "titulo": "¿El equipo está con estrategia de mantenimiento “a la falla”?",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Rombo del flujo PRO173 para determinar si aplica análisis de efectividad.",
+    "pregunta": "¿El equipo está con estrategia de mantenimiento “a la falla”?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "T19_Fin_de_mantenimiento"
+      },
+      {
+        "label": "NO",
+        "next": "T17_Analisis_efectividad"
+      }
+    ]
+  },
+  "T17_Analisis_efectividad": {
+    "type": "task",
+    "titulo": "Realizar análisis de efectividad de controles definidos",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "En caso de que el equipo en falla este cubierto por el mantenimiento preventivo, se realiza el análisis de efectividad para detectar potenciales oportunidades de mejora en el plan de mantenimiento.\nTransacción: No aplica",
+    "acciones": [
+      "Realizar análisis de efectividad de controles definidos y levantar oportunidades de mejora (si aplica)."
+    ],
+    "checklist": [
+      "Análisis de efectividad realizado",
+      "Oportunidades de mejora identificadas (si aplica)"
+    ],
+    "validacion": "¿Se realizó el análisis de efectividad y se identificaron oportunidades de mejora cuando corresponde?",
+    "next": "D7_Modificar_plan"
+  },
+  "D7_Modificar_plan": {
+    "type": "decision",
+    "titulo": "¿Se debe modificar el plan de mantenimiento establecido?",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Rombo del flujo PRO173 que deriva a PRO181 si corresponde.",
+    "pregunta": "¿Se debe modificar el plan de mantenimiento establecido?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "T18_PRO181"
+      },
+      {
+        "label": "NO",
+        "next": "T19_Fin_de_mantenimiento"
+      }
+    ]
+  },
+  "T18_PRO181": {
+    "type": "task",
+    "titulo": "PRO181 - Modificación del Plan de Mantenimiento",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Derivación externa según flujo PRO173: ejecutar PRO181 para modificar el Plan de Mantenimiento.",
+    "acciones": [
+      "Derivar y ejecutar PRO181 según corresponda."
+    ],
+    "checklist": [
+      "Derivación a PRO181 realizada",
+      "Responsable definido para ejecutar PRO181"
+    ],
+    "validacion": "¿Se derivó correctamente a PRO181 con responsable definido?",
+    "next": "T19_Fin_de_mantenimiento"
+  },
+  "T19_Fin_de_mantenimiento": {
+    "type": "task",
+    "titulo": "Fin de mantenimiento",
+    "rol": "HMI",
+    "descripcion": "Se ejecutaron los pasos del mantenimiento correctivo según PRO173. Corresponde registrar el resultado final del correctivo.",
+    "acciones": [
+      "Registrar cierre operacional del mantenimiento (según procedimiento local) y confirmar condición final."
+    ],
+    "checklist": [
+      "Cierre operacional registrado",
+      "Condición final confirmada"
+    ],
+    "validacion": "¿Se registró el cierre operacional y se confirmó la condición final del equipo/sistema?",
+    "next": "D3_Problema_solucionado"
+  },
+  "D3_Problema_solucionado": {
+    "type": "decision",
+    "titulo": "¿El problema fue solucionado?",
+    "rol": "Supervisión de Mantenimiento",
+    "descripcion": "Confirmación final del resultado del mantenimiento correctivo. Si NO fue solucionado, el flujo retorna a 'Crear OT (OT01)' para re-ejecutar el correctivo.",
+    "pregunta": "¿El problema fue solucionado?",
+    "opciones": [
+      {
+        "label": "SÍ",
+        "next": "T_UPLOAD_ARCHIVOS"
+      },
+      {
+        "label": "NO",
+        "next": "T1_Crear_OT_OT01"
+      }
+    ]
+  },
+  "END_OK": {
+    "type": "end",
+    "titulo": "🏁 Proceso finalizado",
+    "rol": "HMI",
+    "descripcion": "Se completó el PRO173 y el problema fue solucionado. Puede exportar el JSON auditable si lo requiere.",
+    "mensaje": "Ya está en el final/cierre del procedimiento.",
+    "estado_final": "FINALIZADO"
+  },
+  "END_NO": {
+    "type": "end",
+    "titulo": "🏁 Proceso finalizado",
+    "rol": "HMI",
+    "descripcion": "Se completó el PRO173 y el problema NO fue solucionado (resultado informado). Puede exportar el JSON auditable si lo requiere.",
+    "mensaje": "Ya está en el final/cierre del procedimiento.",
+    "estado_final": "FINALIZADO"
+  },
+  "D2_Modo_CECO_PEP": {
+    "type": "decision",
+    "titulo": "¿Qué modo escoges?",
+    "rol": "Supervisor de Mantenimiento",
+    "descripcion": "Seleccione el modo de imputación según corresponda: CECO o PEP.",
+    "pregunta": "¿Qué modo escoges?",
+    "opciones": [
+      {
+        "label": "CECO",
+        "next": "T2B_Asignar_CECO"
+      },
+      {
+        "label": "PEP",
+        "next": "T2A_Asignar_PEP"
+      }
+    ],
+    "ayuda": "Seleccione solo una opción. Ambos caminos convergen en 'Liberar OT'."
+  },
+  "T2A_Asignar_PEP": {
+    "type": "task",
+    "titulo": "Asignar PEP",
+    "rol": "Supervisor de Mantenimiento",
+    "descripcion": "Asignar el código del elemento PEP en la OT (pestaña 'Datos Adic.').",
+    "acciones": [
+      "Definir tipo de PEP aplicable y registrar el número de PEP en la OT."
+    ],
+    "checklist": [
+      "Selecciona un tipo de PEP (excluyente)"
+    ],
+    "radio": {
+      "key": "pep_tipo",
+      "question": "¿Cuál aplica?",
+      "options": [
+        "Mantenimiento mayor",
+        "Caso base"
+      ],
+      "required": true
+    },
+    "text_inputs": [
+      {
+        "key": "numero_pep",
+        "label": "Ingrese número de PEP",
+        "placeholder": "Ej: PEP-12345",
+        "required": true
+      }
+    ],
+    "validacion": "¿PEP asignado correctamente en la OT?",
+    "next": "T3_Liberar_OT"
+  },
+  "T2B_Asignar_CECO": {
+    "type": "task",
+    "titulo": "Asignar CECO",
+    "rol": "Supervisor de Mantenimiento",
+    "descripcion": "Asignar el número de CECO en la OT. Aplica: Mantenimiento cotidiano.",
+    "acciones": [
+      "Registrar el número de CECO correspondiente en la OT."
+    ],
+    "checklist": [
+      "Aplica: Mantenimiento cotidiano"
+    ],
+    "text_inputs": [
+      {
+        "key": "numero_ceco",
+        "label": "Ingrese número de CECO",
+        "placeholder": "Ej: CECO-0001",
+        "required": true
+      }
+    ],
+    "validacion": "¿CECO asignado en la OT?",
+    "next": "T3_Liberar_OT"
+  },
+  "T_UPLOAD_ARCHIVOS": {
+    "type": "task",
+    "titulo": "Opcional: Subir archivos pertinentes",
+    "rol": "Mantenimiento",
+    "descripcion": "Opcional. Registre enlaces/rutas/nombres de los archivos pertinentes (fotos, informes, evidencias).",
+    "acciones": [
+      "Adjuntar o registrar referencias a archivos pertinentes."
+    ],
+    "checklist": [],
+    "text_inputs": [
+      {
+        "key": "archivos_pertinentes",
+        "label": "Opcional: Sube los archivos pertinentes",
+        "placeholder": "Pegue links / rutas / nombres de archivos...",
+        "required": false,
+        "multiline": true
+      }
+    ],
+    "validacion": "Paso opcional.",
+    "next": "END_OK"
+  }
+}
