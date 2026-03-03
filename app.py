@@ -11,8 +11,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = "/tmp/database.db" if os.environ.get("VERCEL") else os.path.join(BASE_DIR, "database.db")
 NODOS_PATH  = os.path.join(BASE_DIR, "nodos.json")
 AREAS_PATH  = os.path.join(BASE_DIR, "areas.json")
-PRO114_PATH = os.path.join(BASE_DIR, "pro114.json")
-PRO115_PATH = os.path.join(BASE_DIR, "pro115.json")
+PRO114_PATH    = os.path.join(BASE_DIR, "pro114.json")
+PRO115_PATH    = os.path.join(BASE_DIR, "pro115.json")
+MANUALES_PATH  = os.path.join(BASE_DIR, "manuales.json")
 
 # ── DB ────────────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,17 @@ def api_nodos():
 @app.route("/api/areas")
 def api_areas():
     return jsonify(load_json(AREAS_PATH))
+
+@app.route("/api/manuales")
+def api_manuales():
+    return jsonify(load_json(MANUALES_PATH))
+
+@app.route("/api/manuales/<area_id>")
+def api_manuales_area(area_id):
+    data = load_json(MANUALES_PATH)
+    ids = data["por_area"].get(area_id, [])
+    result = [data["manuales"][m] for m in ids if m in data["manuales"]]
+    return jsonify(result)
 
 @app.route("/api/pro/<pro_id>/nodos")
 def api_pro_nodos(pro_id):
