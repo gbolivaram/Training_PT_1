@@ -3,7 +3,7 @@
     {
       "id": "bodega",
       "nombre": "Bodega y abastecimiento",
-      "pros": ["PRO128"]
+      "pros": ["PRO128", "PRO130"]
     },
     {
       "id": "fallas",
@@ -111,6 +111,47 @@
         "Falta de información crítica",
         "Sistema no disponible",
         "No se logra contacto",
+        "Otro"
+      ]
+    },
+    "PRO130": {
+      "id": "PRO130",
+      "nombre": "Recepción de Materiales y Repuestos",
+      "descripcion": "Procedimiento para la recepción física, revisión documental, inspección técnica y disponibilización en almacén de materiales y repuestos, incluyendo gestión de devolución a proveedores.",
+      "data": "pro130.json",
+      "has_stop": false,
+      "primer_nodo": "T1_recibir_y_revisar_documentacion",
+      "flow_order": [
+        "T1_recibir_y_revisar_documentacion",
+        "D1_es_lo_que_se_pidio",
+        "D2_necesita_inspeccion_tecnica",
+        "D2b_necesita_inspeccion_tecnica_no_es_pedido",
+        "T2_devolver_de_inmediato",
+        "T4_ingresar_recepcion_101",
+        "T5_realizar_revision_secundaria",
+        "D3_es_lo_que_se_pidio_post_revision",
+        "T3_ingresar_stock_bloqueado_103",
+        "T3b_contactar_mantencion",
+        "D4_mant_realiza_inspeccion",
+        "T7_realizar_inspeccion_mant",
+        "D5_aprueba_material",
+        "T6_traspasar_a_libre_utilizacion_105",
+        "T8_traspasar_stock_devolucion",
+        "T9_quitar_stock_del_sistema",
+        "END_derivar_devolucion_proveedores",
+        "T10_determinar_ubicacion_y_datos_etiquetado",
+        "T11_imprimir_etiqueta",
+        "T12_disponer_material_en_ubicacion",
+        "T13_notificar_disponibilidad_materiales",
+        "END_material_almacenado"
+      ],
+      "motivos_bloqueo": [
+        "Material no corresponde a lo solicitado (OC/SOLPED)",
+        "Documentación incompleta o incorrecta (guía/factura/packing)",
+        "Inspección técnica rechaza el material",
+        "No se logra contacto con Especialista de Mantenimiento",
+        "Sistema SAP no disponible (MIGO / ZMM_IMP_ETIQUETA)",
+        "Material dañado o en mal estado",
         "Otro"
       ]
     },
