@@ -9,6 +9,11 @@
       "Revisar documentación de recepción asociada al despacho (guía/packing list/factura u otros respaldos disponibles).",
       "Contrastar material y documentación con lo solicitado (OC/SOLPED/ítems)."
     ],
+    "checklist": [
+      "Material recibido físicamente",
+      "Documentación revisada (guía / packing list / factura)",
+      "Material contrastado con OC/SOLPED/ítems"
+    ],
     "validacion": "¿Se revisó la documentación y se contrastó el material con lo solicitado?",
     "next": "D1_es_lo_que_se_pidio"
   },
@@ -54,7 +59,12 @@
     "acciones": [
       "Gestionar devolución inmediata del material (según práctica local y acuerdos).",
       "Registrar devolución en SAP (movimiento 122).",
-      "Dejar evidencia de la devolución (documentación asociada y comunicación)"
+      "Dejar evidencia de la devolución (documentación asociada y comunicación)."
+    ],
+    "checklist": [
+      "Devolución gestionada con el proveedor",
+      "Devolución registrada en SAP (MIGO 122)",
+      "Evidencia de devolución documentada"
     ],
     "validacion": "¿La devolución inmediata quedó gestionada y registrada en SAP (MIGO 122) con evidencia?",
     "next": "END_derivar_devolucion_proveedores"
@@ -85,6 +95,10 @@
       "Ingresar mercadería en SAP mediante transacción MIGO (movimiento 101; 109 en importaciones).",
       "Ejecutar 'revisión secundaria' de manera pasiva (según práctica local) para detectar diferencias posteriores."
     ],
+    "checklist": [
+      "Recepción ingresada en MIGO (movimiento 101 / 109 importaciones)",
+      "Revisión secundaria iniciada"
+    ],
     "validacion": "¿La recepción fue ingresada en MIGO (101/109) y quedó iniciada la revisión secundaria?",
     "next": "T5_realizar_revision_secundaria"
   },
@@ -96,6 +110,10 @@
     "acciones": [
       "Completar revisión secundaria pasiva del material/documentación.",
       "Identificar si existen diferencias con lo pedido (cantidad, identificación, estado, etc.)."
+    ],
+    "checklist": [
+      "Revisión secundaria completada",
+      "Diferencias con lo pedido identificadas o descartadas (cantidad, identificación, estado)"
     ],
     "validacion": "¿La revisión secundaria se completó y se determinó si existen diferencias con lo pedido?",
     "next": "D3_es_lo_que_se_pidio_post_revision"
@@ -126,6 +144,10 @@
       "Ingresar mercadería como stock bloqueado en SAP mediante transacción MIGO (movimiento 103).",
       "Verificar en SAP que el stock quedó efectivamente en condición 'bloqueado'."
     ],
+    "checklist": [
+      "Material ingresado como stock bloqueado (MIGO 103)",
+      "Estado 'bloqueado' verificado en SAP"
+    ],
     "validacion": "¿El material quedó ingresado como stock bloqueado (MIGO 103) y verificado en SAP?",
     "next": "T3b_contactar_mantencion"
   },
@@ -138,6 +160,11 @@
       "Contactar al Especialista de Mantenimiento informando: material/repuesto, motivo de inspección, y ubicación temporal/stock bloqueado.",
       "Adjuntar/entregar respaldos disponibles (OC/guía, fotos si aplica, antecedentes técnicos).",
       "Registrar fecha/hora de notificación (timestamp) y dejar evidencia (correo/registro)."
+    ],
+    "checklist": [
+      "Especialista de Mantenimiento contactado con información del material",
+      "Respaldos y antecedentes técnicos entregados",
+      "Timestamp y evidencia de notificación registrados (control 48 h hábiles)"
     ],
     "validacion": "¿Mantenimiento fue contactado y quedó evidencia + timestamp de la notificación (para control de 48 h hábiles)?",
     "next": "D4_mant_realiza_inspeccion"
@@ -168,6 +195,10 @@
       "Realizar inspección técnica del material según necesidad (condición, compatibilidad, homologación, daño, etc.).",
       "Registrar resultado/observaciones de inspección (según práctica local)."
     ],
+    "checklist": [
+      "Inspección técnica realizada dentro del plazo (48 h hábiles desde notificación)",
+      "Resultado y observaciones de inspección registrados"
+    ],
     "validacion": "¿La inspección técnica fue realizada dentro del plazo (48 h hábiles desde notificación) y se registró el resultado?",
     "next": "D5_aprueba_material"
   },
@@ -197,6 +228,10 @@
       "Ejecutar traspaso a stock de libre utilización en SAP mediante transacción MIGO (movimiento 105; 109 en importaciones si aplica).",
       "Verificar que el stock quedó disponible para continuar con ubicación y etiquetado."
     ],
+    "checklist": [
+      "Material liberado a stock de libre utilización (MIGO 105 / 109)",
+      "Stock disponible verificado en SAP"
+    ],
     "validacion": "¿El material fue liberado a stock de libre utilización (MIGO 105/109) y quedó disponible para ubicación/etiquetado?",
     "next": "T10_determinar_ubicacion_y_datos_etiquetado"
   },
@@ -209,6 +244,10 @@
       "Traspasar material/repuesto a stock para comenzar devolución (según práctica local).",
       "Preparar antecedentes/documentación para devolución al proveedor."
     ],
+    "checklist": [
+      "Material traspasado a stock para devolución",
+      "Antecedentes y documentación para devolución al proveedor preparados"
+    ],
     "validacion": "¿El material quedó preparado/traspasado para iniciar devolución y con antecedentes listos?",
     "next": "T9_quitar_stock_del_sistema"
   },
@@ -220,6 +259,10 @@
     "acciones": [
       "Ejecutar la acción correspondiente para quitar stock del sistema (según transacción/movimiento definido localmente).",
       "Asegurar que el flujo queda listo para devolución a proveedores (movimiento 122)."
+    ],
+    "checklist": [
+      "Stock retirado del sistema",
+      "Flujo listo para devolución a proveedores (MIGO 122)"
     ],
     "validacion": "¿El stock fue retirado del sistema y el material quedó listo para devolución (MIGO 122)?",
     "next": "END_derivar_devolucion_proveedores"
@@ -240,6 +283,10 @@
       "Determinar ubicación del material en almacén.",
       "Verificar datos necesarios para etiquetado y mantener características (ZMM_MANT_CARACT)."
     ],
+    "checklist": [
+      "Ubicación del material en almacén determinada",
+      "Datos de etiquetado verificados y características mantenidas (ZMM_MANT_CARACT)"
+    ],
     "validacion": "¿Se determinó la ubicación y se verificaron/mantuvieron datos para etiquetado (ZMM_MANT_CARACT)?",
     "next": "T11_imprimir_etiqueta"
   },
@@ -259,6 +306,10 @@
       "Imprimir etiqueta mediante transacción ZMM_IMP_ETIQUETA.",
       "Verificar que la etiqueta corresponde al material y contiene información correcta."
     ],
+    "checklist": [
+      "Etiqueta impresa (ZMM_IMP_ETIQUETA)",
+      "Información de etiqueta verificada y corresponde al material"
+    ],
     "validacion": "¿La etiqueta fue impresa correctamente y corresponde al material?",
     "next": "T12_disponer_material_en_ubicacion"
   },
@@ -271,6 +322,10 @@
       "Ubicar físicamente el material/repuesto en la ubicación asignada.",
       "Verificar que el material queda ordenado y accesible según estándar local."
     ],
+    "checklist": [
+      "Material ubicado físicamente en la ubicación asignada",
+      "Orden y accesibilidad verificados según estándar"
+    ],
     "validacion": "¿El material quedó dispuesto físicamente en la ubicación asignada?",
     "next": "T13_notificar_disponibilidad_materiales"
   },
@@ -281,6 +336,10 @@
     "descripcion": "Notificar disponibilidad de materiales una vez almacenados y disponibles.",
     "acciones": [
       "Notificar a quienes corresponda que el material quedó disponible en almacén (según práctica local)."
+    ],
+    "checklist": [
+      "Disponibilidad notificada a quienes corresponde",
+      "Evidencia de notificación registrada"
     ],
     "validacion": "¿Se notificó la disponibilidad del material y quedó evidencia de la notificación?",
     "next": "END_material_almacenado"

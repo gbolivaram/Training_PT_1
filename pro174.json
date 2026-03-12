@@ -439,7 +439,9 @@
     "acciones": [
       "Opcional: pegue aquí enlaces, rutas o nombres de archivos pertinentes (SharePoint, carpeta, etc.)."
     ],
-    "checklist": [],
+    "checklist": [
+      "Referencias/archivos pertinentes adjuntados o registrados (si aplica)"
+    ],
     "validacion": "",
     "next": "END_FIN"
   },

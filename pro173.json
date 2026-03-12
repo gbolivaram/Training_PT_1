@@ -635,7 +635,9 @@
     "acciones": [
       "Adjuntar o registrar referencias a archivos pertinentes."
     ],
-    "checklist": [],
+    "checklist": [
+      "Referencias/archivos pertinentes adjuntados o registrados (si aplica)"
+    ],
     "text_inputs": [
       {
         "key": "archivos_pertinentes",
