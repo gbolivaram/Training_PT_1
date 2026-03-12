@@ -1,0 +1,295 @@
+{
+  "T1_recibir_y_revisar_documentacion": {
+    "type": "task",
+    "titulo": "Recibir y revisar documentación",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Recepción física del material/repuesto. Revisar documentación asociada y contrastar con lo solicitado.",
+    "acciones": [
+      "Recibir material (proveniente de compra de materiales y repuestos, o desde otro centro/producto de venta intercompany).",
+      "Revisar documentación de recepción asociada al despacho (guía/packing list/factura u otros respaldos disponibles).",
+      "Contrastar material y documentación con lo solicitado (OC/SOLPED/ítems)."
+    ],
+    "validacion": "¿Se revisó la documentación y se contrastó el material con lo solicitado?",
+    "next": "D1_es_lo_que_se_pidio"
+  },
+  "D1_es_lo_que_se_pidio": {
+    "type": "decision",
+    "titulo": "¿Es lo que se pidió?",
+    "rol": "Especialista de Almacén",
+    "pregunta": "¿El material recibido corresponde a lo que se pidió?",
+    "opciones": [
+      {
+        "label": "SÍ → Evaluar si requiere inspección técnica",
+        "next": "D2_necesita_inspeccion_tecnica"
+      },
+      {
+        "label": "NO → Evaluar si requiere inspección técnica (posible devolución inmediata)",
+        "next": "D2b_necesita_inspeccion_tecnica_no_es_pedido"
+      }
+    ],
+    "ayuda": "Según PRO130: si NO es lo pedido, se define si requiere inspección técnica; si NO requiere, se devuelve de inmediato (se une a devolución a proveedores)."
+  },
+  "D2b_necesita_inspeccion_tecnica_no_es_pedido": {
+    "type": "decision",
+    "titulo": "¿Se necesita inspección técnica? (NO es lo pedido)",
+    "rol": "Especialista de Almacén",
+    "pregunta": "Dado que NO corresponde a lo pedido: ¿se necesita inspección técnica para decidir aceptación/rechazo?",
+    "opciones": [
+      {
+        "label": "SÍ → Ingresar como stock bloqueado (MIGO 103) y contactar mantenimiento",
+        "next": "T3_ingresar_stock_bloqueado_103"
+      },
+      {
+        "label": "NO → Devolver de inmediato y derivar a devolución a proveedores",
+        "next": "T2_devolver_de_inmediato"
+      }
+    ],
+    "ayuda": "Casos típicos que requieren inspección técnica (PRO130): conexiones no estándar, primer ingreso, fabricación/maestranza, daño, homologación/actualización N° parte, materiales reparables."
+  },
+  "T2_devolver_de_inmediato": {
+    "type": "task",
+    "titulo": "Devolver de inmediato",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Cuando el material NO es lo pedido y NO requiere inspección técnica, la mercadería puede ser devuelta inmediatamente al proveedor, uniéndose al proceso de devolución.",
+    "acciones": [
+      "Gestionar devolución inmediata del material (según práctica local y acuerdos).",
+      "Registrar devolución en SAP (movimiento 122).",
+      "Dejar evidencia de la devolución (documentación asociada y comunicación)"
+    ],
+    "validacion": "¿La devolución inmediata quedó gestionada y registrada en SAP (MIGO 122) con evidencia?",
+    "next": "END_derivar_devolucion_proveedores"
+  },
+  "D2_necesita_inspeccion_tecnica": {
+    "type": "decision",
+    "titulo": "¿Se necesita inspección técnica?",
+    "rol": "Especialista de Almacén",
+    "pregunta": "¿El material requiere inspección técnica?",
+    "opciones": [
+      {
+        "label": "SÍ → Ingresar como stock bloqueado (MIGO 103) y contactar mantenimiento",
+        "next": "T3_ingresar_stock_bloqueado_103"
+      },
+      {
+        "label": "NO → Ingresar recepción (MIGO 101 / 109 importaciones) y revisión secundaria",
+        "next": "T4_ingresar_recepcion_101"
+      }
+    ],
+    "ayuda": "PRO130: requiere inspección técnica en casos como conexiones no estándar, primer ingreso, fabricación/maestranza, daño, homologación/actualización, materiales reparables."
+  },
+  "T4_ingresar_recepcion_101": {
+    "type": "task",
+    "titulo": "Ingresar recepción (MIGO)",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Si NO requiere inspección técnica, ingresar mercadería por MIGO con movimiento 101 (109 en importaciones) y someter a revisión secundaria pasiva.",
+    "acciones": [
+      "Ingresar mercadería en SAP mediante transacción MIGO (movimiento 101; 109 en importaciones).",
+      "Ejecutar 'revisión secundaria' de manera pasiva (según práctica local) para detectar diferencias posteriores."
+    ],
+    "validacion": "¿La recepción fue ingresada en MIGO (101/109) y quedó iniciada la revisión secundaria?",
+    "next": "T5_realizar_revision_secundaria"
+  },
+  "T5_realizar_revision_secundaria": {
+    "type": "task",
+    "titulo": "Realizar inspección secundaria",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Revisión secundaria pasiva para confirmar que no existan diferencias con lo pedido tras el ingreso.",
+    "acciones": [
+      "Completar revisión secundaria pasiva del material/documentación.",
+      "Identificar si existen diferencias con lo pedido (cantidad, identificación, estado, etc.)."
+    ],
+    "validacion": "¿La revisión secundaria se completó y se determinó si existen diferencias con lo pedido?",
+    "next": "D3_es_lo_que_se_pidio_post_revision"
+  },
+  "D3_es_lo_que_se_pidio_post_revision": {
+    "type": "decision",
+    "titulo": "¿Es lo que se pidió? (post revisión secundaria)",
+    "rol": "Especialista de Almacén",
+    "pregunta": "Tras la revisión secundaria: ¿el material coincide con lo pedido (sin diferencias)?",
+    "opciones": [
+      {
+        "label": "SÍ → Gestionar disponibilización en almacén (ubicación + etiqueta)",
+        "next": "T10_determinar_ubicacion_y_datos_etiquetado"
+      },
+      {
+        "label": "NO → Quitar stock del sistema y derivar a devolución a proveedores",
+        "next": "T9_quitar_stock_del_sistema"
+      }
+    ],
+    "ayuda": "En el diagrama PRO130: si hay diferencias post-revisión, se quita stock y se deriva a devolución a proveedores."
+  },
+  "T3_ingresar_stock_bloqueado_103": {
+    "type": "task",
+    "titulo": "Ingresar recepción como stock bloqueado (MIGO 103)",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Cuando se requiere inspección técnica, ingresar la mercadería como stock bloqueado mediante movimiento 103.",
+    "acciones": [
+      "Ingresar mercadería como stock bloqueado en SAP mediante transacción MIGO (movimiento 103).",
+      "Verificar en SAP que el stock quedó efectivamente en condición 'bloqueado'."
+    ],
+    "validacion": "¿El material quedó ingresado como stock bloqueado (MIGO 103) y verificado en SAP?",
+    "next": "T3b_contactar_mantencion"
+  },
+  "T3b_contactar_mantencion": {
+    "type": "task",
+    "titulo": "Contactar a Especialista de Mantenimiento",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Notificar formalmente a Mantenimiento para que evalúe si realizará inspección técnica. PRO130 considera plazo de 48 h hábiles desde la notificación para ejecutar la inspección (cuando aplique).",
+    "acciones": [
+      "Contactar al Especialista de Mantenimiento informando: material/repuesto, motivo de inspección, y ubicación temporal/stock bloqueado.",
+      "Adjuntar/entregar respaldos disponibles (OC/guía, fotos si aplica, antecedentes técnicos).",
+      "Registrar fecha/hora de notificación (timestamp) y dejar evidencia (correo/registro)."
+    ],
+    "validacion": "¿Mantenimiento fue contactado y quedó evidencia + timestamp de la notificación (para control de 48 h hábiles)?",
+    "next": "D4_mant_realiza_inspeccion"
+  },
+  "D4_mant_realiza_inspeccion": {
+    "type": "decision",
+    "titulo": "¿Especialista realiza inspección?",
+    "rol": "Especialista de Mantenimiento",
+    "pregunta": "¿El especialista de mantenimiento realizará inspección técnica?",
+    "opciones": [
+      {
+        "label": "NO → Liberar a stock libre utilización (MIGO 105 / 109 importaciones)",
+        "next": "T6_traspasar_a_libre_utilizacion_105"
+      },
+      {
+        "label": "SÍ → Realizar inspección (plazo 48 h hábiles) y decidir aprobación",
+        "next": "T7_realizar_inspeccion_mant"
+      }
+    ],
+    "ayuda": "PRO130: si NO inspecciona, se ejecuta 105 (109 importaciones). Si SÍ inspecciona, tiene 48 h hábiles desde notificación para realizarla."
+  },
+  "T7_realizar_inspeccion_mant": {
+    "type": "task",
+    "titulo": "Realizar inspección (plazo 48 h hábiles)",
+    "rol": "Especialista de Mantenimiento",
+    "descripcion": "Inspección técnica del material/repuesto requerido. PRO130 indica 48 horas hábiles desde la notificación para realizar la inspección.",
+    "acciones": [
+      "Realizar inspección técnica del material según necesidad (condición, compatibilidad, homologación, daño, etc.).",
+      "Registrar resultado/observaciones de inspección (según práctica local)."
+    ],
+    "validacion": "¿La inspección técnica fue realizada dentro del plazo (48 h hábiles desde notificación) y se registró el resultado?",
+    "next": "D5_aprueba_material"
+  },
+  "D5_aprueba_material": {
+    "type": "decision",
+    "titulo": "¿Se aprueba el material?",
+    "rol": "Especialista de Mantenimiento",
+    "pregunta": "¿El material queda aprobado para uso (aceptación técnica)?",
+    "opciones": [
+      {
+        "label": "SÍ → Traspasar a stock libre utilización (MIGO 105 / 109 importaciones)",
+        "next": "T6_traspasar_a_libre_utilizacion_105"
+      },
+      {
+        "label": "NO → Traspasar a stock para comenzar devolución y quitar stock",
+        "next": "T8_traspasar_stock_devolucion"
+      }
+    ],
+    "ayuda": "En el diagrama PRO130: si NO se aprueba, se deriva a devolución a proveedores (movimiento 122)."
+  },
+  "T6_traspasar_a_libre_utilizacion_105": {
+    "type": "task",
+    "titulo": "Traspasar material/repuesto a stock de libre utilización (MIGO 105)",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Liberar el material desde stock bloqueado hacia libre utilización mediante MIGO 105 (109 en importaciones), luego continúa a gestión de disponibilización en almacén.",
+    "acciones": [
+      "Ejecutar traspaso a stock de libre utilización en SAP mediante transacción MIGO (movimiento 105; 109 en importaciones si aplica).",
+      "Verificar que el stock quedó disponible para continuar con ubicación y etiquetado."
+    ],
+    "validacion": "¿El material fue liberado a stock de libre utilización (MIGO 105/109) y quedó disponible para ubicación/etiquetado?",
+    "next": "T10_determinar_ubicacion_y_datos_etiquetado"
+  },
+  "T8_traspasar_stock_devolucion": {
+    "type": "task",
+    "titulo": "Traspasar material/repuesto a stock para comenzar devolución",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Cuando el material NO se aprueba, traspasar a stock para comenzar devolución y preparar antecedentes.",
+    "acciones": [
+      "Traspasar material/repuesto a stock para comenzar devolución (según práctica local).",
+      "Preparar antecedentes/documentación para devolución al proveedor."
+    ],
+    "validacion": "¿El material quedó preparado/traspasado para iniciar devolución y con antecedentes listos?",
+    "next": "T9_quitar_stock_del_sistema"
+  },
+  "T9_quitar_stock_del_sistema": {
+    "type": "task",
+    "titulo": "Quitar stock del sistema (previo a devolución)",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Quitar stock del sistema antes de derivar a la devolución a proveedores (según flujo del PRO130).",
+    "acciones": [
+      "Ejecutar la acción correspondiente para quitar stock del sistema (según transacción/movimiento definido localmente).",
+      "Asegurar que el flujo queda listo para devolución a proveedores (movimiento 122)."
+    ],
+    "validacion": "¿El stock fue retirado del sistema y el material quedó listo para devolución (MIGO 122)?",
+    "next": "END_derivar_devolucion_proveedores"
+  },
+  "END_derivar_devolucion_proveedores": {
+    "type": "end",
+    "titulo": "Derivar a Devolución a proveedores (MIGO 122)",
+    "rol": "Especialista de Almacén",
+    "mensaje": "Continuar con el proceso de Devolución a proveedores ejecutando devolución en MIGO con movimiento 122 (según PRO130).",
+    "estado_final": "DERIVADO_DEVOLUCION_PROVEEDORES"
+  },
+  "T10_determinar_ubicacion_y_datos_etiquetado": {
+    "type": "task",
+    "titulo": "Determinar ubicación y verificar datos para etiquetado",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Gestionar disponibilización en almacén: determinar ubicación, verificar datos para etiquetado y mantener características en sistema.",
+    "acciones": [
+      "Determinar ubicación del material en almacén.",
+      "Verificar datos necesarios para etiquetado y mantener características (ZMM_MANT_CARACT)."
+    ],
+    "validacion": "¿Se determinó la ubicación y se verificaron/mantuvieron datos para etiquetado (ZMM_MANT_CARACT)?",
+    "next": "T11_imprimir_etiqueta"
+  },
+  "T11_imprimir_etiqueta": {
+    "type": "task",
+    "titulo": "Imprimir etiqueta (ZMM_IMP_ETIQUETA)",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Imprimir etiqueta en SAP para identificación del material/repuesto.",
+    "inputs": [
+      {
+        "key": "numero_etiqueta",
+        "label": "Ingresa número de etiqueta",
+        "required": true
+      }
+    ],
+    "acciones": [
+      "Imprimir etiqueta mediante transacción ZMM_IMP_ETIQUETA.",
+      "Verificar que la etiqueta corresponde al material y contiene información correcta."
+    ],
+    "validacion": "¿La etiqueta fue impresa correctamente y corresponde al material?",
+    "next": "T12_disponer_material_en_ubicacion"
+  },
+  "T12_disponer_material_en_ubicacion": {
+    "type": "task",
+    "titulo": "Disponer material en la ubicación asignada",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Ubicar físicamente el material en la ubicación asignada y dejarlo disponible.",
+    "acciones": [
+      "Ubicar físicamente el material/repuesto en la ubicación asignada.",
+      "Verificar que el material queda ordenado y accesible según estándar local."
+    ],
+    "validacion": "¿El material quedó dispuesto físicamente en la ubicación asignada?",
+    "next": "T13_notificar_disponibilidad_materiales"
+  },
+  "T13_notificar_disponibilidad_materiales": {
+    "type": "task",
+    "titulo": "Notificar disponibilidad de materiales",
+    "rol": "Especialista de Almacén",
+    "descripcion": "Notificar disponibilidad de materiales una vez almacenados y disponibles.",
+    "acciones": [
+      "Notificar a quienes corresponda que el material quedó disponible en almacén (según práctica local)."
+    ],
+    "validacion": "¿Se notificó la disponibilidad del material y quedó evidencia de la notificación?",
+    "next": "END_material_almacenado"
+  },
+  "END_material_almacenado": {
+    "type": "end",
+    "titulo": "Fin: Material almacenado",
+    "rol": "Especialista de Almacén",
+    "mensaje": "Material recepcionado, validado y disponibilizado en almacén según PRO130.",
+    "estado_final": "FINALIZADO"
+  }
+}
