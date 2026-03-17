@@ -6,7 +6,8 @@
             "pros": [
                 "PRO128",
                 "PRO130",
-                "PRO131"
+                "PRO131",
+                "PRO134"
             ]
         },
         {
@@ -451,6 +452,59 @@
                 "Evaluación de proveedor no registrada en SAP",
                 "HES sin liberar — falta aprobación DOA",
                 "Factura no disponible o inconsistente con HES/OC",
+                "Otro"
+            ]
+        },
+        "PRO134": {
+            "id": "PRO134",
+            "nombre": "Consumo de materiales y repuestos",
+            "descripcion": "Procedimiento para el consumo de materiales y repuestos en condiciones normales y bajo emergencia, incluyendo picking, verificación, entrega, registro de salida en SAP y enriquecimiento de material.",
+            "data": "pro134.json",
+            "has_stop": false,
+            "primer_nodo": "S0_modo",
+            "flow_order": [
+                "S0_modo",
+                "N0_inicio",
+                "A1_necesidad",
+                "A2_generar_reserva",
+                "A3_stock_suficiente",
+                "A4_fecha_necesidad",
+                "B1_consultar_reservas",
+                "B2_stock_suficiente",
+                "B3_realizar_picking",
+                "C1_compra",
+                "C2_recepcion",
+                "C3_notificar",
+                "COMUN_0_picking_realizado",
+                "COMUN_1_verificar_reserva",
+                "COMUN_2_entregar_materiales",
+                "COMUN_3_registrar_salida_enriquecer",
+                "COMUN_4_firma_solicitante",
+                "COMUN_5_firma_almacen",
+                "COMUN_6_archivar",
+                "END_NORMAL",
+                "E1_informar",
+                "E2_validar_emergencia",
+                "E3_notificar_almacen",
+                "E4_formulario_retiro",
+                "E5_actividades",
+                "E6_equipo_activo",
+                "E7_incorporar_ot",
+                "E8_imprimir_ot",
+                "E7N_reserva_manual",
+                "E9_registrar_salida",
+                "E10_firmar_regularizar",
+                "E11_firma_almacen",
+                "E12_archivar",
+                "END_EMERGENCIA"
+            ],
+            "motivos_bloqueo": [
+                "Stock insuficiente / quiebre",
+                "Diferencia stock físico vs sistema",
+                "Material no apto (vencido / deteriorado / embalaje dañado)",
+                "Reserva incompleta / inconsistente",
+                "No es posible registrar en sistema (SAP indisponible / sin acceso)",
+                "Falta información mínima para enriquecer (cuando aplica)",
                 "Otro"
             ]
         }
