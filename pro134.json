@@ -1,0 +1,439 @@
+{
+  "S0_modo": {
+    "type": "decision",
+    "titulo": "¿El consumo es bajo emergencia o en condiciones normales?",
+    "rol": "HMI (selección de modo)",
+    "descripcion": "Seleccione el modo operativo de consumo según el contexto en terreno.",
+    "pregunta": "Seleccione una opción para iniciar:",
+    "opciones": [
+      { "label": "Consumo en condiciones normales", "next": "N0_inicio" },
+      { "label": "Consumo bajo emergencia", "next": "E1_informar" }
+    ],
+    "ayuda": "Este selector define el flujo a ejecutar, sin modificar los pasos del PRO."
+  },
+
+  "N0_inicio": {
+    "type": "decision",
+    "titulo": "¿Cómo se inicia el consumo de materiales?",
+    "rol": "HMI (selección de inicio)",
+    "descripcion": "Seleccione el punto de entrada operativo según el contexto en terreno.",
+    "pregunta": "Seleccione una opción para iniciar:",
+    "opciones": [
+      { "label": "Opción 1: Necesidad de consumo (Solicitante)", "next": "A1_necesidad" },
+      { "label": "Opción 2: Revisión diaria de reservas (Almacén)", "next": "B1_consultar_reservas" }
+    ],
+    "ayuda": "Este selector define el punto de entrada, sin modificar el flujo del PRO."
+  },
+
+  "A1_necesidad": {
+    "type": "task",
+    "titulo": "Necesidad de consumo de materiales/EPPs",
+    "rol": "Solicitante de material/repuesto",
+    "descripcion": "Se identifica en terreno la necesidad de consumo de materiales o EPPs para ejecutar el trabajo.",
+    "acciones": [
+      "Confirmar material/EPP requerido y cantidad.",
+      "Definir contexto de uso (OT / consumo manual según aplique)."
+    ],
+    "checklist": [
+      "Material/EPP identificado",
+      "Cantidad definida",
+      "Contexto de uso claro (OT / consumo manual)"
+    ],
+    "validacion": "¿La necesidad está claramente definida (material/EPP + cantidad) y corresponde al contexto del trabajo?",
+    "next": "A2_generar_reserva"
+  },
+  "A2_generar_reserva": {
+    "type": "task",
+    "titulo": "Generar reserva materiales",
+    "rol": "Solicitante de material/repuesto",
+    "descripcion": "Generar la reserva de materiales en el sistema para habilitar el picking y entrega.",
+    "acciones": [
+      "Generar reserva en SAP (MB21).",
+      "Ingresar fecha de necesidad y datos requeridos.",
+      "Confirmar número de reserva."
+    ],
+    "checklist": [
+      "Reserva creada en SAP (MB21)",
+      "Fecha de necesidad ingresada",
+      "Número de reserva disponible"
+    ],
+    "validacion": "¿La reserva quedó generada en SAP y se dispone del número de reserva?",
+    "next": "A3_stock_suficiente"
+  },
+  "A3_stock_suficiente": {
+    "type": "decision",
+    "titulo": "¿Tiene stock suficiente?",
+    "rol": "Solicitante de material/repuesto",
+    "descripcion": "Validar disponibilidad para cumplir la fecha de necesidad de la reserva.",
+    "pregunta": "¿Existe stock para cumplir la fecha de necesidad definida en la reserva?",
+    "opciones": [
+      { "label": "SÍ", "next": "A4_fecha_necesidad" },
+      { "label": "NO", "next": "C1_compra" }
+    ]
+  },
+  "A4_fecha_necesidad": {
+    "type": "task",
+    "titulo": "Fecha de necesidad cumplida",
+    "rol": "Solicitante de material/repuesto",
+    "descripcion": "Se confirma que la fecha de necesidad se cumple. Desde aquí el flujo converge al tramo común.",
+    "acciones": ["Coordinar retiro/recepción con almacén según corresponda."],
+    "checklist": [
+      "Fecha de necesidad confirmada",
+      "Coordinación con almacén considerada"
+    ],
+    "validacion": "¿Se confirma que la fecha de necesidad será cumplida y el material podrá ser retirado/entregado?",
+    "next": "COMUN_0_picking_realizado"
+  },
+
+  "B1_consultar_reservas": {
+    "type": "task",
+    "titulo": "Consultar reservas de materiales para picking",
+    "rol": "Especialista de almacén",
+    "descripcion": "Revisión diaria de reservas para planificar y ejecutar el picking.",
+    "acciones": [
+      "Consultar reservas en SAP (MB25).",
+      "Identificar reservas a preparar en el día/turno."
+    ],
+    "checklist": [
+      "Reservas consultadas en SAP (MB25)",
+      "Reservas del día identificadas"
+    ],
+    "validacion": "¿Se revisaron las reservas y se identificaron las que requieren picking hoy?",
+    "next": "B2_stock_suficiente"
+  },
+  "B2_stock_suficiente": {
+    "type": "decision",
+    "titulo": "¿Tiene stock suficiente?",
+    "rol": "Especialista de almacén",
+    "descripcion": "Validar disponibilidad de stock para ejecutar el picking de la(s) reserva(s) identificada(s).",
+    "pregunta": "¿Existe stock disponible hoy para ejecutar el picking de la(s) reserva(s) identificada(s)?",
+    "opciones": [
+      { "label": "SÍ", "next": "B3_realizar_picking" },
+      { "label": "NO", "next": "C1_compra" }
+    ]
+  },
+  "B3_realizar_picking": {
+    "type": "task",
+    "titulo": "Realizar picking de materiales",
+    "rol": "Especialista de almacén",
+    "descripcion": "Ejecutar el picking de materiales según la reserva.",
+    "acciones": [
+      "Retirar material según la reserva.",
+      "Verificar condición del material (apto/no apto) antes de entregar."
+    ],
+    "checklist": [
+      "Material retirado según reserva",
+      "Condición verificada (no vencido/deteriorado)",
+      "Material preparado para entrega"
+    ],
+    "validacion": "¿El picking fue realizado y el material está en condición apta para entrega?",
+    "next": "COMUN_0_picking_realizado"
+  },
+
+  "C1_compra": {
+    "type": "task",
+    "titulo": "Compra de materiales y repuesto",
+    "rol": "MRP",
+    "descripcion": "Gestión de compra de materiales/repuestos cuando no existe stock suficiente.",
+    "acciones": ["Iniciar proceso de compra según estándar MRP."],
+    "checklist": ["Compra iniciada por MRP"],
+    "validacion": "¿Se inició la compra de materiales/repuestos por MRP?",
+    "next": "C2_recepcion"
+  },
+  "C2_recepcion": {
+    "type": "task",
+    "titulo": "Recepción de material",
+    "rol": "Especialista de almacén",
+    "descripcion": "Recepcionar material comprado para continuar con el proceso.",
+    "acciones": [
+      "Recepcionar material en almacén.",
+      "Dejar material disponible para retiro/entrega."
+    ],
+    "checklist": [
+      "Material recepcionado",
+      "Material disponible para retiro/entrega"
+    ],
+    "validacion": "¿El material fue recepcionado y quedó disponible para el solicitante?",
+    "next": "C3_notificar"
+  },
+  "C3_notificar": {
+    "type": "task",
+    "titulo": "Notificar a solicitante llegada de material",
+    "rol": "Especialista de almacén",
+    "descripcion": "Notificar al solicitante que el material llegó para coordinar entrega/retiro.",
+    "acciones": ["Notificar llegada de material al solicitante por canal definido."],
+    "checklist": ["Solicitante notificado"],
+    "validacion": "¿Se notificó efectivamente al solicitante la llegada del material?",
+    "next": "COMUN_0_picking_realizado"
+  },
+
+  "COMUN_0_picking_realizado": {
+    "type": "task",
+    "titulo": "Picking realizado",
+    "rol": "Especialista de almacén",
+    "descripcion": "Hito de convergencia: el picking ya fue ejecutado (o el material ya está disponible).",
+    "acciones": ["Continuar con verificación, entrega y registro de salida."],
+    "checklist": ["Material disponible para verificación/entrega"],
+    "validacion": "¿El material está disponible para continuar con la verificación y entrega?",
+    "next": "COMUN_1_verificar_reserva"
+  },
+  "COMUN_1_verificar_reserva": {
+    "type": "task",
+    "titulo": "Verificar reserva de materiales",
+    "rol": "Especialista de almacén",
+    "descripcion": "Verificar que lo preparado/entregado coincide con lo indicado en la reserva.",
+    "acciones": [
+      "Comparar materiales/cantidades vs reserva.",
+      "Corregir discrepancias antes de entregar."
+    ],
+    "checklist": [
+      "Material coincide con reserva",
+      "Cantidad coincide con reserva"
+    ],
+    "validacion": "¿Los materiales y cantidades coinciden con la reserva?",
+    "next": "COMUN_2_entregar_materiales"
+  },
+  "COMUN_2_entregar_materiales": {
+    "type": "task",
+    "titulo": "Entregar materiales",
+    "rol": "Especialista de almacén",
+    "descripcion": "Entregar materiales al solicitante con control correspondiente.",
+    "acciones": [
+      "Entregar materiales al solicitante.",
+      "Asegurar control para evitar pérdida/hurto."
+    ],
+    "checklist": [
+      "Material entregado",
+      "Entrega bajo control (documento/vale)"
+    ],
+    "validacion": "¿Los materiales fueron entregados al solicitante bajo control (documento/vale)?",
+    "next": "COMUN_3_registrar_salida_enriquecer"
+  },
+  "COMUN_3_registrar_salida_enriquecer": {
+    "type": "task",
+    "titulo": "Registrar salida de material y enriquecer material en caso de contar con información",
+    "rol": "Especialista de almacén",
+    "descripcion": "Registrar la salida en sistema y, si se cuenta con información, enriquecer el material.",
+    "acciones": [
+      "Registrar salida de material en SAP (MIGO / MB1A según corresponda).",
+      "Si se cuenta con información: completar enriquecimiento del material (clasificación/datos técnicos/foto/texto breve/ubicación técnica/stock de seguridad/criticidad)."
+    ],
+    "checklist": [
+      "Salida registrada en sistema (SAP)",
+      "Si aplica: clasificación definida",
+      "Si aplica: datos técnicos completados",
+      "Si aplica: foto incorporada",
+      "Si aplica: texto breve estándar",
+      "Si aplica: ubicación técnica vinculada",
+      "Si aplica: stock de seguridad/criticidad definidos"
+    ],
+    "validacion": "¿La salida quedó registrada en el sistema y (si aplica) se completó el enriquecimiento disponible?",
+    "next": "COMUN_4_firma_solicitante"
+  },
+  "COMUN_4_firma_solicitante": {
+    "type": "task",
+    "titulo": "Firmar Documento de Reserva y Vale de Acompañamiento",
+    "rol": "Solicitante de material/repuesto",
+    "descripcion": "Firma del solicitante para trazabilidad del retiro/entrega de material.",
+    "acciones": ["Firmar Documento de Reserva y Vale de Acompañamiento."],
+    "checklist": ["Firma solicitante realizada"],
+    "inputs": [
+      { "key": "documento_firma_normal", "label": "Ingresa documento", "required": true, "multiline": false }
+    ],
+    "validacion": "¿El solicitante firmó el Documento de Reserva y Vale de Acompañamiento?",
+    "next": "COMUN_5_firma_almacen"
+  },
+  "COMUN_5_firma_almacen": {
+    "type": "task",
+    "titulo": "Firmar doc. reserva",
+    "rol": "Especialista de almacén",
+    "descripcion": "Firma del especialista de almacén para cierre del movimiento.",
+    "acciones": ["Firmar documento de reserva."],
+    "checklist": ["Firma almacén realizada"],
+    "validacion": "¿El especialista de almacén firmó el documento de reserva?",
+    "next": "COMUN_6_archivar"
+  },
+  "COMUN_6_archivar": {
+    "type": "task",
+    "titulo": "Archivar doc. reserva",
+    "rol": "Especialista de almacén",
+    "descripcion": "Archivar la documentación según estándar local para auditoría y trazabilidad.",
+    "acciones": ["Archivar documento de reserva según estándar del almacén."],
+    "checklist": ["Documento archivado"],
+    "validacion": "¿El documento fue archivado correctamente?",
+    "next": "END_NORMAL"
+  },
+  "END_NORMAL": {
+    "type": "end",
+    "titulo": "Proceso finalizado (condiciones normales)",
+    "rol": "HMI",
+    "mensaje": "Se completaron los pasos del PRO134 (condiciones normales). Puede exportar el JSON auditable si lo requiere.",
+    "estado_final": "FINALIZADO"
+  },
+
+  "E1_informar": {
+    "type": "task",
+    "titulo": "Informar anomalía que requiere atención",
+    "rol": "Solicitante",
+    "descripcion": "Se informa la anomalía detectada que requiere atención inmediata.",
+    "acciones": ["Informar la anomalía y el contexto operativo asociado."],
+    "checklist": ["Anomalía informada"],
+    "validacion": "¿La anomalía fue informada con información suficiente para su evaluación?",
+    "next": "E2_validar_emergencia"
+  },
+  "E2_validar_emergencia": {
+    "type": "task",
+    "titulo": "Validar emergencia",
+    "rol": "Jefe de turno",
+    "descripcion": "Se valida si la situación corresponde a una emergencia según el criterio del procedimiento.",
+    "acciones": ["Evaluar si la situación califica como emergencia."],
+    "checklist": ["Emergencia validada"],
+    "validacion": "¿Se validó que la situación corresponde a una emergencia?",
+    "next": "E3_notificar_almacen"
+  },
+  "E3_notificar_almacen": {
+    "type": "task",
+    "titulo": "Notificar emergencia a Responsable de Almacén",
+    "rol": "Jefe de turno",
+    "descripcion": "Se notifica la emergencia al responsable de almacén para habilitar el retiro urgente.",
+    "acciones": ["Notificar emergencia al Responsable de Almacén."],
+    "checklist": ["Responsable de Almacén notificado"],
+    "validacion": "¿Se notificó la emergencia al Responsable de Almacén?",
+    "next": "E4_formulario_retiro"
+  },
+  "E4_formulario_retiro": {
+    "type": "task",
+    "titulo": "Completar Formulario de Retiro y retirar material del almacén",
+    "rol": "Supervisión de mant./ Supervisión de operaciones/ solicitante",
+    "descripcion": "Se completa el formulario de retiro bajo emergencia y se retira material del almacén.",
+    "acciones": ["Completar Formulario de Retiro y retirar el material requerido del almacén."],
+    "checklist": [
+      "Formulario de Retiro completado",
+      "Material retirado del almacén"
+    ],
+    "validacion": "¿Formulario completado y material retirado del almacén?",
+    "next": "E5_actividades"
+  },
+  "E5_actividades": {
+    "type": "task",
+    "titulo": "Realizar actividades para abordar emergencia",
+    "rol": "Supervisión de mant./ Supervisión de operaciones/ solicitante",
+    "descripcion": "Se ejecutan las actividades necesarias para abordar la emergencia.",
+    "acciones": ["Realizar actividades para abordar la emergencia."],
+    "checklist": ["Actividades ejecutadas para abordar emergencia"],
+    "validacion": "¿Se realizaron las actividades para abordar la emergencia?",
+    "next": "E6_equipo_activo"
+  },
+  "E6_equipo_activo": {
+    "type": "decision",
+    "titulo": "¿La emergencia se basa en una falla en un equipo activo?",
+    "rol": "Supervisión de mant./ Supervisión de operaciones/ solicitante",
+    "descripcion": "Definir el mecanismo de regularización: vía OT (equipo activo) o reserva manual (no equipo activo).",
+    "pregunta": "¿La emergencia se basa en una falla en un equipo activo?",
+    "opciones": [
+      { "label": "SÍ", "next": "E7_incorporar_ot" },
+      { "label": "NO", "next": "E7N_reserva_manual" }
+    ]
+  },
+  "E7_incorporar_ot": {
+    "type": "task",
+    "titulo": "Incorporar materiales en OT",
+    "rol": "Supervisión de mant./ Supervisión de operaciones/ solicitante",
+    "descripcion": "Se incorporan los materiales utilizados en la OT correspondiente.",
+    "acciones": ["Incorporar materiales en OT."],
+    "checklist": ["Materiales incorporados en OT"],
+    "validacion": "¿Los materiales fueron incorporados en la OT?",
+    "next": "E8_imprimir_ot"
+  },
+  "E8_imprimir_ot": {
+    "type": "task",
+    "titulo": "Imprimir reserva desde OT",
+    "rol": "Supervisión de mant./ Supervisión de operaciones/ solicitante",
+    "descripcion": "Se imprime la reserva desde la OT para respaldar el consumo bajo emergencia.",
+    "acciones": ["Imprimir reserva desde OT."],
+    "checklist": ["Reserva impresa desde OT"],
+    "inputs": [
+      { "key": "numero_reserva_ot", "label": "Ingresa número de reserva", "required": true, "multiline": false }
+    ],
+    "validacion": "¿Se imprimió la reserva desde OT?",
+    "next": "E9_registrar_salida"
+  },
+  "E7N_reserva_manual": {
+    "type": "task",
+    "titulo": "Generar reserva manual",
+    "rol": "Supervisión de mant./ Supervisión de operaciones/ solicitante",
+    "descripcion": "Se genera reserva manual para respaldar el consumo bajo emergencia cuando no corresponde a equipo activo.",
+    "acciones": ["Generar reserva manual."],
+    "checklist": ["Reserva manual generada"],
+    "inputs": [
+      { "key": "numero_reserva_manual", "label": "Ingresa número de reserva", "required": true, "multiline": false }
+    ],
+    "validacion": "¿Se generó la reserva manual?",
+    "next": "E9_registrar_salida"
+  },
+
+  "E9_registrar_salida": {
+    "type": "task",
+    "titulo": "Registrar salida de material y enriquecer material en caso de contar con información",
+    "rol": "Especialista de almacén",
+    "descripcion": "Registrar la salida en sistema y, si se cuenta con información, enriquecer el material.",
+    "acciones": [
+      "Registrar salida de material en el sistema.",
+      "Si se cuenta con información: completar enriquecimiento del material."
+    ],
+    "checklist": [
+      "Salida registrada en sistema",
+      "Si aplica: clasificación definida",
+      "Si aplica: datos técnicos completados",
+      "Si aplica: foto incorporada",
+      "Si aplica: texto breve estándar",
+      "Si aplica: ubicación técnica vinculada",
+      "Si aplica: stock de seguridad/criticidad definidos"
+    ],
+    "validacion": "¿La salida quedó registrada en el sistema y (si aplica) se completó el enriquecimiento disponible?",
+    "next": "E10_firmar_regularizar"
+  },
+  "E10_firmar_regularizar": {
+    "type": "task",
+    "titulo": "Firmar Documento de Reserva y regularizar Formulario de retiro de emergencia",
+    "rol": "Supervisión de mant./ Supervisión de operaciones/ solicitante",
+    "descripcion": "Se firma el documento de reserva y se regulariza el formulario de retiro bajo emergencia.",
+    "acciones": ["Firmar Documento de Reserva y regularizar Formulario de retiro de emergencia."],
+    "checklist": [
+      "Documento de Reserva firmado (regularización)",
+      "Formulario de retiro de emergencia regularizado"
+    ],
+    "inputs": [
+      { "key": "documento_firma_emergencia", "label": "Ingresa documento", "required": true, "multiline": false }
+    ],
+    "validacion": "¿Se firmó el documento y se regularizó el formulario de retiro de emergencia?",
+    "next": "E11_firma_almacen"
+  },
+  "E11_firma_almacen": {
+    "type": "task",
+    "titulo": "Firmar Documento de Reserva",
+    "rol": "Especialista de almacén",
+    "descripcion": "Firma del especialista de almacén para cierre del documento de reserva.",
+    "acciones": ["Firmar Documento de Reserva."],
+    "checklist": ["Documento de Reserva firmado por almacén"],
+    "validacion": "¿El especialista de almacén firmó el Documento de Reserva?",
+    "next": "E12_archivar"
+  },
+  "E12_archivar": {
+    "type": "task",
+    "titulo": "Archivar Documento de reserva",
+    "rol": "Especialista de almacén",
+    "descripcion": "Archivar el documento de reserva asociado al retiro bajo emergencia.",
+    "acciones": ["Archivar Documento de reserva."],
+    "checklist": ["Documento de reserva archivado"],
+    "validacion": "¿El Documento de reserva fue archivado?",
+    "next": "END_EMERGENCIA"
+  },
+  "END_EMERGENCIA": {
+    "type": "end",
+    "titulo": "Proceso finalizado (consumo bajo emergencia)",
+    "rol": "HMI",
+    "mensaje": "Se completaron los pasos del PRO134 (consumo bajo emergencia). Puede exportar el JSON auditable si lo requiere.",
+    "estado_final": "FINALIZADO"
+  }
+}
