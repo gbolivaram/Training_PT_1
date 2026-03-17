@@ -1,0 +1,255 @@
+{
+  "D0_proveedor_notifico_y_respaldos": {
+    "type": "decision",
+    "titulo": "Inicio – Verificar notificación y respaldos",
+    "rol": "Administrador de Contrato",
+    "pregunta": "¿El proveedor notificó el término del servicio y entregó los respaldos requeridos para revisión?",
+    "opciones": [
+      {
+        "label": "SÍ → Iniciar verificaciones del servicio",
+        "next": "T1_verificar_servicio_vs_oc"
+      },
+      {
+        "label": "NO → Informar al proveedor y bloquear avance",
+        "next": "END_bloqueado_falta_respaldos"
+      }
+    ],
+    "ayuda": "En enfoque on-site, esta condición es un gate: si no hay notificación/respaldos, no se puede iniciar verificación ni HES."
+  },
+  "END_bloqueado_falta_respaldos": {
+    "type": "end",
+    "titulo": "Bloqueo: Falta notificación o respaldos",
+    "rol": "Administrador de Contrato",
+    "mensaje": "Informar al proveedor que debe notificar el término del servicio y entregar respaldos requeridos antes de continuar (dejar evidencia del requerimiento).",
+    "estado_final": "BLOQUEADO"
+  },
+  "T1_verificar_servicio_vs_oc": {
+    "type": "task",
+    "titulo": "Verificar servicio vs condiciones pactadas (OC)",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Constatar que el servicio prestado se ajusta a las condiciones establecidas (alcance, plazos, calidad) según la Orden de Compra (OC) y/o contrato.",
+    "acciones": [
+      "Verificar en terreno (o evidencia equivalente) que el servicio fue ejecutado conforme a alcance, plazos y calidad pactados en la OC/contrato.",
+      "Revisar respaldos técnicos/operacionales asociados al hito/avance del servicio (informes, protocolos, firmas u otros que apliquen)."
+    ],
+    "checklist": [
+      "Servicio verificado conforme a alcance, plazos y calidad (OC/contrato)",
+      "Respaldos técnicos/operacionales revisados"
+    ],
+    "validacion": "¿El servicio y sus respaldos técnicos/operacionales cumplen lo pactado en la OC/contrato?",
+    "next": "D1_aplica_ley_subcontratacion"
+  },
+  "D1_aplica_ley_subcontratacion": {
+    "type": "decision",
+    "titulo": "Determinar verificación normativa aplicable",
+    "rol": "Administrador de Contrato",
+    "pregunta": "¿El servicio está sujeto a la Ley de Subcontratación (verificación normativa RE.17)?",
+    "opciones": [
+      {
+        "label": "SÍ → Ejecutar verificación normativa RE.17 (F30/F30-1)",
+        "next": "T2_verificacion_normativa_RE17"
+      },
+      {
+        "label": "NO → Ejecutar verificación normativa RE.16",
+        "next": "T2b_verificacion_normativa_RE16"
+      }
+    ],
+    "ayuda": "PRO131 define verificaciones normativas distintas según aplique o no Ley de Subcontratación."
+  },
+  "T2_verificacion_normativa_RE17": {
+    "type": "task",
+    "titulo": "Verificación normativa RE.17 (Ley Subcontratación)",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Validar cumplimiento normativo cuando aplica Ley de Subcontratación, utilizando documentación/validaciones correspondientes (F30/F30-1 u otros respaldos requeridos).",
+    "acciones": [
+      "Verificar documentación y/o certificados requeridos para cumplimiento de obligaciones laborales y previsionales cuando aplique (p.ej., F30/F30-1, según corresponda).",
+      "Asegurar que los respaldos exigidos estén vigentes y conformes al requerimiento normativo."
+    ],
+    "checklist": [
+      "Documentación/certificados RE.17 verificados (F30/F30-1 según corresponda)",
+      "Respaldos normativos vigentes y conformes al requerimiento"
+    ],
+    "validacion": "¿La verificación normativa RE.17 quedó conforme (documentación/certificados vigentes y correctos)?",
+    "next": "D2_ambas_verificaciones_ok"
+  },
+  "T2b_verificacion_normativa_RE16": {
+    "type": "task",
+    "titulo": "Verificación normativa RE.16 (No aplica Ley Subcontratación)",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Validar cumplimiento normativo aplicable cuando NO corresponde Ley de Subcontratación, según registro/verificación RE.16.",
+    "acciones": [
+      "Verificar requisitos normativos aplicables bajo RE.16 (según el servicio).",
+      "Confirmar que la documentación requerida esté conforme."
+    ],
+    "checklist": [
+      "Requisitos normativos RE.16 verificados",
+      "Documentación requerida conforme"
+    ],
+    "validacion": "¿La verificación normativa RE.16 quedó conforme?",
+    "next": "D2_ambas_verificaciones_ok"
+  },
+  "D2_ambas_verificaciones_ok": {
+    "type": "decision",
+    "titulo": "Gate: Verificaciones completas",
+    "rol": "Administrador de Contrato",
+    "pregunta": "¿Están correctas ambas verificaciones (técnica/contractual y normativa)?",
+    "opciones": [
+      {
+        "label": "SÍ → Gestionar HES en SAP",
+        "next": "T3_generar_HES_ML81N"
+      },
+      {
+        "label": "NO → Informar al proveedor para enmendar y revalidar",
+        "next": "T2c_informar_discrepancias_y_loop"
+      }
+    ],
+    "ayuda": "Según PRO131: si no existe V°B° para cualquiera de las verificaciones, se informa al proveedor para que enmiende la situación."
+  },
+  "T2c_informar_discrepancias_y_loop": {
+    "type": "task",
+    "titulo": "Informar discrepancias al proveedor y solicitar corrección",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Si existe incumplimiento técnico/contractual o normativo, se informa formalmente al proveedor para que proceda a enmendar la situación antes de continuar.",
+    "acciones": [
+      "Informar formalmente al proveedor las discrepancias (técnicas/contractuales y/o normativas).",
+      "Solicitar corrección/entrega de respaldos complementarios según corresponda.",
+      "Registrar evidencia de la notificación (correo, acta, ticket u otro medio definido)."
+    ],
+    "checklist": [
+      "Discrepancias comunicadas formalmente al proveedor",
+      "Corrección/respaldos complementarios solicitados",
+      "Evidencia de notificación registrada"
+    ],
+    "validacion": "¿El proveedor fue informado formalmente y quedó registrada evidencia de la solicitud de corrección?",
+    "next": "T1_verificar_servicio_vs_oc"
+  },
+  "T3_generar_HES_ML81N": {
+    "type": "task",
+    "titulo": "Generar Hoja de Entrada de Servicios (HES) – ML81N",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Luego de obtener V°B° de verificaciones, generar HES en SAP mediante transacción ML81N. El valor debe ser según lo pactado (cotización, estado de pago, avance/proporcionalidad). Adjuntar respaldos requeridos (estados de pago, certificados, F30/F31 cuando aplique).",
+    "acciones": [
+      "Ingresar a SAP y generar HES mediante transacción ML81N.",
+      "Cargar cantidades/montos según lo pactado (cotización/estado de pago/avance/proporcionalidad del servicio).",
+      "Adjuntar respaldos requeridos en el sistema (estados de pago, certificados y, cuando aplique, formularios/certificados como F30/F31)."
+    ],
+    "checklist": [
+      "HES generada en SAP (ML81N)",
+      "Cantidades/montos cargados según lo pactado",
+      "Respaldos requeridos adjuntados (estados de pago, certificados, F30/F31 si aplica)"
+    ],
+    "inputs": [
+      {
+        "key": "numero_hes",
+        "label": "Ingresa número de HES",
+        "required": true,
+        "multiline": false
+      }
+    ],
+    "validacion": "¿La HES fue creada en ML81N con valores correctos y respaldos adjuntos según corresponda?",
+    "next": "T4_evaluar_proveedor_en_SAP"
+  },
+  "T4_evaluar_proveedor_en_SAP": {
+    "type": "task",
+    "titulo": "Evaluar proveedor en SAP (obligatorio)",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Registrar evaluación del proveedor en SAP ingresando criterios definidos en el Anexo 1. La evaluación es requisito para proceder a grabación y posterior liberación de la HES. El proveedor debe ser evaluado al menos una vez por contrato/servicio.",
+    "acciones": [
+      "Registrar evaluación del proveedor en SAP utilizando criterios definidos (ver Anexo 1 del PRO131).",
+      "Asegurar que la evaluación corresponde al servicio/hito recepcionado y queda asociada al contrato/OC."
+    ],
+    "checklist": [
+      "Evaluación de proveedor registrada en SAP (criterios Anexo 1)",
+      "Evaluación asociada al contrato/OC del servicio recepcionado"
+    ],
+    "validacion": "¿La evaluación del proveedor quedó registrada en SAP según Anexo 1 y es consistente con el servicio recepcionado?",
+    "next": "T5_grabar_HES"
+  },
+  "T5_grabar_HES": {
+    "type": "task",
+    "titulo": "Grabar HES en SAP",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Luego de ingresar datos y evaluación, grabar/guardar la HES para generar número de documento y permitir el flujo de liberación.",
+    "acciones": [
+      "Guardar/grabar la HES en SAP con todos los datos requeridos y evaluación registrada.",
+      "Verificar que se generó número de HES para seguimiento."
+    ],
+    "checklist": [
+      "HES grabada en SAP con datos completos y evaluación registrada",
+      "Número de HES generado para seguimiento"
+    ],
+    "validacion": "¿La HES quedó grabada en SAP y se generó el número de documento?",
+    "next": "T6_liberar_HES_DOA"
+  },
+  "T6_liberar_HES_DOA": {
+    "type": "task",
+    "titulo": "Liberar (aceptar) HES (FIORI / ML81N / ML85)",
+    "rol": "Liberador (DOA / dueño CECO-PEP-Grafo)",
+    "descripcion": "La liberación es realizada por el usuario responsable del objeto de costo (dueño CECO, PEP o Grafo). En ciertos casos (gasto anticipado/pasivos uso corriente), el liberador será el indicado por el Administrador de Contrato dentro de la lista de liberadores disponibles.",
+    "acciones": [
+      "Gestionar liberación electrónica de la HES por el liberador correspondiente (según DOA / responsable del objeto de costo).",
+      "Confirmar que la HES quedó liberada para formalizar recepción conforme y habilitar el devengo."
+    ],
+    "checklist": [
+      "HES liberada electrónicamente por el liberador correspondiente (DOA)",
+      "Liberación confirmada en SAP (recepción conforme y devengo habilitado)"
+    ],
+    "validacion": "¿La HES quedó liberada por el liberador correspondiente (DOA) en el sistema?",
+    "next": "T7_comunicar_evaluacion_al_proveedor"
+  },
+  "T7_comunicar_evaluacion_al_proveedor": {
+    "type": "task",
+    "titulo": "Comunicar evaluación al proveedor",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Notificar formalmente al proveedor el resultado de la evaluación de desempeño. Mantener evidencia de comunicación (según nota del PRO131).",
+    "acciones": [
+      "Enviar comunicación formal al proveedor con resultado de evaluación.",
+      "Guardar evidencia/registro de la comunicación (adjunto/registro según práctica definida)."
+    ],
+    "checklist": [
+      "Evaluación comunicada formalmente al proveedor",
+      "Evidencia/registro de la comunicación guardada"
+    ],
+    "validacion": "¿La evaluación fue comunicada al proveedor y existe evidencia/registro?",
+    "next": "T8_notificar_HES_liberada"
+  },
+  "T8_notificar_HES_liberada": {
+    "type": "task",
+    "titulo": "Notificar HES liberada al proveedor (número HES)",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Notificar al proveedor la creación/liberación de la HES (número) mediante correo electrónico para habilitar emisión de factura.",
+    "acciones": [
+      "Enviar correo al proveedor informando número de HES liberada y referencias necesarias (OC/contrato si aplica)."
+    ],
+    "checklist": [
+      "Proveedor notificado con número de HES liberada (correo enviado)"
+    ],
+    "validacion": "¿El proveedor fue notificado con el número de HES liberada?",
+    "next": "T9_monitorear_factura"
+  },
+  "T9_monitorear_factura": {
+    "type": "task",
+    "titulo": "Monitorear emisión/disponibilidad de factura",
+    "rol": "Administrador de Contrato",
+    "descripcion": "Monitorear que el proveedor emita factura luego de la notificación de HES. Revisar disponibilidad en SAP mediante transacción ZFI_PANEL_CONTROL o ME23N, verificando consistencia entre factura, OC y HES.",
+    "acciones": [
+      "Monitorear emisión de factura del proveedor posterior a la notificación de HES.",
+      "Verificar en SAP (ZFI_PANEL_CONTROL o ME23N) si la factura/documento está disponible.",
+      "Realizar chequeo de consistencia básica (monto y referencias) entre factura, OC y HES liberada."
+    ],
+    "checklist": [
+      "Emisión de factura del proveedor monitorizada",
+      "Factura verificada en SAP (ZFI_PANEL_CONTROL / ME23N)",
+      "Consistencia básica factura / OC / HES confirmada"
+    ],
+    "validacion": "¿La factura está disponible en SAP y es consistente con OC/HES (sin diferencias evidentes)?",
+    "next": "END_derivar_PRO023"
+  },
+  "END_derivar_PRO023": {
+    "type": "end",
+    "titulo": "Derivar a PRO023 – Revisión y Registro de Facturas",
+    "rol": "Finanzas / Contabilidad",
+    "mensaje": "Con la factura ya disponible en el sistema, continuar con PRO023 (Revisión y Registro de Facturas) para cruce final y programación de pago.",
+    "estado_final": "DERIVADO_PRO023"
+  }
+}
