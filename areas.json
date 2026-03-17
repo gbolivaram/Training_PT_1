@@ -6,7 +6,8 @@
             "pros": [
                 "PRO128",
                 "PRO130",
-                "PRO131"
+                "PRO131",
+                "PRO132"
             ]
         },
         {
@@ -416,6 +417,46 @@
                 "Recursos o materiales no disponibles",
                 "Informe técnico incompleto o rechazado",
                 "Hallazgos sin gestionar",
+                "Otro"
+            ]
+        },
+        "PRO132": {
+            "id": "PRO132",
+            "nombre": "Creación de materiales y EPP",
+            "descripcion": "Procedimiento para solicitar, revisar y crear nuevos códigos de repuestos, materiales, insumos y EPP en el maestro de materiales SAP, desde la necesidad hasta la creación del código.",
+            "data": "pro132.json",
+            "has_stop": false,
+            "primer_nodo": "S0_tipo",
+            "flow_order": [
+                "S0_tipo",
+                "MAT_T1_solicitar",
+                "MAT_D1_especialista",
+                "MAT_T1b_modificar",
+                "MAT_END_rechazado",
+                "MAT_D2_planificacion",
+                "MAT_D3_analista",
+                "MAT_T3_crear",
+                "MAT_D4_mantenible",
+                "MAT_T4_informar",
+                "MAT_END_ok",
+                "MAT_END_ok_mantenible",
+                "EPP_T1_solicitar",
+                "EPP_D1_sso",
+                "EPP_T1b_modificar",
+                "EPP_D2_analista",
+                "EPP_D3_completa",
+                "EPP_T1b_modificar_analista",
+                "EPP_T3_crear",
+                "EPP_END_rechazado",
+                "EPP_END_ok"
+            ],
+            "motivos_bloqueo": [
+                "Código de material ya existe en maestro SAP (duplicado)",
+                "Descripción con atributos técnicos omitidos o incorrectos",
+                "Código mal clasificado o sin normalización",
+                "Repuesto no asociado a equipo o ubicación técnica",
+                "EPP sin Registro ISP o Registro ISP no vigente",
+                "Información incompleta para creación (fabricante, N° parte, etc.)",
                 "Otro"
             ]
         },
