@@ -7,7 +7,8 @@
                 "PRO128",
                 "PRO130",
                 "PRO131",
-                "PRO132"
+                "PRO132",
+                "PRO183"
             ]
         },
         {
@@ -417,6 +418,48 @@
                 "Recursos o materiales no disponibles",
                 "Informe técnico incompleto o rechazado",
                 "Hallazgos sin gestionar",
+                "Otro"
+            ]
+        },
+        "PRO183": {
+            "id": "PRO183",
+            "nombre": "Devolución a proveedores",
+            "descripcion": "Procedimiento para gestionar la devolución de materiales a proveedores, ya sea de manera inmediata (con recepción MIGO y despacho directo) o con gestión posterior (revisión técnica, pedido de devolución, picking y regularización financiera).",
+            "data": "pro183.json",
+            "has_stop": true,
+            "primer_nodo": "D1_inmediata",
+            "flow_order": [
+                "D1_inmediata",
+                "T1_migo",
+                "T2_generar_devolucion",
+                "T3_devolver_proveedor",
+                "T4_notificar_abast_dev",
+                "T5_notificar_causa",
+                "END_RAMA_SI",
+                "T6_recepcion_materiales",
+                "T7_revision_tecnica",
+                "T8_notificar_compra",
+                "T9_notificar_proveedor",
+                "T10_notificar_almacenamiento",
+                "T11_crear_pedido",
+                "T12_crear_salida",
+                "T13_generar_picking",
+                "T14_informar_proveedor",
+                "D2_confirmacion_recepcion",
+                "T15_revision_facturas",
+                "T16_notificar_deposito",
+                "T17_proveedor_deposito",
+                "T18_compensar_nc",
+                "END_RAMA_NO",
+                "END_STOP"
+            ],
+            "motivos_bloqueo": [
+                "Condición insegura detectada",
+                "Falta de información crítica (documentación, datos de transporte, etc.)",
+                "Sistema SAP no disponible",
+                "No se logra contacto con proveedor",
+                "Proveedor no confirma recepción de información",
+                "Depósito de proveedor no recibido",
                 "Otro"
             ]
         },
