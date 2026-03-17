@@ -1,0 +1,387 @@
+{
+  "S0_tipo": {
+    "type": "decision",
+    "titulo": "¿Qué tipo de creación de material necesita realizar?",
+    "rol": "HMI (selección de flujo)",
+    "descripcion": "Seleccione el flujo que corresponde según el tipo de material a crear.",
+    "pregunta": "Seleccione el flujo a ejecutar:",
+    "opciones": [
+      {
+        "label": "Creación de Repuesto / Material / Insumo",
+        "next": "MAT_T1_solicitar"
+      },
+      {
+        "label": "Creación de EPP (Elemento de Protección Personal)",
+        "next": "EPP_T1_solicitar"
+      }
+    ],
+    "ayuda": "Use el flujo 'Repuesto / Material / Insumo' para materiales de mantenimiento, operaciones o MASSO. Use el flujo 'EPP' solo para elementos de protección personal autorizados por gerencia MASSO."
+  },
+
+  "MAT_T1_solicitar": {
+    "type": "task",
+    "titulo": "Solicitar creación de repuesto/material en ZSIDM",
+    "rol": "Solicitante",
+    "descripcion": "A través de la transacción ZSIDM, el solicitante ingresa todos los datos requeridos para la creación del nuevo código de repuesto o material. Es responsabilidad del solicitante completar todos los campos correctamente para evitar duplicados, inconsistencias o rechazos.",
+    "acciones": [
+      "Ingresar a la transacción ZSIDM y crear nueva solicitud.",
+      "Indicar el centro de creación.",
+      "Para repuestos: indicar ubicaciones técnicas (cantidad a instalar y criticidad).",
+      "Ingresar datos de clase general: fabricante y N° de parte (si es OEM o OCM).",
+      "Completar clasificación: atributos técnicos y marcar si es Repuesto Mantenible (Sí/No).",
+      "Ingresar descripción clara y completa de la solicitud.",
+      "Indicar prioridad: Urgente o Normal.",
+      "Completar datos a nivel de centro: Centro de Beneficio, Criticidad de mantenimiento y — si el repuesto es mantenible — Perfil N° Serie: Z005 - Perfil Serie Colbun.",
+      "Ingresar datos de valoración (Precio medio variable) y stock de seguridad.",
+      "Adjuntar archivos de respaldo: foto, ficha técnica u otros."
+    ],
+    "checklist": [
+      "Centro de creación ingresado",
+      "Ubicaciones técnicas indicadas (aplica solo repuestos)",
+      "Fabricante y N° de parte ingresados (si es OEM/OCM)",
+      "Atributos técnicos de clasificación completados",
+      "Campo 'Repuesto Mantenible' marcado (Sí/No)",
+      "Descripción de solicitud ingresada",
+      "Prioridad definida (Urgente/Normal)",
+      "Centro de beneficio y criticidad de mantenimiento completados",
+      "Perfil N° Serie Z005 ingresado (solo si repuesto es mantenible)",
+      "Precio medio variable y stock de seguridad ingresados",
+      "Archivos adjuntos cargados (foto, ficha técnica, etc.)"
+    ],
+    "validacion": "¿Todos los datos obligatorios fueron ingresados en ZSIDM y la solicitud fue enviada correctamente?",
+    "next": "MAT_D1_especialista"
+  },
+
+  "MAT_D1_especialista": {
+    "type": "decision",
+    "titulo": "Revisión del Especialista de Almacén",
+    "rol": "Especialista de Almacén",
+    "pregunta": "¿Cuál es el resultado de la revisión del Especialista de Almacén en ZSIDM?",
+    "opciones": [
+      {
+        "label": "Aprobada — solicitud completa y correcta",
+        "next": "MAT_D2_planificacion"
+      },
+      {
+        "label": "Con observaciones / falta información — devuelta al solicitante",
+        "next": "MAT_T1b_modificar"
+      },
+      {
+        "label": "Rechazada — código ya existe en maestro o no cumple requisitos",
+        "next": "MAT_END_rechazado"
+      }
+    ],
+    "ayuda": "El Especialista de Almacén revisa en ZSIDM que la solicitud contenga todos los datos correctos y que no exista ya un código equivalente en el maestro de materiales."
+  },
+
+  "MAT_T1b_modificar": {
+    "type": "task",
+    "titulo": "Modificar solicitud según observaciones",
+    "rol": "Solicitante",
+    "descripcion": "El solicitante corrige o completa la información de la solicitud en ZSIDM según los comentarios del revisor. Si los puntos observados no pueden ser modificados en el sistema, se debe rechazar la solicitud y crear una nueva.",
+    "acciones": [
+      "Ingresar a ZSIDM → Gestión de solicitud.",
+      "Revisar los comentarios y observaciones ingresados por el revisor.",
+      "Corregir o completar los datos indicados.",
+      "Si algún campo no es editable, coordinar con el revisor si corresponde rechazar y crear nueva solicitud.",
+      "Guardar y reenviar la solicitud modificada."
+    ],
+    "checklist": [
+      "Observaciones del revisor revisadas",
+      "Datos corregidos o completados en ZSIDM",
+      "Solicitud reenviada"
+    ],
+    "validacion": "¿La solicitud fue corregida y reenviada correctamente en ZSIDM?",
+    "next": "MAT_D1_especialista"
+  },
+
+  "MAT_END_rechazado": {
+    "type": "end",
+    "titulo": "Solicitud rechazada",
+    "rol": "Especialista de Almacén / Planificación / Analista de Materiales",
+    "mensaje": "La solicitud fue rechazada en ZSIDM. El sistema genera automáticamente un correo al solicitante informando el rechazo. Las causas pueden ser: código de material ya existe en el maestro de materiales, o el material/repuesto no cumple los requisitos para ser creado. Si corresponde, el solicitante debe revisar el maestro y gestionar la reutilización del código existente.",
+    "estado_final": "RECHAZADO"
+  },
+
+  "MAT_D2_planificacion": {
+    "type": "decision",
+    "titulo": "Revisión de Planificación / Programación",
+    "rol": "Planificador Central",
+    "pregunta": "¿Cuál es el resultado de la revisión de datos de planificación?",
+    "opciones": [
+      {
+        "label": "Aprobada sin comentarios — datos de planificación conformes",
+        "next": "MAT_D3_analista"
+      },
+      {
+        "label": "Con observaciones — devuelta al solicitante para corrección",
+        "next": "MAT_T1b_modificar"
+      },
+      {
+        "label": "Rechazada — código ya existe en maestro de materiales",
+        "next": "MAT_END_rechazado"
+      }
+    ],
+    "ayuda": "Planificación/Programación revisa los datos de planificación ingresados (stock de seguridad, criticidad, perfil de serie, etc.) y valida que no exista ya un código equivalente."
+  },
+
+  "MAT_D3_analista": {
+    "type": "decision",
+    "titulo": "Revisión del Analista de Materiales",
+    "rol": "Analista de Materiales",
+    "pregunta": "¿Cuál es el resultado de la revisión del Analista de Materiales en ZSIDM?",
+    "opciones": [
+      {
+        "label": "Aprobada — solicitud completa y correcta para creación",
+        "next": "MAT_T3_crear"
+      },
+      {
+        "label": "Con observaciones / falta información — devuelta al solicitante",
+        "next": "MAT_T1b_modificar"
+      },
+      {
+        "label": "Rechazada — código ya existe en maestro de materiales",
+        "next": "MAT_END_rechazado"
+      }
+    ],
+    "ayuda": "El Analista de Materiales realiza la revisión final antes de crear el código. Verifica normalización, clasificación, atributos técnicos y ausencia de duplicados."
+  },
+
+  "MAT_T3_crear": {
+    "type": "task",
+    "titulo": "Crear código de repuesto/material en ZSIDM",
+    "rol": "Analista de Materiales",
+    "descripcion": "El Analista de Materiales crea el código en el maestro de materiales a través de ZSIDM, cambia el estado de la solicitud a 'Procesado' y el sistema notifica automáticamente al solicitante.",
+    "acciones": [
+      "Ingresar a ZSIDM → Gestión de solicitudes.",
+      "Ejecutar la creación del código de repuesto/material.",
+      "Cambiar estado de la solicitud a 'Procesado'.",
+      "Verificar que el sistema envió el correo automático de notificación al solicitante."
+    ],
+    "checklist": [
+      "Código creado en maestro de materiales SAP",
+      "Estado de solicitud cambiado a 'Procesado' en ZSIDM",
+      "Notificación automática enviada al solicitante"
+    ],
+    "validacion": "¿El código fue creado correctamente en SAP y el solicitante fue notificado?",
+    "next": "MAT_D4_mantenible"
+  },
+
+  "MAT_D4_mantenible": {
+    "type": "decision",
+    "titulo": "¿El repuesto/material creado es mantenible?",
+    "rol": "Analista de Materiales",
+    "pregunta": "¿El repuesto o material recién creado fue clasificado como mantenible (campo 'Repuesto Mantenible' = Sí)?",
+    "opciones": [
+      {
+        "label": "Sí — es mantenible, se debe informar al responsable de mantenimiento",
+        "next": "MAT_T4_informar"
+      },
+      {
+        "label": "No — no es mantenible, proceso finalizado",
+        "next": "MAT_END_ok"
+      }
+    ],
+    "ayuda": "Un repuesto es mantenible cuando está asociado a un equipo del árbol de mantenimiento y requiere gestión de series. Ver Anexo 1 del PRO194 para referencia."
+  },
+
+  "MAT_T4_informar": {
+    "type": "task",
+    "titulo": "Informar a responsable de mantenimiento sobre nuevo repuesto mantenible",
+    "rol": "Analista de Materiales",
+    "descripcion": "Cuando el repuesto creado es mantenible, el Analista de Materiales debe comunicar al responsable de mantenimiento correspondiente para que tome conocimiento del nuevo código y pueda gestionarlo en el árbol de equipos.",
+    "acciones": [
+      "Identificar al responsable de mantenimiento del equipo asociado al repuesto.",
+      "Informar la creación del nuevo código mantenible: código SAP, descripción, ubicación técnica y perfil de serie asignado (Z005).",
+      "Dejar registro de la comunicación."
+    ],
+    "checklist": [
+      "Responsable de mantenimiento identificado",
+      "Comunicación enviada con código, descripción y ubicación técnica",
+      "Registro de comunicación guardado"
+    ],
+    "validacion": "¿El responsable de mantenimiento fue informado correctamente del nuevo repuesto mantenible?",
+    "next": "MAT_END_ok_mantenible"
+  },
+
+  "MAT_END_ok": {
+    "type": "end",
+    "titulo": "Material creado exitosamente",
+    "rol": "Analista de Materiales",
+    "mensaje": "El código de repuesto/material fue creado correctamente en el maestro de materiales SAP. El solicitante fue notificado automáticamente por el sistema. El proceso PRO132 ha concluido.",
+    "estado_final": "OK"
+  },
+
+  "MAT_END_ok_mantenible": {
+    "type": "end",
+    "titulo": "Material mantenible creado y responsable informado",
+    "rol": "Analista de Materiales",
+    "mensaje": "El código de repuesto mantenible fue creado en SAP y el responsable de mantenimiento fue informado. El solicitante fue notificado automáticamente. El proceso PRO132 ha concluido.",
+    "estado_final": "OK"
+  },
+
+  "EPP_T1_solicitar": {
+    "type": "task",
+    "titulo": "Solicitar creación de código de EPP en ZSIDM",
+    "rol": "Solicitante",
+    "descripcion": "A través de la transacción ZSIDM, el solicitante ingresa todos los datos requeridos para la creación del nuevo código de EPP. La solicitud debe incluir obligatoriamente el registro ISP del elemento de protección personal.",
+    "acciones": [
+      "Ingresar a la transacción ZSIDM y crear nueva solicitud de EPP.",
+      "Indicar el centro de creación.",
+      "Ingresar datos de clase general: fabricante y N° de parte (si es OEM o OCM).",
+      "Completar clase específica de EPP: atributos técnicos.",
+      "Ingresar descripción clara de la solicitud.",
+      "Indicar prioridad: Urgente o Normal.",
+      "Completar datos a nivel de centro: Centro de Beneficio y Criticidad de mantenimiento.",
+      "Ingresar datos de valoración (Precio medio variable) y stock de seguridad.",
+      "Adjuntar archivos de respaldo: foto, ficha técnica u otros.",
+      "Adjuntar el Registro ISP del EPP (obligatorio)."
+    ],
+    "checklist": [
+      "Centro de creación ingresado",
+      "Fabricante y N° de parte ingresados (si es OEM/OCM)",
+      "Atributos técnicos de clase específica EPP completados",
+      "Descripción de solicitud ingresada",
+      "Prioridad definida (Urgente/Normal)",
+      "Centro de beneficio y criticidad de mantenimiento completados",
+      "Precio medio variable y stock de seguridad ingresados",
+      "Archivos adjuntos cargados (foto, ficha técnica, etc.)",
+      "Registro ISP adjunto (obligatorio)"
+    ],
+    "validacion": "¿Todos los datos fueron ingresados correctamente en ZSIDM, incluyendo el Registro ISP, y la solicitud fue enviada?",
+    "next": "EPP_D1_sso"
+  },
+
+  "EPP_D1_sso": {
+    "type": "decision",
+    "titulo": "Revisión del Liberador Corporativo SSO",
+    "rol": "Liberador Corporativo SSO",
+    "pregunta": "¿La solicitud de EPP está completa e incluye el Registro ISP vigente?",
+    "opciones": [
+      {
+        "label": "Sí — solicitud completa y con Registro ISP",
+        "next": "EPP_D2_analista"
+      },
+      {
+        "label": "No — falta información o Registro ISP ausente/no vigente",
+        "next": "EPP_T1b_modificar"
+      }
+    ],
+    "ayuda": "El Liberador Corporativo SSO revisa en ZSIDM que la solicitud incluya el Registro ISP del EPP. Este registro es obligatorio para todos los elementos de protección personal."
+  },
+
+  "EPP_T1b_modificar": {
+    "type": "task",
+    "titulo": "Modificar solicitud de EPP según observaciones",
+    "rol": "Solicitante",
+    "descripcion": "El solicitante corrige o completa la información de la solicitud en ZSIDM según los comentarios del Liberador Corporativo SSO o del Analista de Materiales. Si los puntos no pueden modificarse en el sistema, se rechaza y se crea una nueva solicitud.",
+    "acciones": [
+      "Ingresar a ZSIDM → Gestión de solicitud.",
+      "Revisar los comentarios y observaciones del revisor.",
+      "Corregir o completar los datos indicados (especialmente el Registro ISP si fue observado).",
+      "Si algún campo no es editable, coordinar con el revisor la necesidad de rechazar y crear nueva solicitud.",
+      "Guardar y reenviar la solicitud modificada."
+    ],
+    "checklist": [
+      "Observaciones del revisor revisadas",
+      "Datos corregidos o completados en ZSIDM",
+      "Registro ISP actualizado si fue observado",
+      "Solicitud reenviada"
+    ],
+    "validacion": "¿La solicitud fue corregida y reenviada correctamente en ZSIDM?",
+    "next": "EPP_D1_sso"
+  },
+
+  "EPP_D2_analista": {
+    "type": "decision",
+    "titulo": "Verificación de código existente — Analista de Materiales",
+    "rol": "Analista de Materiales",
+    "pregunta": "¿Existe ya un código de material equivalente en el maestro de materiales SAP?",
+    "opciones": [
+      {
+        "label": "No existe — se puede proceder con la creación",
+        "next": "EPP_D3_completa"
+      },
+      {
+        "label": "Sí existe — código duplicado, solicitud rechazada",
+        "next": "EPP_END_rechazado"
+      }
+    ],
+    "ayuda": "El Analista verifica en SAP que no exista un código equivalente para el EPP solicitado antes de proceder con la creación."
+  },
+
+  "EPP_D3_completa": {
+    "type": "decision",
+    "titulo": "Verificación de completitud — Analista de Materiales",
+    "rol": "Analista de Materiales",
+    "pregunta": "¿La solicitud está completa y correcta para proceder con la creación del código?",
+    "opciones": [
+      {
+        "label": "Sí — solicitud completa y correcta",
+        "next": "EPP_T3_crear"
+      },
+      {
+        "label": "No — falta información, devuelta al solicitante",
+        "next": "EPP_T1b_modificar_analista"
+      }
+    ],
+    "ayuda": "El Analista revisa normalización, clasificación, atributos técnicos y presencia del Registro ISP antes de crear el código."
+  },
+
+  "EPP_T1b_modificar_analista": {
+    "type": "task",
+    "titulo": "Modificar solicitud de EPP según observaciones del Analista",
+    "rol": "Solicitante",
+    "descripcion": "El solicitante corrige la solicitud en base a los comentarios del Analista de Materiales. Si los puntos no pueden modificarse, se rechaza la solicitud y se crea una nueva.",
+    "acciones": [
+      "Ingresar a ZSIDM → Gestión de solicitud.",
+      "Revisar los comentarios del Analista de Materiales.",
+      "Corregir los datos indicados.",
+      "Si algún campo no es editable, coordinar rechazo y nueva solicitud.",
+      "Guardar y reenviar la solicitud."
+    ],
+    "checklist": [
+      "Observaciones del Analista revisadas",
+      "Datos corregidos en ZSIDM",
+      "Solicitud reenviada"
+    ],
+    "validacion": "¿La solicitud fue corregida y reenviada?",
+    "next": "EPP_D2_analista"
+  },
+
+  "EPP_T3_crear": {
+    "type": "task",
+    "titulo": "Crear código de material EPP en ZSIDM",
+    "rol": "Analista de Materiales",
+    "descripcion": "El Analista de Materiales crea el código del EPP en el maestro de materiales SAP a través de ZSIDM, cambia el estado a 'Procesado' y el sistema notifica automáticamente al solicitante.",
+    "acciones": [
+      "Ingresar a ZSIDM → Gestión de solicitudes.",
+      "Ejecutar la creación del código de material EPP.",
+      "Cambiar estado de la solicitud a 'Procesado'.",
+      "Verificar que el sistema envió el correo automático de notificación al solicitante."
+    ],
+    "checklist": [
+      "Código EPP creado en maestro de materiales SAP",
+      "Estado de solicitud cambiado a 'Procesado' en ZSIDM",
+      "Notificación automática enviada al solicitante"
+    ],
+    "validacion": "¿El código EPP fue creado correctamente y el solicitante fue notificado?",
+    "next": "EPP_END_ok"
+  },
+
+  "EPP_END_rechazado": {
+    "type": "end",
+    "titulo": "Solicitud de EPP rechazada",
+    "rol": "Analista de Materiales",
+    "mensaje": "La solicitud fue rechazada porque ya existe un código de material equivalente en el maestro de materiales SAP. A través de ZSIDM se cambia el estado a 'Rechazado' y el sistema envía un correo automático al solicitante. Se debe utilizar el código existente.",
+    "estado_final": "RECHAZADO"
+  },
+
+  "EPP_END_ok": {
+    "type": "end",
+    "titulo": "Código de EPP creado exitosamente",
+    "rol": "Analista de Materiales",
+    "mensaje": "El código de EPP fue creado correctamente en el maestro de materiales SAP, con Registro ISP verificado. El solicitante fue notificado automáticamente. El proceso PRO132 ha concluido.",
+    "estado_final": "OK"
+  }
+}
