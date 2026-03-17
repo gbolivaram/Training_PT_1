@@ -6,8 +6,7 @@
             "pros": [
                 "PRO128",
                 "PRO130",
-                "PRO131",
-                "PRO134"
+                "PRO131"
             ]
         },
         {
@@ -22,6 +21,7 @@
             "id": "inventario",
             "nombre": "Inventario y almacén",
             "pros": [
+                "PRO134",
                 "PRO139",
                 "PRO141"
             ]
