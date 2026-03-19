@@ -1,0 +1,419 @@
+{
+  "D1_inmediata": {
+    "type": "decision",
+    "titulo": "Decisión inicial — Gestión inmediata de devolución",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Una vez realizada la recepción física y revisada la documentación, se decide si la devolución puede gestionarse de manera inmediata o requiere revisión técnica previa.",
+    "pregunta": "¿La devolución puede gestionarse de manera inmediata?",
+    "opciones": [
+      {
+        "label": "SÍ — se puede gestionar de manera inmediata",
+        "next": "T1_migo"
+      },
+      {
+        "label": "NO — requiere recepción y revisión técnica previa",
+        "next": "T6_recepcion_materiales"
+      }
+    ],
+    "ayuda": "Seleccione la ruta que corresponda según la condición detectada."
+  },
+
+  "T1_migo": {
+    "type": "task",
+    "titulo": "Ingresar recepción en MIGO y adjuntar documentación",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Registrar la recepción en la transacción MIGO y adjuntar la documentación de respaldo disponible para respaldar la devolución inmediata.",
+    "acciones": [
+      "Ingresar a la transacción MIGO.",
+      "Registrar la recepción del material.",
+      "Adjuntar la documentación de respaldo correspondiente.",
+      "Verificar que la información ingresada sea consistente antes de continuar."
+    ],
+    "inputs": [
+      {
+        "id": "numero_migo",
+        "label": "Ingresa número de recepción MIGO",
+        "required": true
+      }
+    ],
+    "checklist": [
+      "Recepción registrada en MIGO",
+      "Documentación de respaldo adjunta",
+      "Información de recepción verificada como consistente"
+    ],
+    "validacion": "¿Se registró la recepción en MIGO y se adjuntó la documentación de respaldo?",
+    "next": "T2_generar_devolucion"
+  },
+
+  "T2_generar_devolucion": {
+    "type": "task",
+    "titulo": "Generar devolución a proveedor",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Generar la devolución al proveedor utilizando la referencia de recepción disponible para el caso de devolución inmediata.",
+    "acciones": [
+      "Utilizar la referencia de recepción MIGO generada.",
+      "Generar la devolución al proveedor en el sistema.",
+      "Verificar los datos de la devolución antes de continuar."
+    ],
+    "checklist": [
+      "Devolución a proveedor generada en el sistema",
+      "Datos de la devolución verificados"
+    ],
+    "validacion": "¿Se generó correctamente la devolución al proveedor?",
+    "next": "T3_devolver_proveedor"
+  },
+
+  "T3_devolver_proveedor": {
+    "type": "task",
+    "titulo": "Devolver material al proveedor",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Gestionar la devolución física al proveedor. Al emitir la guía de despacho se deben ingresar obligatoriamente los datos de transporte.",
+    "acciones": [
+      "Emitir o preparar la guía de despacho según corresponda.",
+      "Ingresar los datos de transporte requeridos (RUT transportista, patente, RUT chofer, nombre chofer).",
+      "Validar la entrega física al proveedor."
+    ],
+    "inputs": [
+      {
+        "id": "rut_transportista",
+        "label": "Ingresa RUT transportista",
+        "required": true
+      },
+      {
+        "id": "patente",
+        "label": "Ingresa patente del vehículo",
+        "required": true
+      },
+      {
+        "id": "rut_chofer",
+        "label": "Ingresa RUT chofer",
+        "required": true
+      },
+      {
+        "id": "nombre_chofer",
+        "label": "Ingresa nombre del chofer",
+        "required": true
+      }
+    ],
+    "checklist": [
+      "Guía de despacho emitida o preparada",
+      "RUT transportista ingresado",
+      "Patente del vehículo ingresada",
+      "RUT chofer ingresado",
+      "Nombre de chofer ingresado",
+      "Entrega al proveedor validada"
+    ],
+    "validacion": "¿Se gestionó correctamente la devolución física al proveedor con todos los datos de transporte?",
+    "next": "T4_notificar_abast_dev"
+  },
+
+  "T4_notificar_abast_dev": {
+    "type": "task",
+    "titulo": "Notificar a abastecimiento de la devolución",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Informar a abastecimiento que la devolución fue gestionada, para que continúe con el seguimiento correspondiente.",
+    "acciones": [
+      "Notificar a abastecimiento que la devolución fue gestionada.",
+      "Adjuntar o informar antecedentes de respaldo si aplica."
+    ],
+    "checklist": [
+      "Abastecimiento notificado de la devolución realizada",
+      "Antecedentes de respaldo adjuntos o informados (si aplica)"
+    ],
+    "validacion": "¿Se notificó correctamente a abastecimiento sobre la devolución?",
+    "next": "T5_notificar_causa"
+  },
+
+  "T5_notificar_causa": {
+    "type": "task",
+    "titulo": "Notificar al proveedor la causa de la devolución",
+    "rol": "Ingeniero de abastecimiento",
+    "descripcion": "Comunicar al proveedor la causa de la devolución realizada para dejar trazabilidad del motivo.",
+    "acciones": [
+      "Informar al proveedor la causa de la devolución.",
+      "Confirmar que el mensaje fue enviado y recibido."
+    ],
+    "checklist": [
+      "Causa de devolución informada al proveedor",
+      "Confirmación de envío del mensaje registrada"
+    ],
+    "validacion": "¿Se notificó al proveedor la causa de la devolución?",
+    "next": "END_RAMA_SI"
+  },
+
+  "END_RAMA_SI": {
+    "type": "end",
+    "titulo": "Proceso finalizado — Devolución inmediata",
+    "rol": "HMI",
+    "mensaje": "Se completó correctamente la ruta de devolución inmediata al proveedor. El especialista de almacenamiento gestionó la recepción MIGO, la devolución y el despacho físico; y abastecimiento fue notificado junto con la comunicación de causa al proveedor. El proceso PRO183 ha concluido.",
+    "estado_final": "FINALIZADO"
+  },
+
+  "T6_recepcion_materiales": {
+    "type": "task",
+    "titulo": "Recepción de materiales",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Recibir los materiales para continuar con la revisión técnica correspondiente, ya que la devolución no puede gestionarse de manera inmediata.",
+    "acciones": [
+      "Recibir los materiales en bodega.",
+      "Dejar registro físico o en sistema de la recepción."
+    ],
+    "checklist": [
+      "Materiales recibidos en bodega",
+      "Registro de recepción realizado"
+    ],
+    "validacion": "¿Se recepcionaron los materiales y se dejó registro?",
+    "next": "T7_revision_tecnica"
+  },
+
+  "T7_revision_tecnica": {
+    "type": "task",
+    "titulo": "Revisión técnica — declarar necesidad de devolución",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Realizar la revisión técnica del material y declarar formalmente que corresponde gestionar una devolución al proveedor.",
+    "acciones": [
+      "Realizar la revisión técnica del material recibido.",
+      "Identificar y documentar el motivo que origina la devolución.",
+      "Declarar formalmente que el material requiere devolución."
+    ],
+    "checklist": [
+      "Revisión técnica del material realizada",
+      "Motivo de devolución identificado y documentado",
+      "Devolución declarada formalmente"
+    ],
+    "validacion": "¿La revisión técnica declaró formalmente que el material requiere devolución?",
+    "next": "T8_notificar_compra"
+  },
+
+  "T8_notificar_compra": {
+    "type": "task",
+    "titulo": "Notificar a compras la necesidad de devolución",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Informar al área de compras la necesidad de devolución detectada tras la revisión técnica, con los antecedentes que correspondan.",
+    "acciones": [
+      "Notificar a compras la necesidad de devolución.",
+      "Adjuntar antecedentes disponibles que respalden el caso (si aplica)."
+    ],
+    "checklist": [
+      "Compras notificado de la necesidad de devolución",
+      "Antecedentes de respaldo adjuntos o informados (si aplica)"
+    ],
+    "validacion": "¿Se notificó a compras la necesidad de devolución con los antecedentes correspondientes?",
+    "next": "T9_notificar_proveedor"
+  },
+
+  "T9_notificar_proveedor": {
+    "type": "task",
+    "titulo": "Notificar al proveedor sobre la devolución requerida",
+    "rol": "Ingeniero de abastecimiento",
+    "descripcion": "Informar al proveedor sobre la devolución requerida para coordinar las siguientes acciones del proceso.",
+    "acciones": [
+      "Notificar al proveedor la devolución requerida.",
+      "Registrar evidencia de la notificación realizada."
+    ],
+    "checklist": [
+      "Proveedor notificado sobre la devolución requerida",
+      "Evidencia de la notificación registrada"
+    ],
+    "validacion": "¿Se notificó al proveedor sobre la devolución requerida?",
+    "next": "T10_notificar_almacenamiento"
+  },
+
+  "T10_notificar_almacenamiento": {
+    "type": "task",
+    "titulo": "Notificar a almacenamiento para continuar proceso",
+    "rol": "Ingeniero de abastecimiento",
+    "descripcion": "Informar a almacenamiento que la devolución debe seguir su curso operativo, entregando los antecedentes necesarios para continuar.",
+    "acciones": [
+      "Notificar a almacenamiento que la devolución debe continuar.",
+      "Entregar los antecedentes necesarios para los siguientes pasos operativos."
+    ],
+    "checklist": [
+      "Almacenamiento notificado para continuar proceso",
+      "Antecedentes entregados para continuar"
+    ],
+    "validacion": "¿Se notificó a almacenamiento con los antecedentes necesarios para continuar?",
+    "next": "T11_crear_pedido"
+  },
+
+  "T11_crear_pedido": {
+    "type": "task",
+    "titulo": "Crear pedido de devolución",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Crear el pedido de devolución en el sistema para habilitar la generación de la salida de entrega.",
+    "acciones": [
+      "Crear el pedido de devolución en el sistema.",
+      "Verificar que el pedido quedó correctamente registrado."
+    ],
+    "inputs": [
+      {
+        "id": "pedido_devolucion",
+        "label": "Ingresa número de pedido de devolución",
+        "required": true
+      }
+    ],
+    "checklist": [
+      "Pedido de devolución creado en el sistema",
+      "Registro del pedido verificado"
+    ],
+    "validacion": "¿Se creó correctamente el pedido de devolución?",
+    "next": "T12_crear_salida"
+  },
+
+  "T12_crear_salida": {
+    "type": "task",
+    "titulo": "Crear salida de entrega",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Generar la salida de entrega del material devuelto en el sistema, basada en el pedido de devolución creado.",
+    "acciones": [
+      "Generar la salida de entrega en el sistema con referencia al pedido de devolución.",
+      "Verificar que la salida de entrega quede correctamente registrada."
+    ],
+    "checklist": [
+      "Salida de entrega creada en el sistema"
+    ],
+    "validacion": "¿Se creó correctamente la salida de entrega?",
+    "next": "T13_generar_picking"
+  },
+
+  "T13_generar_picking": {
+    "type": "task",
+    "titulo": "Generar picking",
+    "rol": "Especialista de almacenamiento",
+    "descripcion": "Generar el picking asociado a la devolución para preparar físicamente el despacho del material al proveedor.",
+    "acciones": [
+      "Generar el picking asociado a la salida de entrega.",
+      "Preparar físicamente el material para despacho al proveedor."
+    ],
+    "checklist": [
+      "Picking generado en el sistema",
+      "Material preparado físicamente para despacho"
+    ],
+    "validacion": "¿Se generó el picking y el material está preparado para despacho?",
+    "next": "T14_informar_proveedor"
+  },
+
+  "T14_informar_proveedor": {
+    "type": "task",
+    "titulo": "Informar al proveedor antecedentes de la devolución",
+    "rol": "Especialista de almacén",
+    "descripcion": "Informar al proveedor los antecedentes de la devolución y su estado de preparación para coordinar la recepción.",
+    "acciones": [
+      "Contactar al proveedor.",
+      "Entregar los antecedentes de la devolución (número de pedido, materiales, cantidades, motivo).",
+      "Coordinar la recepción o retiro del material por parte del proveedor."
+    ],
+    "checklist": [
+      "Proveedor contactado",
+      "Antecedentes de la devolución entregados al proveedor",
+      "Recepción o retiro coordinado"
+    ],
+    "validacion": "¿Se informó al proveedor con todos los antecedentes de la devolución?",
+    "next": "D2_confirmacion_recepcion"
+  },
+
+  "D2_confirmacion_recepcion": {
+    "type": "decision",
+    "titulo": "Validación — ¿El proveedor recepcionó la información?",
+    "rol": "Ingeniero de abastecimiento",
+    "descripcion": "Verificar que el proveedor haya recepcionado efectivamente la información enviada antes de continuar con el proceso.",
+    "pregunta": "¿Se valida que el proveedor recepcionó la información?",
+    "opciones": [
+      {
+        "label": "SÍ — el proveedor confirmó recepción de la información",
+        "next": "T15_revision_facturas"
+      },
+      {
+        "label": "NO — sin confirmación, se vuelve a informar al proveedor",
+        "next": "T14_informar_proveedor"
+      }
+    ],
+    "ayuda": "Si el proveedor no confirmó la recepción de la información, se debe volver al paso anterior para reintentar la comunicación."
+  },
+
+  "T15_revision_facturas": {
+    "type": "task",
+    "titulo": "Revisión y registro de facturas",
+    "rol": "Ingeniero de abastecimiento",
+    "descripcion": "Revisar y registrar las facturas relacionadas con la devolución para continuar con el cierre financiero del proceso.",
+    "acciones": [
+      "Revisar las facturas asociadas a la devolución.",
+      "Registrar las facturas en el sistema según corresponda."
+    ],
+    "checklist": [
+      "Facturas asociadas revisadas",
+      "Facturas registradas en el sistema"
+    ],
+    "validacion": "¿Se revisaron y registraron correctamente las facturas asociadas?",
+    "next": "T16_notificar_deposito"
+  },
+
+  "T16_notificar_deposito": {
+    "type": "task",
+    "titulo": "Notificar al proveedor necesidad de depósito",
+    "rol": "Ingeniero de abastecimiento",
+    "descripcion": "Informar al proveedor que debe realizar el depósito correspondiente como parte del proceso de regularización financiera.",
+    "acciones": [
+      "Notificar al proveedor la necesidad de realizar el depósito.",
+      "Indicar el monto, cuenta y plazos según corresponda.",
+      "Registrar la comunicación realizada."
+    ],
+    "checklist": [
+      "Proveedor notificado de la necesidad de depósito",
+      "Monto, cuenta y plazos informados",
+      "Comunicación registrada"
+    ],
+    "validacion": "¿Se notificó correctamente al proveedor la necesidad de depósito?",
+    "next": "T17_proveedor_deposito"
+  },
+
+  "T17_proveedor_deposito": {
+    "type": "task",
+    "titulo": "Proveedor realiza depósito",
+    "rol": "Proveedor",
+    "descripcion": "El proveedor realiza el depósito solicitado para finalizar el proceso de regularización. Se debe confirmar la recepción del depósito.",
+    "acciones": [
+      "Verificar que el proveedor realizó el depósito solicitado.",
+      "Confirmar la recepción del depósito en la cuenta correspondiente."
+    ],
+    "checklist": [
+      "Depósito realizado por el proveedor confirmado",
+      "Recepción del depósito verificada"
+    ],
+    "validacion": "¿Se confirmó que el proveedor realizó y se recibió el depósito?",
+    "next": "T18_compensar_nc"
+  },
+
+  "T18_compensar_nc": {
+    "type": "task",
+    "titulo": "Compensar nota de crédito",
+    "rol": "Tesorero",
+    "descripcion": "Compensar la nota de crédito o el depósito asociado en el sistema para cerrar el proceso financiero de la devolución.",
+    "acciones": [
+      "Ingresar al sistema la compensación de la nota de crédito.",
+      "Validar que el cierre financiero del caso quede correctamente registrado."
+    ],
+    "checklist": [
+      "Nota de crédito compensada en el sistema",
+      "Cierre financiero validado"
+    ],
+    "validacion": "¿Se compensó correctamente la nota de crédito y se cerró el proceso financiero?",
+    "next": "END_RAMA_NO"
+  },
+
+  "END_RAMA_NO": {
+    "type": "end",
+    "titulo": "Proceso finalizado — Devolución con gestión posterior",
+    "rol": "HMI",
+    "mensaje": "Se completó correctamente la ruta de devolución con gestión posterior. Se realizó revisión técnica, coordinación con abastecimiento y proveedor, creación de pedido, picking, regularización de facturas y compensación de nota de crédito. El proceso PRO183 ha concluido.",
+    "estado_final": "FINALIZADO"
+  },
+
+  "END_STOP": {
+    "type": "end",
+    "titulo": "Proceso detenido — STOP activado",
+    "rol": "HMI",
+    "mensaje": "El proceso fue detenido mediante la activación de STOP. Se generó el registro de trazabilidad con el estado al momento de la detención. Para retomar, iniciar una nueva sesión.",
+    "estado_final": "DETENIDO_STOP"
+  }
+}
