@@ -13,7 +13,9 @@ _raw_db_url  = os.environ.get("DATABASE_URL", "")
 DATABASE_URL = _raw_db_url.replace("postgres://", "postgresql://", 1) if _raw_db_url else None
 USE_PG       = bool(DATABASE_URL)                      # True en Vercel, False local
 
-DB_PATH      = os.path.join(BASE_DIR, "database.db")   # Solo se usa en local
+# En Vercel el filesystem es read-only; /tmp sí es escribible
+_sqlite_dir  = "/tmp" if os.path.exists("/tmp") and not os.access(BASE_DIR, os.W_OK) else BASE_DIR
+DB_PATH      = os.path.join(_sqlite_dir, "database.db")   # Solo se usa en local
 NODOS_PATH   = os.path.join(BASE_DIR, "nodos.json")
 AREAS_PATH   = os.path.join(BASE_DIR, "areas.json")
 MANUALES_PATH = os.path.join(BASE_DIR, "manuales.json")
@@ -254,7 +256,7 @@ def save_feedback():
     area_id  = (data.get("area_id")  or "")[:80]
     pro_id   = (data.get("pro_id")   or "")[:40]
     fid = str(uuid.uuid4())
-    print(f"[feedback] USE_PG={USE_PG} DATABASE_URL_set={bool(DATABASE_URL)}")
+    print(f"[feedback] USE_PG={USE_PG} DATABASE_URL_set={bool(DATABASE_URL)} DB_PATH={DB_PATH}")
     try:
         db_run(
             "INSERT INTO feedback (id, created_at, pantalla, area_id, pro_id, comentario) VALUES (?,?,?,?,?,?)",
