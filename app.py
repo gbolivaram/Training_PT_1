@@ -7,22 +7,81 @@ from flask import Flask, jsonify, request, render_template, send_from_directory,
 
 app = Flask(__name__)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = "/tmp/database.db" if os.environ.get("VERCEL") else os.path.join(BASE_DIR, "database.db")
-NODOS_PATH  = os.path.join(BASE_DIR, "nodos.json")
-AREAS_PATH  = os.path.join(BASE_DIR, "areas.json")
-PRO114_PATH    = os.path.join(BASE_DIR, "pro114.json")
-PRO115_PATH    = os.path.join(BASE_DIR, "pro115.json")
-MANUALES_PATH  = os.path.join(BASE_DIR, "manuales.json")
+BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+DATABASE_URL = os.environ.get("DATABASE_URL")          # Supabase/Postgres en Vercel
+USE_PG       = bool(DATABASE_URL)                      # True en Vercel, False local
 
-# ── DB ────────────────────────────────────────────────────────────────────────
+DB_PATH      = os.path.join(BASE_DIR, "database.db")   # Solo se usa en local
+NODOS_PATH   = os.path.join(BASE_DIR, "nodos.json")
+AREAS_PATH   = os.path.join(BASE_DIR, "areas.json")
+MANUALES_PATH = os.path.join(BASE_DIR, "manuales.json")
+
+# ── Esquema de tablas ─────────────────────────────────────────────────────────
+
+TABLES = [
+    """
+    CREATE TABLE IF NOT EXISTS sessions (
+        id           TEXT PRIMARY KEY,
+        created_at   TEXT NOT NULL,
+        updated_at   TEXT NOT NULL,
+        estado       TEXT NOT NULL DEFAULT 'EN_CURSO',
+        pro_id       TEXT NOT NULL DEFAULT 'PRO141',
+        area_id      TEXT NOT NULL DEFAULT 'inventario',
+        current_node TEXT NOT NULL DEFAULT 'S0_alcance',
+        history      TEXT NOT NULL DEFAULT '[]',
+        decisiones   TEXT NOT NULL DEFAULT '[]',
+        bloqueos     TEXT NOT NULL DEFAULT '[]',
+        inputs       TEXT NOT NULL DEFAULT '{}',
+        logs         TEXT NOT NULL DEFAULT '[]'
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS feedback (
+        id          TEXT PRIMARY KEY,
+        created_at  TEXT NOT NULL,
+        pantalla    TEXT NOT NULL,
+        area_id     TEXT NOT NULL DEFAULT '',
+        pro_id      TEXT NOT NULL DEFAULT '',
+        comentario  TEXT NOT NULL
+    )
+    """
+]
+
+# ── DB — abstracción SQLite / PostgreSQL ──────────────────────────────────────
+
+def init_db():
+    """Crea las tablas si no existen (se llama una vez al iniciar)."""
+    if USE_PG:
+        import psycopg2
+        conn = psycopg2.connect(DATABASE_URL)
+        cur  = conn.cursor()
+        for sql in TABLES:
+            cur.execute(sql)
+        conn.commit()
+        cur.close()
+        conn.close()
+    else:
+        conn = sqlite3.connect(DB_PATH)
+        for sql in TABLES:
+            conn.execute(sql)
+        conn.commit()
+        conn.close()
+
 
 def get_db():
+    """Devuelve la conexión activa para este request."""
     if "db" not in g:
-        init_db()
-        g.db = sqlite3.connect(DB_PATH)
-        g.db.row_factory = sqlite3.Row
+        if USE_PG:
+            import psycopg2, psycopg2.extras
+            g.db = psycopg2.connect(
+                DATABASE_URL,
+                cursor_factory=psycopg2.extras.RealDictCursor
+            )
+        else:
+            g.db = sqlite3.connect(DB_PATH)
+            g.db.row_factory = sqlite3.Row
     return g.db
+
 
 @app.teardown_appcontext
 def close_db(exc):
@@ -30,34 +89,51 @@ def close_db(exc):
     if db:
         db.close()
 
-def init_db():
-    db = sqlite3.connect(DB_PATH)
-    db.executescript("""
-        CREATE TABLE IF NOT EXISTS sessions (
-            id          TEXT PRIMARY KEY,
-            created_at  TEXT NOT NULL,
-            updated_at  TEXT NOT NULL,
-            estado      TEXT NOT NULL DEFAULT 'EN_CURSO',
-            pro_id      TEXT NOT NULL DEFAULT 'PRO141',
-            area_id     TEXT NOT NULL DEFAULT 'inventario',
-            current_node TEXT NOT NULL DEFAULT 'S0_alcance',
-            history     TEXT NOT NULL DEFAULT '[]',
-            decisiones  TEXT NOT NULL DEFAULT '[]',
-            bloqueos    TEXT NOT NULL DEFAULT '[]',
-            inputs      TEXT NOT NULL DEFAULT '{}',
-            logs        TEXT NOT NULL DEFAULT '[]'
-        );
-        CREATE TABLE IF NOT EXISTS feedback (
-            id          TEXT PRIMARY KEY,
-            created_at  TEXT NOT NULL,
-            pantalla    TEXT NOT NULL,
-            area_id     TEXT NOT NULL DEFAULT '',
-            pro_id      TEXT NOT NULL DEFAULT '',
-            comentario  TEXT NOT NULL
-        );
-    """)
-    db.commit()
-    db.close()
+
+def _sql(sql):
+    """Adapta los placeholders ? → %s para PostgreSQL."""
+    return sql.replace("?", "%s") if USE_PG else sql
+
+
+def db_run(sql, params=()):
+    """Ejecuta una instrucción sin retorno (INSERT / UPDATE)."""
+    conn = get_db()
+    if USE_PG:
+        cur = conn.cursor()
+        cur.execute(_sql(sql), params)
+        conn.commit()
+        cur.close()
+    else:
+        conn.execute(sql, params)
+        conn.commit()
+
+
+def db_one(sql, params=()):
+    """Ejecuta y retorna una fila como dict (o None)."""
+    conn = get_db()
+    if USE_PG:
+        cur = conn.cursor()
+        cur.execute(_sql(sql), params)
+        row = cur.fetchone()
+        cur.close()
+        return dict(row) if row else None
+    else:
+        row = conn.execute(sql, params).fetchone()
+        return dict(row) if row else None
+
+
+def db_all(sql, params=()):
+    """Ejecuta y retorna todas las filas como lista de dicts."""
+    conn = get_db()
+    if USE_PG:
+        cur = conn.cursor()
+        cur.execute(_sql(sql), params)
+        rows = cur.fetchall()
+        cur.close()
+        return [dict(r) for r in rows]
+    else:
+        rows = conn.execute(sql, params).fetchall()
+        return [dict(r) for r in rows]
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -73,9 +149,7 @@ def load_nodos_for_pro(pro_id):
     pro = areas["pros"].get(pro_id)
     if not pro:
         return {}
-    data_file = pro["data"]
-    path = os.path.join(BASE_DIR, data_file)
-    return load_json(path)
+    return load_json(os.path.join(BASE_DIR, pro["data"]))
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
@@ -87,7 +161,6 @@ def index():
 def serve_docs(filename):
     return send_from_directory(os.path.join(BASE_DIR, "static", "docs"), filename)
 
-# Legacy: keep /api/nodos for backward compat
 @app.route("/api/nodos")
 def api_nodos():
     return jsonify(load_json(NODOS_PATH))
@@ -103,9 +176,8 @@ def api_manuales():
 @app.route("/api/manuales/<area_id>")
 def api_manuales_area(area_id):
     data = load_json(MANUALES_PATH)
-    ids = data["por_area"].get(area_id, [])
-    result = [data["manuales"][m] for m in ids if m in data["manuales"]]
-    return jsonify(result)
+    ids  = data["por_area"].get(area_id, [])
+    return jsonify([data["manuales"][m] for m in ids if m in data["manuales"]])
 
 @app.route("/api/pro/<pro_id>/nodos")
 def api_pro_nodos(pro_id):
@@ -114,7 +186,7 @@ def api_pro_nodos(pro_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 404
 
-# ── AI chat endpoint ───────────────────────────────────────────────────────────
+# ── AI chat ───────────────────────────────────────────────────────────────────
 
 @app.route("/api/ai/chat", methods=["POST"])
 def ai_chat():
@@ -125,17 +197,17 @@ def ai_chat():
             "ready": False
         })
 
-    data = request.get_json()
+    data     = request.get_json()
     messages = data.get("messages", [])
     pro_id   = data.get("pro_id", "")
     area_id  = data.get("area_id", "")
 
     try:
         import anthropic
-        areas = load_json(AREAS_PATH)
-        pro_info = areas["pros"].get(pro_id, {})
+        areas      = load_json(AREAS_PATH)
+        pro_info   = areas["pros"].get(pro_id, {})
         pro_nombre = pro_info.get("nombre", pro_id)
-        nodos = load_nodos_for_pro(pro_id) if pro_id else {}
+        nodos      = load_nodos_for_pro(pro_id) if pro_id else {}
         nodos_resumen = "\n".join([
             f"- {nid}: {n.get('titulo','')}" for nid, n in nodos.items()
         ]) if nodos else "(sin procedimiento seleccionado)"
@@ -156,15 +228,14 @@ Tu rol es:
 
 Responde siempre en español, de forma directa y útil."""
 
-        client = anthropic.Anthropic(api_key=api_key)
+        client   = anthropic.Anthropic(api_key=api_key)
         response = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=1024,
             system=system_prompt,
             messages=messages
         )
-        reply = response.content[0].text
-        return jsonify({"reply": reply, "ready": True})
+        return jsonify({"reply": response.content[0].text, "ready": True})
 
     except Exception as e:
         return jsonify({"reply": f"Error al conectar con el asistente: {str(e)}", "ready": False}), 500
@@ -173,7 +244,7 @@ Responde siempre en español, de forma directa y útil."""
 
 @app.route("/api/feedback", methods=["POST"])
 def save_feedback():
-    data = request.get_json(silent=True) or {}
+    data       = request.get_json(silent=True) or {}
     comentario = (data.get("comentario") or "").strip()
     if not comentario:
         return jsonify({"error": "comentario vacío"}), 400
@@ -181,45 +252,37 @@ def save_feedback():
     area_id  = (data.get("area_id")  or "")[:80]
     pro_id   = (data.get("pro_id")   or "")[:40]
     fid = str(uuid.uuid4())
-    ts  = now_iso()
-    db  = get_db()
-    db.execute(
+    db_run(
         "INSERT INTO feedback (id, created_at, pantalla, area_id, pro_id, comentario) VALUES (?,?,?,?,?,?)",
-        (fid, ts, pantalla, area_id, pro_id, comentario)
+        (fid, now_iso(), pantalla, area_id, pro_id, comentario)
     )
-    db.commit()
     return jsonify({"ok": True, "id": fid})
 
 @app.route("/api/feedback")
 def list_feedback():
-    db   = get_db()
-    rows = db.execute("SELECT * FROM feedback ORDER BY created_at DESC").fetchall()
-    return jsonify([dict(r) for r in rows])
+    return jsonify(db_all("SELECT * FROM feedback ORDER BY created_at DESC"))
 
 @app.route("/feedback")
 def feedback_viewer():
     return render_template("feedback.html")
 
-# ── Session management ────────────────────────────────────────────────────────
+# ── Sessions ──────────────────────────────────────────────────────────────────
 
 @app.route("/api/session", methods=["POST"])
 def create_session():
-    data = request.get_json(silent=True) or {}
-    pro_id  = data.get("pro_id", "PRO141")
+    data    = request.get_json(silent=True) or {}
+    pro_id  = data.get("pro_id",  "PRO141")
     area_id = data.get("area_id", "inventario")
 
-    areas = load_json(AREAS_PATH)
-    pro = areas["pros"].get(pro_id, {})
-    first_node = pro.get("primer_nodo", "S0_alcance")
+    areas      = load_json(AREAS_PATH)
+    first_node = areas["pros"].get(pro_id, {}).get("primer_nodo", "S0_alcance")
 
     sid = str(uuid.uuid4())
     ts  = now_iso()
-    db  = get_db()
-    db.execute(
+    db_run(
         "INSERT INTO sessions (id, created_at, updated_at, estado, pro_id, area_id, current_node) VALUES (?,?,?,?,?,?,?)",
         (sid, ts, ts, "EN_CURSO", pro_id, area_id, first_node)
     )
-    db.commit()
     return jsonify({
         "session_id":   sid,
         "pro_id":       pro_id,
@@ -230,8 +293,7 @@ def create_session():
 
 @app.route("/api/session/<sid>")
 def get_session(sid):
-    db = get_db()
-    row = db.execute("SELECT * FROM sessions WHERE id=?", (sid,)).fetchone()
+    row = db_one("SELECT * FROM sessions WHERE id=?", (sid,))
     if not row:
         return jsonify({"error": "not found"}), 404
     return jsonify({
@@ -252,13 +314,12 @@ def get_session(sid):
 @app.route("/api/session/<sid>", methods=["PUT"])
 def update_session(sid):
     data = request.get_json()
-    db   = get_db()
-    row  = db.execute("SELECT * FROM sessions WHERE id=?", (sid,)).fetchone()
+    row  = db_one("SELECT * FROM sessions WHERE id=?", (sid,))
     if not row:
         return jsonify({"error": "not found"}), 404
 
     ts = now_iso()
-    db.execute("""
+    db_run("""
         UPDATE sessions SET
             updated_at=?, estado=?, current_node=?,
             history=?, decisiones=?, bloqueos=?, inputs=?, logs=?
@@ -274,24 +335,20 @@ def update_session(sid):
         json.dumps(data.get("logs",       json.loads(row["logs"])),       ensure_ascii=False),
         sid
     ))
-    db.commit()
     return jsonify({"ok": True, "updated_at": ts})
 
 @app.route("/api/session/<sid>/export")
 def export_session(sid):
-    db = get_db()
-    row = db.execute("SELECT * FROM sessions WHERE id=?", (sid,)).fetchone()
+    row = db_one("SELECT * FROM sessions WHERE id=?", (sid,))
     if not row:
         return jsonify({"error": "not found"}), 404
 
-    pro_id = row["pro_id"]
-    areas  = load_json(AREAS_PATH)
-    pro    = areas["pros"].get(pro_id, {})
-
+    areas = load_json(AREAS_PATH)
+    pro   = areas["pros"].get(row["pro_id"], {})
     payload = {
-        "proceso":      f'{pro_id} – {pro.get("nombre", pro_id)}',
+        "proceso":      f'{row["pro_id"]} – {pro.get("nombre", row["pro_id"])}',
         "session_id":   sid,
-        "pro_id":       pro_id,
+        "pro_id":       row["pro_id"],
         "area_id":      row["area_id"],
         "estado":       row["estado"],
         "current_node": row["current_node"],
@@ -308,7 +365,7 @@ def export_session(sid):
         response=json.dumps(payload, ensure_ascii=False, indent=2),
         mimetype="application/json"
     )
-    resp.headers["Content-Disposition"] = f"attachment; filename={pro_id}_{sid[:8]}.json"
+    resp.headers["Content-Disposition"] = f'attachment; filename={row["pro_id"]}_{sid[:8]}.json'
     return resp
 
 if __name__ == "__main__":
