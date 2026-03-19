@@ -47,6 +47,14 @@ def init_db():
             inputs      TEXT NOT NULL DEFAULT '{}',
             logs        TEXT NOT NULL DEFAULT '[]'
         );
+        CREATE TABLE IF NOT EXISTS feedback (
+            id          TEXT PRIMARY KEY,
+            created_at  TEXT NOT NULL,
+            pantalla    TEXT NOT NULL,
+            area_id     TEXT NOT NULL DEFAULT '',
+            pro_id      TEXT NOT NULL DEFAULT '',
+            comentario  TEXT NOT NULL
+        );
     """)
     db.commit()
     db.close()
@@ -160,6 +168,37 @@ Responde siempre en español, de forma directa y útil."""
 
     except Exception as e:
         return jsonify({"reply": f"Error al conectar con el asistente: {str(e)}", "ready": False}), 500
+
+# ── Feedback ──────────────────────────────────────────────────────────────────
+
+@app.route("/api/feedback", methods=["POST"])
+def save_feedback():
+    data = request.get_json(silent=True) or {}
+    comentario = (data.get("comentario") or "").strip()
+    if not comentario:
+        return jsonify({"error": "comentario vacío"}), 400
+    pantalla = (data.get("pantalla") or "Inicio")[:200]
+    area_id  = (data.get("area_id")  or "")[:80]
+    pro_id   = (data.get("pro_id")   or "")[:40]
+    fid = str(uuid.uuid4())
+    ts  = now_iso()
+    db  = get_db()
+    db.execute(
+        "INSERT INTO feedback (id, created_at, pantalla, area_id, pro_id, comentario) VALUES (?,?,?,?,?,?)",
+        (fid, ts, pantalla, area_id, pro_id, comentario)
+    )
+    db.commit()
+    return jsonify({"ok": True, "id": fid})
+
+@app.route("/api/feedback")
+def list_feedback():
+    db   = get_db()
+    rows = db.execute("SELECT * FROM feedback ORDER BY created_at DESC").fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route("/feedback")
+def feedback_viewer():
+    return render_template("feedback.html")
 
 # ── Session management ────────────────────────────────────────────────────────
 

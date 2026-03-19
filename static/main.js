@@ -1069,6 +1069,95 @@ function esc(str) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════
+// FEEDBACK WIDGET
+// ══════════════════════════════════════════════════════════════════════════
+
+(function initFeedback() {
+  const tab      = $("fb-tab");
+  const panel    = $("fb-panel");
+  const closeBtn = $("fb-close");
+  const textarea = $("fb-textarea");
+  const submitBtn = $("fb-submit");
+  const charCount = $("fb-char-count");
+  const success  = $("fb-success");
+  const locEl    = $("fb-location");
+
+  if (!tab || !panel) return;
+
+  function currentPath() {
+    if (!navStack.length) return "Inicio";
+    return navStack.map(s => s.label).join(" › ");
+  }
+
+  function getCurrentProId() {
+    if (!appPro || !appAreas) return "";
+    return Object.keys(appAreas.pros).find(k => appAreas.pros[k] === appPro) || "";
+  }
+
+  function openPanel() {
+    if (locEl) locEl.textContent = "📍 " + currentPath();
+    if (textarea) textarea.value = "";
+    if (charCount) charCount.textContent = "0 / 500";
+    if (success) success.classList.add("hidden");
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Enviar"; }
+    panel.classList.remove("hidden");
+    setTimeout(() => panel.classList.add("fb-panel-open"), 10);
+    if (textarea) textarea.focus();
+  }
+
+  function closePanel() {
+    panel.classList.remove("fb-panel-open");
+    setTimeout(() => panel.classList.add("hidden"), 200);
+  }
+
+  tab.addEventListener("click", () => {
+    panel.classList.contains("hidden") ? openPanel() : closePanel();
+  });
+  closeBtn?.addEventListener("click", closePanel);
+
+  textarea?.addEventListener("input", () => {
+    if (charCount) charCount.textContent = `${textarea.value.length} / 500`;
+  });
+
+  submitBtn?.addEventListener("click", async () => {
+    const comentario = (textarea?.value || "").trim();
+    if (!comentario) { textarea?.focus(); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Enviando…";
+
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          comentario,
+          pantalla: currentPath(),
+          area_id:  appArea?.id || "",
+          pro_id:   getCurrentProId()
+        })
+      });
+      if (!res.ok) throw new Error("Error " + res.status);
+      if (success) success.classList.remove("hidden");
+      if (textarea) textarea.value = "";
+      if (charCount) charCount.textContent = "0 / 500";
+      setTimeout(closePanel, 1800);
+    } catch (e) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Enviar";
+      showToast("Error al enviar el comentario. Intenta de nuevo.", true);
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!panel.classList.contains("hidden") &&
+        !panel.contains(e.target) && !tab.contains(e.target)) {
+      closePanel();
+    }
+  });
+})();
+
+// ══════════════════════════════════════════════════════════════════════════
 // SCREEN: DIAGNOSE — Resolver problema con búsqueda por palabras clave
 // ══════════════════════════════════════════════════════════════════════════
 const DIAGNOSE_CHIPS = [
