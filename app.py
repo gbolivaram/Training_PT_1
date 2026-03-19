@@ -252,11 +252,17 @@ def save_feedback():
     area_id  = (data.get("area_id")  or "")[:80]
     pro_id   = (data.get("pro_id")   or "")[:40]
     fid = str(uuid.uuid4())
-    db_run(
-        "INSERT INTO feedback (id, created_at, pantalla, area_id, pro_id, comentario) VALUES (?,?,?,?,?,?)",
-        (fid, now_iso(), pantalla, area_id, pro_id, comentario)
-    )
-    return jsonify({"ok": True, "id": fid})
+    print(f"[feedback] USE_PG={USE_PG} DATABASE_URL_set={bool(DATABASE_URL)}")
+    try:
+        db_run(
+            "INSERT INTO feedback (id, created_at, pantalla, area_id, pro_id, comentario) VALUES (?,?,?,?,?,?)",
+            (fid, now_iso(), pantalla, area_id, pro_id, comentario)
+        )
+    except Exception as e:
+        print(f"[feedback] DB ERROR: {e}")
+        return jsonify({"error": str(e)}), 500
+    print(f"[feedback] inserted id={fid}")
+    return jsonify({"ok": True, "id": fid, "use_pg": USE_PG})
 
 @app.route("/api/feedback")
 def list_feedback():
