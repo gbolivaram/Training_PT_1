@@ -230,6 +230,28 @@
   <!-- ── Toast notification ── -->
   <div class="toast hidden" id="toast"></div>
 
+  <!-- ── Feedback widget ── -->
+  <button id="fb-tab" class="fb-tab" title="Dejar un comentario sobre esta pantalla">
+    <span class="fb-tab-icon">💬</span>
+    <span class="fb-tab-label">Feedback</span>
+  </button>
+
+  <div id="fb-panel" class="fb-panel hidden">
+    <div class="fb-panel-header">
+      <span class="fb-panel-title">Comentario</span>
+      <button id="fb-close" class="fb-close" title="Cerrar">✕</button>
+    </div>
+    <div class="fb-location" id="fb-location"></div>
+    <textarea id="fb-textarea" class="fb-textarea" placeholder="¿Qué mejorarías en esta pantalla? Cuéntanos…" rows="4" maxlength="500"></textarea>
+    <div class="fb-footer">
+      <span class="fb-char-count" id="fb-char-count">0 / 500</span>
+      <button id="fb-submit" class="btn btn-si fb-submit-btn">Enviar</button>
+    </div>
+    <div class="fb-success hidden" id="fb-success">
+      ✔ ¡Gracias! Tu comentario fue registrado.
+    </div>
+  </div>
+
   <script src="/static/main.js"></script>
 </body>
 </html>
