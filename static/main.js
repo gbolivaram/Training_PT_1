@@ -50,6 +50,41 @@ const chatHistory = [];
 // Manuales state
 let appManuales = null;   // JSON completo de manuales.json
 
+// ── Breadcrumb navigation stack ─────────────────────────────────────────────
+// Each entry: { label, fn }  where fn() re-shows that screen (without repushing)
+const navStack  = [];
+let   _navBack  = false;   // flag: true while restoring via breadcrumb
+
+function navPush(label, fn) {
+  if (_navBack) return;
+  navStack.push({ label, fn });
+  renderBreadcrumb();
+}
+
+function navGoTo(idx) {
+  navStack.splice(idx + 1);
+  _navBack = true;
+  navStack[idx].fn();
+  _navBack = false;
+  renderBreadcrumb();
+}
+
+function renderBreadcrumb() {
+  const bc = $("breadcrumb");
+  if (!bc) return;
+  if (navStack.length < 2) { bc.classList.add("hidden"); return; }
+  bc.classList.remove("hidden");
+  bc.innerHTML = navStack.map((item, i) => {
+    const isLast = i === navStack.length - 1;
+    return isLast
+      ? `<span class="bc-current">${esc(item.label)}</span>`
+      : `<span class="bc-link" data-idx="${i}">${esc(item.label)}</span><span class="bc-sep">›</span>`;
+  }).join("");
+  bc.querySelectorAll(".bc-link").forEach(el =>
+    el.addEventListener("click", () => navGoTo(+el.dataset.idx))
+  );
+}
+
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
@@ -59,6 +94,7 @@ const screenIntent        = $("screen-intent");
 const screenProSelect     = $("screen-pro-select");
 const screenInformChoice  = $("screen-inform-choice");
 const screenManual        = $("screen-manual");
+const screenDiagnose      = $("screen-diagnose");
 const screenAiChat        = $("screen-ai-chat");
 const screenChecklist     = $("screen-checklist");
 
@@ -100,7 +136,7 @@ const elChatInput     = $("chat-input");
 const elBtnChatSend   = $("btn-chat-send");
 
 // ── Screen management ──────────────────────────────────────────────────────
-const ALL_SCREENS = [screenHome, screenIntent, screenProSelect, screenInformChoice, screenManual, screenAiChat, screenChecklist];
+const ALL_SCREENS = [screenHome, screenIntent, screenProSelect, screenInformChoice, screenManual, screenDiagnose, screenAiChat, screenChecklist];
 
 function showScreen(target) {
   ALL_SCREENS.forEach(s => s.classList.add("hidden"));
@@ -132,6 +168,15 @@ async function init() {
 // SCREEN 1: HOME
 // ══════════════════════════════════════════════════════════════════════════
 function renderHome() {
+  navStack.length = 0;
+  navStack.push({ label: "Inicio", fn: () => {
+    elHeaderCode.classList.add("hidden");
+    elHeaderTitle.textContent = "Guía de Procedimientos Operativos";
+    showScreen(screenHome);
+    renderBreadcrumb();
+  }});
+  renderBreadcrumb();
+
   const grid = $("areas-grid");
   if (!grid || !appAreas) return;
 
@@ -160,16 +205,14 @@ function renderHome() {
 // SCREEN 2: INTENT
 // ══════════════════════════════════════════════════════════════════════════
 function showIntent(area) {
+  appArea = area;
+  navPush(area.nombre, () => showIntent(area));
   $("intent-area-badge").textContent = area.nombre;
-  showScreen(screenIntent);
   elHeaderTitle.textContent = area.nombre;
-
   screenIntent.querySelectorAll(".intent-btn").forEach(btn => {
-    btn.onclick = () => {
-      const intent = btn.dataset.intent;
-      handleIntent(area, intent);
-    };
+    btn.onclick = () => handleIntent(area, btn.dataset.intent);
   });
+  showScreen(screenIntent);
 }
 
 function handleIntent(area, intent) {
@@ -181,8 +224,10 @@ function handleIntent(area, intent) {
     }
   } else if (intent === "informarme") {
     showInformChoice(area);
+  } else if (intent === "resolver") {
+    showDiagnose(area);
   } else {
-    // Resolver / Reportar → IA chat
+    // Reportar → IA chat
     if (area.pros.length === 1) {
       startAiChat(area.pros[0], area.id, intent);
     } else {
@@ -195,6 +240,7 @@ function handleIntent(area, intent) {
 // SCREEN 3b: INFORM CHOICE
 // ══════════════════════════════════════════════════════════════════════════
 function showInformChoice(area) {
+  navPush("Informarme", () => showInformChoice(area));
   $("inform-choice-badge").textContent = area.nombre;
   elHeaderTitle.textContent = area.nombre;
 
@@ -259,6 +305,8 @@ const SECCION_ICONS = {
 };
 
 function showManual(manual, areaNombre) {
+  const lbl = manual.codigo + " — " + (manual.nombre.length > 28 ? manual.nombre.slice(0, 28) + "…" : manual.nombre);
+  navPush(lbl, () => showManual(manual, areaNombre));
   elHeaderTitle.textContent = manual.nombre;
 
   $("manual-header").innerHTML = `
@@ -299,6 +347,7 @@ function showManual(manual, areaNombre) {
 // SCREEN 3: PRO SELECT
 // ══════════════════════════════════════════════════════════════════════════
 function showProSelect(area) {
+  navPush("Seleccionar procedimiento", () => showProSelect(area));
   $("pro-select-badge").textContent = area.nombre;
 
   const list = $("pro-list");
@@ -323,6 +372,7 @@ function showProSelect(area) {
 }
 
 function showProSelectForChat(area, intent) {
+  navPush("Seleccionar procedimiento", () => showProSelectForChat(area, intent));
   $("pro-select-badge").textContent = area.nombre;
 
   const list = $("pro-list");
@@ -356,6 +406,7 @@ const INTENT_LABELS = {
 };
 
 function startAiChat(proId, areaId, intent) {
+  navPush("Asistente IA", () => startAiChat(proId, areaId, intent));
   appPro = appAreas.pros[proId];
   chatHistory.length = 0;
 
@@ -426,7 +477,8 @@ function appendChatBubble(role, text) {
 // SCREEN 5: CHECKLIST
 // ══════════════════════════════════════════════════════════════════════════
 async function startPro(proId, areaId) {
-  appPro  = appAreas.pros[proId];
+  appPro = appAreas.pros[proId];
+  navPush(proId, () => startPro(proId, areaId));
 
   const res = await fetch(`/api/pro/${proId}/nodos`);
   state.nodos = await res.json();
@@ -963,7 +1015,11 @@ elBtnHome?.addEventListener("click", () => {
   appArea = null;
   chatHistory.length = 0;
   elHeaderCode.classList.add("hidden");
+  elHeaderTitle.textContent = "Guía de Procedimientos Operativos";
+  navStack.length = 0;
+  renderBreadcrumb();
   showScreen(screenHome);
+  renderHome();
 });
 
 // ── Export ─────────────────────────────────────────────────────────────────
@@ -1010,6 +1066,120 @@ function esc(str) {
   return String(str ?? "")
     .replace(/&/g,"&amp;").replace(/</g,"&lt;")
     .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCREEN: DIAGNOSE — Resolver problema con búsqueda por palabras clave
+// ══════════════════════════════════════════════════════════════════════════
+const DIAGNOSE_CHIPS = [
+  "material", "repuesto", "EPP", "stock", "inventario",
+  "devolución", "recepción", "falla", "emergencia", "bloqueo",
+  "servicio", "consumo", "creación", "bodega"
+];
+
+function showDiagnose(area) {
+  navPush("Resolver problema", () => showDiagnose(area));
+  elHeaderTitle.textContent = "Resolver problema";
+
+  const badge = $("diagnose-area-badge");
+  if (badge) badge.textContent = area ? area.nombre : "Todas las áreas";
+
+  // Chips de palabras clave
+  const chipsEl = $("diagnose-chips");
+  if (chipsEl) {
+    chipsEl.innerHTML = DIAGNOSE_CHIPS.map(k =>
+      `<span class="diagnose-chip" data-kw="${esc(k)}">${esc(k)}</span>`
+    ).join("");
+    chipsEl.querySelectorAll(".diagnose-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const inp = $("diagnose-input");
+        if (!inp) return;
+        inp.value = chip.dataset.kw;
+        chipsEl.querySelectorAll(".diagnose-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        runDiagnoseSearch(area, chip.dataset.kw);
+      });
+    });
+  }
+
+  // Input de búsqueda — clonar para limpiar listeners previos
+  const oldInp = $("diagnose-input");
+  if (oldInp) {
+    const inp = oldInp.cloneNode(true);
+    oldInp.parentNode.replaceChild(inp, oldInp);
+    inp.value = "";
+    inp.focus();
+    inp.addEventListener("input", () => {
+      chipsEl?.querySelectorAll(".diagnose-chip").forEach(c => c.classList.remove("active"));
+      runDiagnoseSearch(area, inp.value.trim());
+    });
+  }
+
+  runDiagnoseSearch(area, "");
+  showScreen(screenDiagnose);
+}
+
+function runDiagnoseSearch(area, query) {
+  const results = $("diagnose-results");
+  if (!results || !appAreas) return;
+
+  const lq = query.toLowerCase().trim();
+
+  // Recopilar todos los PROs de todas las áreas
+  let candidates = [];
+  appAreas.areas.forEach(a => {
+    a.pros.forEach(proId => {
+      const pro = appAreas.pros[proId];
+      if (pro) candidates.push({ pro, proId, areaNombre: a.nombre, areaId: a.id });
+    });
+  });
+
+  // Filtrar por query (todas las palabras deben aparecer)
+  if (lq) {
+    candidates = candidates.filter(c => {
+      const haystack = [
+        c.pro.nombre, c.pro.descripcion, c.areaNombre,
+        ...(c.pro.motivos_bloqueo || [])
+      ].join(" ").toLowerCase();
+      return lq.split(/\s+/).every(w => haystack.includes(w));
+    });
+  }
+
+  if (!candidates.length) {
+    results.innerHTML = `
+      <div class="diagnose-empty">
+        No se encontraron procedimientos para <strong>"${esc(query)}"</strong>.<br>
+        Intenta con otras palabras clave o usa el asistente IA.
+      </div>`;
+    return;
+  }
+
+  results.innerHTML = candidates.map(c => `
+    <div class="diagnose-card">
+      <div class="diagnose-card-top">
+        <span class="pro-id-badge">${esc(c.proId)}</span>
+        <span class="diagnose-area-tag">${esc(c.areaNombre)}</span>
+      </div>
+      <div class="diagnose-card-nombre">${esc(c.pro.nombre)}</div>
+      <div class="diagnose-card-desc">${esc(c.pro.descripcion)}</div>
+      <div class="diagnose-card-actions">
+        <button class="btn btn-si diagnose-exec"
+          data-pro-id="${esc(c.proId)}" data-area-id="${esc(c.areaId)}">
+          ▶ Ejecutar
+        </button>
+        <button class="btn btn-back diagnose-chat"
+          data-pro-id="${esc(c.proId)}" data-area-id="${esc(c.areaId)}">
+          🤖 Consultar IA
+        </button>
+      </div>
+    </div>`).join("");
+
+  results.querySelectorAll(".diagnose-exec").forEach(btn =>
+    btn.addEventListener("click", () => startPro(btn.dataset.proId, btn.dataset.areaId))
+  );
+  results.querySelectorAll(".diagnose-chat").forEach(btn =>
+    btn.addEventListener("click", () => startAiChat(btn.dataset.proId, btn.dataset.areaId, "resolver"))
+  );
 }
 
 // ── Start ──────────────────────────────────────────────────────────────────

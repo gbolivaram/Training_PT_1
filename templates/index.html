@@ -29,6 +29,9 @@
     </div>
   </header>
 
+  <!-- ── Breadcrumb navigation ── -->
+  <nav id="breadcrumb" class="breadcrumb hidden"></nav>
+
   <!-- ══════════════════════════════════════════════════════════════
        SCREEN 1: HOME — Selección de área
   ══════════════════════════════════════════════════════════════ -->
@@ -111,6 +114,24 @@
     <div class="manual-wrap">
       <div class="manual-header" id="manual-header"></div>
       <div class="manual-body" id="manual-body"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SCREEN 3d: DIAGNOSE — Resolver problema por palabras clave
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="screen-diagnose" class="screen hidden">
+    <div class="diagnose-wrap">
+      <div class="diagnose-header">
+        <div class="intent-area-badge" id="diagnose-area-badge"></div>
+        <h2 class="diagnose-title">¿Cuál es el problema?</h2>
+        <p class="diagnose-sub">Escribe palabras clave o selecciona una categoría para encontrar el procedimiento adecuado</p>
+      </div>
+      <div class="diagnose-search-box">
+        <input type="text" id="diagnose-input" class="diagnose-input" placeholder="Ej: material faltante, devolución, falla equipo…" autocomplete="off" />
+      </div>
+      <div class="diagnose-chips" id="diagnose-chips"></div>
+      <div class="diagnose-results" id="diagnose-results"></div>
     </div>
   </div>
 
