@@ -8,7 +8,9 @@ from flask import Flask, jsonify, request, render_template, send_from_directory,
 app = Flask(__name__)
 
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
-DATABASE_URL = os.environ.get("DATABASE_URL")          # Supabase/Postgres en Vercel
+_raw_db_url  = os.environ.get("DATABASE_URL", "")
+# Supabase / psycopg2 requiere postgresql://, no postgres://
+DATABASE_URL = _raw_db_url.replace("postgres://", "postgresql://", 1) if _raw_db_url else None
 USE_PG       = bool(DATABASE_URL)                      # True en Vercel, False local
 
 DB_PATH      = os.path.join(BASE_DIR, "database.db")   # Solo se usa en local
@@ -374,6 +376,11 @@ def export_session(sid):
     resp.headers["Content-Disposition"] = f'attachment; filename={row["pro_id"]}_{sid[:8]}.json'
     return resp
 
-if __name__ == "__main__":
+# Ejecutar init_db al importar (Vercel no llama __main__)
+try:
     init_db()
+except Exception as _e:
+    print(f"[init_db] WARNING: {_e}")
+
+if __name__ == "__main__":
     app.run(debug=True, port=5000)
