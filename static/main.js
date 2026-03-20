@@ -97,6 +97,7 @@ const screenManual        = $("screen-manual");
 const screenDiagnose      = $("screen-diagnose");
 const screenAiChat        = $("screen-ai-chat");
 const screenChecklist     = $("screen-checklist");
+const screenFlow          = $("screen-flow");
 
 // header
 const elBtnHome        = $("btn-home");
@@ -129,6 +130,11 @@ const elOverlay       = $("sidebar-overlay");
 const elSideSession   = $("sidebar-session");
 const elStopBar       = $("stop-bar");
 const elBtnStop       = $("btn-stop");
+const elFlowBar       = $("flow-bar");
+const elBtnVerFlujo   = $("btn-ver-flujo");
+const elBtnFlowBack   = $("btn-flow-back");
+const elFlowBody      = $("flow-viewer-body");
+const elFlowTitle     = $("flow-viewer-title");
 
 // chat
 const elChatMessages  = $("chat-messages");
@@ -136,7 +142,7 @@ const elChatInput     = $("chat-input");
 const elBtnChatSend   = $("btn-chat-send");
 
 // ── Screen management ──────────────────────────────────────────────────────
-const ALL_SCREENS = [screenHome, screenIntent, screenProSelect, screenInformChoice, screenManual, screenDiagnose, screenAiChat, screenChecklist];
+const ALL_SCREENS = [screenHome, screenIntent, screenProSelect, screenInformChoice, screenManual, screenDiagnose, screenAiChat, screenChecklist, screenFlow];
 
 function showScreen(target) {
   ALL_SCREENS.forEach(s => s.classList.add("hidden"));
@@ -549,6 +555,9 @@ function setupChecklistUI(proId, areaId) {
   } else {
     elStopBar.classList.add("hidden");
   }
+
+  // Flow button — siempre visible en el checklist
+  elFlowBar.classList.remove("hidden");
 
   showScreen(screenChecklist);
 }
@@ -1270,6 +1279,72 @@ function runDiagnoseSearch(area, query) {
     btn.addEventListener("click", () => startAiChat(btn.dataset.proId, btn.dataset.areaId, "resolver"))
   );
 }
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCREEN 6: FLOW VIEWER
+// ══════════════════════════════════════════════════════════════════════════
+function showFlow() {
+  const proId   = appPro?.id || "";
+  const pdfUrl  = appPro?.flow_pdf || null;
+
+  elFlowTitle.textContent = `Flujo — ${proId}: ${appPro?.nombre || ""}`;
+  elFlowBody.innerHTML    = "";
+
+  if (pdfUrl && typeof pdfjsLib !== "undefined") {
+    renderPdfFlow(pdfUrl);
+  } else {
+    elFlowBody.innerHTML = `
+      <div class="flow-placeholder">
+        <div class="flow-placeholder-icon">📋</div>
+        <div class="flow-placeholder-title">Flujo no disponible aún</div>
+        <div class="flow-placeholder-sub">El diagrama de flujo para <strong>${esc(proId)}</strong> será publicado próximamente.</div>
+      </div>`;
+  }
+
+  showScreen(screenFlow);
+}
+
+async function renderPdfFlow(pdfUrl) {
+  elFlowBody.innerHTML = `<div class="flow-loading">Cargando flujo…</div>`;
+
+  try {
+    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+    const pdf = await loadingTask.promise;
+
+    elFlowBody.innerHTML = "";
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page    = await pdf.getPage(pageNum);
+      const scale   = Math.min(2, (elFlowBody.clientWidth - 32) / page.getViewport({ scale: 1 }).width) || 1.5;
+      const viewport = page.getViewport({ scale });
+
+      const canvas    = document.createElement("canvas");
+      canvas.className = "flow-pdf-page";
+      canvas.width    = viewport.width;
+      canvas.height   = viewport.height;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "flow-page-wrapper";
+      wrapper.appendChild(canvas);
+      elFlowBody.appendChild(wrapper);
+
+      await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+    }
+  } catch (err) {
+    elFlowBody.innerHTML = `
+      <div class="flow-placeholder">
+        <div class="flow-placeholder-icon">⚠</div>
+        <div class="flow-placeholder-title">Error al cargar el flujo</div>
+        <div class="flow-placeholder-sub">${esc(err.message || "No se pudo renderizar el PDF.")}</div>
+      </div>`;
+  }
+}
+
+// Wire up flow buttons
+document.addEventListener("DOMContentLoaded", () => {
+  if (elBtnVerFlujo)  elBtnVerFlujo.addEventListener("click", showFlow);
+  if (elBtnFlowBack)  elBtnFlowBack.addEventListener("click", () => showScreen(screenChecklist));
+});
 
 // ── Start ──────────────────────────────────────────────────────────────────
 init();

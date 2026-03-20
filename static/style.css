@@ -1375,3 +1375,131 @@ td { color: var(--text); }
 @media (max-width: 480px) {
   .fb-panel { width: 88vw; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   FLOW BAR & VER FLUJO BUTTON
+══════════════════════════════════════════════════════════ */
+.flow-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 8px 0;
+}
+
+.btn-ver-flujo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: transparent;
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  letter-spacing: .01em;
+}
+.btn-ver-flujo:hover {
+  background: var(--primary);
+  color: #fff;
+}
+[data-theme="verde"] .btn-ver-flujo {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+[data-theme="verde"] .btn-ver-flujo:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SCREEN 6: FLOW VIEWER
+══════════════════════════════════════════════════════════ */
+.flow-viewer-wrap {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-h));
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+}
+
+.flow-viewer-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.flow-viewer-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flow-viewer-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.flow-page-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,.12);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.flow-pdf-page {
+  display: block;
+  max-width: 100%;
+}
+
+.flow-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.flow-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 32px;
+  text-align: center;
+}
+.flow-placeholder-icon { font-size: 48px; }
+.flow-placeholder-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.flow-placeholder-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 400px;
+}
+
+@media (max-width: 640px) {
+  .flow-viewer-topbar { flex-wrap: wrap; }
+  .flow-viewer-title  { font-size: 12px; }
+}
