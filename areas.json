@@ -8,7 +8,8 @@
                 "PRO130",
                 "PRO131",
                 "PRO132",
-                "PRO183"
+                "PRO183",
+                "PRO200"
             ]
         },
         {
@@ -461,6 +462,50 @@
                 "No se logra contacto con proveedor",
                 "Proveedor no confirma recepción de información",
                 "Depósito de proveedor no recibido",
+                "Otro"
+            ]
+        },
+        "PRO200": {
+            "id": "PRO200",
+            "nombre": "Recepción de materiales a distancia",
+            "descripcion": "Procedimiento para la recepción de materiales con gestión colaborativa entre el Supervisor O&M Solar (on-site) y el Especialista de Almacén (a distancia), cubriendo revisión, inspección técnica, almacenamiento y devolución si aplica.",
+            "data": "pro200.json",
+            "has_stop": false,
+            "flow_pdf": "/static/docs/PRO200.pdf",
+            "primer_nodo": "R1_verificar_material_y_doc",
+            "flow_order": [
+                "R1_verificar_material_y_doc",
+                "D1_es_lo_solicitado",
+                "R2_digitalizar_archivar_doc",
+                "R2b_notificar_recepcion_material",
+                "R3_coordinar_descarga",
+                "D2_requiere_apoyo_descarga",
+                "R3b_confirmar_material_descargado",
+                "R4_determinar_necesidad_inspeccion",
+                "R5_verificar_documentos_recepcion",
+                "R5b_registrar_stock_bloqueado",
+                "R6_verificar_maestro_materiales",
+                "D4_requiere_enriquecer",
+                "I1_requiere_inspeccion",
+                "A0_material_para_ubicacion_fisica",
+                "A1_determinar_ubicacion_almacen",
+                "A2_informar_ubicacion_almacen",
+                "A3_registrar_ubicacion_en_sistema",
+                "A4_notificar_registro_ubicacion",
+                "A5_imprimir_etiqueta",
+                "A6_ubicar_material_en_almacen",
+                "A7_notificar_fin_almacenamiento",
+                "A8_verificar_origen_solicitud",
+                "D3_requiere_informar_disponibilidad",
+                "END_recepcion_ok"
+            ],
+            "motivos_bloqueo": [
+                "Falta información o documentación para validar (guía/factura/certificados/HDS)",
+                "Discrepancia entre material recibido y OC/SOLPED (código/cantidad/especificación)",
+                "Riesgo operacional para descarga/manipulación (requiere control/recursos)",
+                "Pendiente validación a distancia (Especialista de Almacén)",
+                "Resultado de inspección técnica pendiente o evidencia insuficiente",
+                "Sistema SAP no disponible",
                 "Otro"
             ]
         },

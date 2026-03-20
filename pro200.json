@@ -1,0 +1,593 @@
+{
+  "R1_verificar_material_y_doc": {
+    "type": "task",
+    "titulo": "Verificar material y documentación",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "[ETAPA 1 — REVISIÓN] Recepción física en terreno. Revisar que el material y su documentación (guía/factura/certificados/HDS si aplica) correspondan a lo solicitado.",
+    "acciones": [
+      "Verificar físicamente el material recibido: identidad, cantidades e integridad.",
+      "Verificar documentación asociada disponible: guía de despacho / factura / certificados / HDS (si aplica según material)."
+    ],
+    "checklist": [
+      "Material recibido verificado físicamente (identidad, cantidades, integridad)",
+      "Documentación disponible revisada (guía de despacho / factura / certificados / HDS si aplica)"
+    ],
+    "validacion": "¿El material y su documentación fueron verificados en terreno (identidad, cantidad, integridad y documentos disponibles)?",
+    "next": "D1_es_lo_solicitado"
+  },
+
+  "D1_es_lo_solicitado": {
+    "type": "decision",
+    "titulo": "¿Es lo solicitado?",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "pregunta": "¿El material y su documentación corresponden a lo solicitado (OC/SOLPED) y están en condición de recepcionar?",
+    "opciones": [
+      { "label": "SÍ — material y documentación corresponden a lo solicitado", "next": "R2_digitalizar_archivar_doc" },
+      { "label": "NO — material rechazado (derivar a Etapa 4 Rechazo/Devolución)", "next": "X1_notificar_rechazo_material" }
+    ],
+    "ayuda": "Si NO corresponde a lo solicitado, el flujo indica Rechazo y derivación a devolución al proveedor (PRO183)."
+  },
+
+  "R2_digitalizar_archivar_doc": {
+    "type": "task",
+    "titulo": "Digitalizar y archivar documentación",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Digitalizar y archivar documentación de recepción (HDS, certificados, factura/guía) según corresponda.",
+    "acciones": [
+      "Digitalizar documentos disponibles (foto/scan legible).",
+      "Archivar/respaldar documentación según estándar vigente del sitio (repositorio/carpeta definida)."
+    ],
+    "checklist": [
+      "Documentos digitalizados (foto o scan legible)",
+      "Documentación archivada/respaldada según estándar del sitio"
+    ],
+    "validacion": "¿La documentación fue digitalizada y archivada/respaldada de forma legible?",
+    "next": "R2b_notificar_recepcion_material"
+  },
+
+  "R2b_notificar_recepcion_material": {
+    "type": "task",
+    "titulo": "Notificar recepción de material",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Notificar la recepción del material para activar revisión remota y continuidad del flujo.",
+    "acciones": [
+      "Enviar notificación de recepción de material según canal definido (correo/medio interno).",
+      "Incluir identificación de OC, proveedor, guía/factura y respaldo digital disponible."
+    ],
+    "checklist": [
+      "Notificación de recepción enviada por canal definido",
+      "Notificación incluye OC, proveedor, guía/factura y respaldo digital"
+    ],
+    "validacion": "¿La recepción fue notificada con identificación de OC/proveedor y respaldo digital adjunto o referenciado?",
+    "next": "R3_coordinar_descarga"
+  },
+
+  "R3_coordinar_descarga": {
+    "type": "task",
+    "titulo": "Coordinar descarga de material",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Coordinar la descarga segura del material. Si requiere apoyo (carga pesada/equipos), activar apoyo remoto/planificado.",
+    "acciones": [
+      "Definir plan de descarga seguro (personas/equipos/área).",
+      "Verificar condiciones de descarga/manipulación (peso, izaje, sustancias peligrosas si aplica).",
+      "Si requiere recursos excepcionales (grúa/horquilla): coordinar apoyo según disponibilidad."
+    ],
+    "checklist": [
+      "Plan de descarga seguro definido (personas/equipos/área)",
+      "Condiciones de descarga/manipulación verificadas",
+      "Apoyo coordinado si se requieren recursos excepcionales"
+    ],
+    "validacion": "¿La descarga fue coordinada con control de riesgos y recursos necesarios definidos?",
+    "next": "D2_requiere_apoyo_descarga"
+  },
+
+  "D2_requiere_apoyo_descarga": {
+    "type": "decision",
+    "titulo": "¿Requiere apoyo para descarga?",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "pregunta": "¿La descarga requiere apoyo adicional (p.ej., equipos/recursos excepcionales como grúa u horquilla)?",
+    "opciones": [
+      { "label": "NO — descarga sin apoyo adicional", "next": "R3b_confirmar_material_descargado" },
+      { "label": "SÍ — requiere apoyo adicional para descarga", "next": "R3a_apoyar_descarga_remoto" }
+    ],
+    "ayuda": "El diagrama contempla apoyo del Especialista de Almacén (a distancia) en coordinación de descarga cuando aplica."
+  },
+
+  "R3a_apoyar_descarga_remoto": {
+    "type": "task",
+    "titulo": "Coordinar apoyo para descarga",
+    "rol": "Especialista de Almacén (a distancia) / Supervisor O&M Solar",
+    "descripcion": "Coordinar apoyo para descarga (p.ej., equipos, priorización, recursos) con el Especialista de Almacén a distancia.",
+    "acciones": [
+      "Confirmar si la OC requiere recursos excepcionales para recepción.",
+      "Coordinar disponibilidad de equipos/recursos para descarga (grúa/horquilla) con el sitio.",
+      "Acordar ventana/condiciones para la descarga segura."
+    ],
+    "checklist": [
+      "Necesidad de recursos excepcionales confirmada",
+      "Disponibilidad de equipos/recursos coordinada con el sitio",
+      "Ventana y condiciones de descarga acordadas"
+    ],
+    "validacion": "¿El apoyo para descarga quedó coordinado (equipos/recursos confirmados y ventana definida)?",
+    "next": "R3b_confirmar_material_descargado"
+  },
+
+  "R3b_confirmar_material_descargado": {
+    "type": "task",
+    "titulo": "Confirmar material descargado",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Confirmar que el material fue descargado y quedó en condición segura para continuar el proceso.",
+    "acciones": [
+      "Ejecutar descarga según plan definido.",
+      "Verificar que el material quedó descargado en área segura y controlada."
+    ],
+    "checklist": [
+      "Descarga ejecutada según plan",
+      "Material ubicado en área segura y controlada"
+    ],
+    "validacion": "¿El material quedó descargado en condición segura y controlada?",
+    "next": "R4_determinar_necesidad_inspeccion"
+  },
+
+  "R4_determinar_necesidad_inspeccion": {
+    "type": "task",
+    "titulo": "Determinar necesidad de inspección técnica",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Determinar si el material requiere inspección técnica según naturaleza del material y criterio técnico aplicable.",
+    "acciones": [
+      "Revisar el material recibido y definir si requiere inspección técnica.",
+      "Registrar/consignar determinación para continuidad del flujo."
+    ],
+    "checklist": [
+      "Material revisado para determinar necesidad de inspección técnica",
+      "Determinación registrada para continuidad del flujo"
+    ],
+    "validacion": "¿Se determinó (y registró) si el material requiere inspección técnica?",
+    "next": "R5_verificar_documentos_recepcion"
+  },
+
+  "R5_verificar_documentos_recepcion": {
+    "type": "task",
+    "titulo": "Verificar documentos de recepción",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Verificar documentación de recepción (HDS, certificados, factura/guía) y consistencia con OC/material.",
+    "acciones": [
+      "Revisar HDS (si aplica), certificados y documento comercial (guía/factura) disponibles.",
+      "Confirmar consistencia de documentos con OC/material recibido."
+    ],
+    "checklist": [
+      "HDS (si aplica), certificados y documentos comerciales revisados",
+      "Consistencia de documentos con OC/material confirmada"
+    ],
+    "validacion": "¿Los documentos de recepción fueron verificados y son consistentes con OC/material?",
+    "next": "R5b_registrar_stock_bloqueado"
+  },
+
+  "R5b_registrar_stock_bloqueado": {
+    "type": "task",
+    "titulo": "Registrar recepción en stock bloqueado",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Registrar la recepción de material en stock bloqueado en SAP según corresponda a la etapa de revisión.",
+    "acciones": [
+      "Registrar recepción en stock bloqueado en SAP (según transacción definida en el PRO).",
+      "Asegurar trazabilidad de OC/documentos asociados."
+    ],
+    "checklist": [
+      "Recepción registrada en stock bloqueado en SAP",
+      "Trazabilidad de OC y documentos asegurada en el sistema"
+    ],
+    "validacion": "¿La recepción quedó registrada en stock bloqueado con trazabilidad (OC/documentos)?",
+    "next": "R6_verificar_maestro_materiales"
+  },
+
+  "R6_verificar_maestro_materiales": {
+    "type": "task",
+    "titulo": "Verificar maestro de materiales",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Verificar datos del maestro de materiales asociados al material recepcionado.",
+    "acciones": [
+      "Verificar datos de creación/maestro del material en SAP.",
+      "Confirmar que características/atributos mínimos estén correctos para recepción y uso."
+    ],
+    "checklist": [
+      "Datos del maestro de materiales verificados en SAP",
+      "Características y atributos mínimos confirmados como correctos"
+    ],
+    "validacion": "¿El maestro de materiales fue verificado con características/atributos mínimos correctos?",
+    "next": "D4_requiere_enriquecer"
+  },
+
+  "D4_requiere_enriquecer": {
+    "type": "decision",
+    "titulo": "¿Requiere enriquecer material?",
+    "rol": "Especialista de Almacén (a distancia)",
+    "pregunta": "¿Se requiere enriquecer datos del material en SAP durante el proceso de recepción?",
+    "opciones": [
+      { "label": "NO — no se requiere enriquecimiento adicional", "next": "I1_requiere_inspeccion" },
+      { "label": "SÍ — enriquecer material (ZMM_MANT_CARACT)", "next": "R6b_enriquecer_material" }
+    ],
+    "ayuda": "El PRO contempla enriquecimiento de datos mediante transacción ZMM_MANT_CARACT cuando aplica."
+  },
+
+  "R6b_enriquecer_material": {
+    "type": "task",
+    "titulo": "Enriquecer material en SAP",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Enriquecer los datos del material en SAP durante recepción mediante transacción ZMM_MANT_CARACT.",
+    "acciones": [
+      "Ejecutar enriquecimiento de datos del material en SAP mediante transacción ZMM_MANT_CARACT.",
+      "Verificar que los atributos enriquecidos queden guardados y trazables."
+    ],
+    "checklist": [
+      "Enriquecimiento ejecutado en SAP (ZMM_MANT_CARACT)",
+      "Atributos enriquecidos guardados y trazables"
+    ],
+    "validacion": "¿El material fue enriquecido en SAP (ZMM_MANT_CARACT) y quedó guardado correctamente?",
+    "next": "I1_requiere_inspeccion"
+  },
+
+  "I1_requiere_inspeccion": {
+    "type": "decision",
+    "titulo": "¿Material requiere inspección técnica?",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "pregunta": "[ETAPA 2 — INSPECCIÓN] Según la determinación realizada, ¿el material requiere inspección técnica?",
+    "opciones": [
+      { "label": "NO — no requiere inspección técnica (pasar a almacenamiento)", "next": "A0_material_para_ubicacion_fisica" },
+      { "label": "SÍ — requiere inspección técnica", "next": "I7_realizar_inspeccion" }
+    ],
+    "ayuda": "Si NO requiere inspección, el material pasa directamente a la Etapa 3 (Almacenamiento). Si SÍ, se ejecuta inspección técnica y se evalúa aprobación."
+  },
+
+  "I7_realizar_inspeccion": {
+    "type": "task",
+    "titulo": "Realizar inspección técnica",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Ejecutar inspección técnica del material según criterio técnico/aplicable para el ítem recibido.",
+    "acciones": [
+      "Realizar inspección técnica del material según criterio/tipo de material.",
+      "Registrar hallazgos relevantes para la aprobación/rechazo."
+    ],
+    "checklist": [
+      "Inspección técnica del material realizada",
+      "Hallazgos relevantes registrados (evidencia disponible)"
+    ],
+    "validacion": "¿La inspección fue realizada y se registraron hallazgos relevantes?",
+    "next": "I8_notificar_resultado_inspeccion"
+  },
+
+  "I8_notificar_resultado_inspeccion": {
+    "type": "task",
+    "titulo": "Notificar resultado de inspección técnica",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Notificar el resultado de la inspección técnica al Especialista de Almacén (a distancia) para su verificación/registro.",
+    "acciones": [
+      "Enviar notificación del resultado de inspección técnica (aprobado/no aprobado) con evidencia/antecedentes."
+    ],
+    "checklist": [
+      "Resultado de inspección notificado (aprobado/no aprobado)",
+      "Evidencia y antecedentes adjuntados en la notificación"
+    ],
+    "validacion": "¿El resultado de inspección técnica fue notificado con evidencia/antecedentes suficientes?",
+    "next": "I5_registrar_bloqueado_libre"
+  },
+
+  "I5_registrar_bloqueado_libre": {
+    "type": "task",
+    "titulo": "Registrar material bloqueado en libre utilización",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Registrar/gestionar en sistema el material en condición de stock bloqueado en libre utilización según el flujo de inspección.",
+    "acciones": [
+      "Registrar el material bloqueado en libre utilización en el sistema según procedimiento."
+    ],
+    "checklist": [
+      "Material registrado en el sistema como bloqueado en libre utilización"
+    ],
+    "validacion": "¿El material quedó registrado en el sistema como bloqueado en libre utilización?",
+    "next": "D2_aprueba_inspeccion"
+  },
+
+  "D2_aprueba_inspeccion": {
+    "type": "decision",
+    "titulo": "¿Material aprueba inspección técnica?",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "pregunta": "¿El material aprueba la inspección técnica realizada?",
+    "opciones": [
+      { "label": "SÍ — material aprobado, pasar a almacenamiento", "next": "A0_material_para_ubicacion_fisica" },
+      { "label": "NO — material no aprueba, preparar devolución (Etapa 4)", "next": "X1_notificar_rechazo_material" }
+    ],
+    "ayuda": "Si NO aprueba inspección técnica, se prepara el material para devolución y se deriva a la Etapa 4 (Rechazo/Devolución)."
+  },
+
+  "A0_material_para_ubicacion_fisica": {
+    "type": "task",
+    "titulo": "Confirmar material habilitado para ubicación",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "[ETAPA 3 — ALMACENAMIENTO] El material está habilitado para iniciar su ubicación física en almacén (Etapa 2 cerrada correctamente).",
+    "acciones": [
+      "Confirmar que el material quedó habilitado para iniciar ubicación física (según cierre de Etapa 2)."
+    ],
+    "checklist": [
+      "Material confirmado como habilitado para ubicación física en almacén"
+    ],
+    "validacion": "¿El material está habilitado y disponible para iniciar la ubicación física en almacén?",
+    "next": "A1_determinar_ubicacion_almacen"
+  },
+
+  "A1_determinar_ubicacion_almacen": {
+    "type": "task",
+    "titulo": "Determinar ubicación en almacén",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Determinar la ubicación del material recibido en el almacén (sector/posición), considerando requisitos del material.",
+    "acciones": [
+      "Determinar ubicación en almacén para el material recibido (sector/posición definida).",
+      "Verificar compatibilidad con requisitos del material (peligrosidad, dimensiones, segregación si aplica)."
+    ],
+    "checklist": [
+      "Ubicación en almacén determinada (sector/posición definida)",
+      "Compatibilidad con requisitos del material verificada (peligrosidad, dimensiones, segregación)"
+    ],
+    "validacion": "¿La ubicación en almacén fue determinada (sector/posición) considerando requisitos del material?",
+    "next": "A2_informar_ubicacion_almacen"
+  },
+
+  "A2_informar_ubicacion_almacen": {
+    "type": "task",
+    "titulo": "Informar ubicación en almacén",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Informar la ubicación determinada al Especialista de Almacén (a distancia) para su registro en sistema.",
+    "acciones": [
+      "Informar la ubicación determinada (sector/posición) al Especialista de Almacén (a distancia).",
+      "Indicar identificación del material y referencia a OC/recepción."
+    ],
+    "checklist": [
+      "Ubicación (sector/posición) informada al Especialista de Almacén a distancia",
+      "Identificación del material y referencia a OC/recepción incluidas en la comunicación"
+    ],
+    "validacion": "¿La ubicación fue informada al Especialista de Almacén con identificación del material y referencia a OC/recepción?",
+    "next": "A3_registrar_ubicacion_en_sistema"
+  },
+
+  "A3_registrar_ubicacion_en_sistema": {
+    "type": "task",
+    "titulo": "Registrar ubicación en sistema",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Registrar la ubicación del material en el sistema, asegurando que coincida con lo informado por el Supervisor O&M.",
+    "acciones": [
+      "Registrar ubicación del material en el sistema (según transacción/proceso definido para el sitio).",
+      "Asegurar que la ubicación registrada coincide con lo informado por Supervisor O&M (sector/posición)."
+    ],
+    "checklist": [
+      "Ubicación registrada en el sistema",
+      "Ubicación en sistema coincide con la informada (sector/posición)"
+    ],
+    "validacion": "¿La ubicación quedó registrada en sistema y coincide con lo informado (sector/posición)?",
+    "next": "A4_notificar_registro_ubicacion"
+  },
+
+  "A4_notificar_registro_ubicacion": {
+    "type": "task",
+    "titulo": "Notificar registro de ubicación en sistema",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Notificar al Supervisor O&M que el registro de la ubicación en sistema fue completado.",
+    "acciones": [
+      "Notificar registro de ubicación en sistema al Supervisor O&M.",
+      "Adjuntar/indicar identificador de ubicación registrada (si aplica)."
+    ],
+    "checklist": [
+      "Notificación de ubicación en sistema enviada al Supervisor O&M",
+      "Identificador de ubicación indicado (si aplica)"
+    ],
+    "validacion": "¿Se notificó al Supervisor O&M que el material quedó ubicado en sistema?",
+    "next": "A5_imprimir_etiqueta"
+  },
+
+  "A5_imprimir_etiqueta": {
+    "type": "task",
+    "titulo": "Imprimir etiqueta del material",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Imprimir etiqueta del material para su identificación en almacén, verificando que los datos correspondan.",
+    "acciones": [
+      "Imprimir etiqueta del material según estándar del sitio (p.ej., ZMM_IMP_ETIQUETA si aplica).",
+      "Verificar que datos de etiqueta correspondan al material (código/descripción/lote si aplica)."
+    ],
+    "checklist": [
+      "Etiqueta del material impresa según estándar del sitio",
+      "Datos de etiqueta verificados (código/descripción/lote si aplica)"
+    ],
+    "validacion": "¿La etiqueta fue impresa y verificada (datos corresponden al material)?",
+    "next": "A6_ubicar_material_en_almacen"
+  },
+
+  "A6_ubicar_material_en_almacen": {
+    "type": "task",
+    "titulo": "Ubicar material en almacén",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Ubicar físicamente el material en la posición definida en almacén y aplicar etiquetado.",
+    "acciones": [
+      "Trasladar y ubicar físicamente el material en la ubicación definida (sector/posición).",
+      "Aplicar etiqueta y verificar legibilidad/adhesión.",
+      "Asegurar condiciones de almacenamiento (seguridad/segregación/orden)."
+    ],
+    "checklist": [
+      "Material ubicado físicamente en la ubicación definida (sector/posición)",
+      "Etiqueta aplicada y verificada (legible y adherida correctamente)",
+      "Condiciones de almacenamiento aseguradas (seguridad/segregación/orden)"
+    ],
+    "validacion": "¿El material quedó ubicado físicamente en la ubicación definida y etiquetado (legible)?",
+    "next": "A7_notificar_fin_almacenamiento"
+  },
+
+  "A7_notificar_fin_almacenamiento": {
+    "type": "task",
+    "titulo": "Notificar fin del almacenamiento",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Notificar al Especialista de Almacén (a distancia) que el almacenamiento/ubicación física finalizó.",
+    "acciones": [
+      "Notificar fin del almacenamiento (material almacenado) al Especialista de Almacén.",
+      "Indicar confirmación de ubicación física y etiqueta aplicada."
+    ],
+    "checklist": [
+      "Fin de almacenamiento notificado al Especialista de Almacén",
+      "Confirmación de ubicación física y etiqueta aplicada incluida"
+    ],
+    "validacion": "¿Se notificó al Especialista de Almacén el fin del almacenamiento con confirmación de ubicación física?",
+    "next": "A8_verificar_origen_solicitud"
+  },
+
+  "A8_verificar_origen_solicitud": {
+    "type": "task",
+    "titulo": "Verificar origen de la solicitud de material",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Verificar el origen de la solicitud de material para determinar si corresponde notificar disponibilidad.",
+    "acciones": [
+      "Verificar origen de la solicitud de material en sistema (para definir si corresponde notificar disponibilidad)."
+    ],
+    "checklist": [
+      "Origen de la solicitud de material verificado en sistema"
+    ],
+    "validacion": "¿El origen de la solicitud fue verificado para definir necesidad de notificación de disponibilidad?",
+    "next": "D3_requiere_informar_disponibilidad"
+  },
+
+  "D3_requiere_informar_disponibilidad": {
+    "type": "decision",
+    "titulo": "¿Requiere informar disponibilidad?",
+    "rol": "Especialista de Almacén (a distancia)",
+    "pregunta": "¿Se requiere informar la disponibilidad del material según el origen de la solicitud?",
+    "opciones": [
+      { "label": "NO — fin de recepción (sin notificación de disponibilidad)", "next": "END_recepcion_ok" },
+      { "label": "SÍ — notificar disponibilidad al solicitante/área", "next": "A9_notificar_disponibilidad" }
+    ],
+    "ayuda": "Si no se requiere notificar, se cierra la recepción. Si se requiere, se notifica disponibilidad al solicitante o área correspondiente."
+  },
+
+  "A9_notificar_disponibilidad": {
+    "type": "task",
+    "titulo": "Notificar disponibilidad de material",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Notificar disponibilidad del material al solicitante/área correspondiente según origen de la solicitud.",
+    "acciones": [
+      "Notificar disponibilidad del material a quien corresponda según origen de la solicitud (solicitante/área).",
+      "Incluir ubicación registrada y referencia a recepción."
+    ],
+    "checklist": [
+      "Disponibilidad notificada al solicitante/área correspondiente",
+      "Ubicación registrada y referencia a recepción incluidas en la notificación"
+    ],
+    "validacion": "¿La disponibilidad del material fue notificada con ubicación y referencia a recepción?",
+    "next": "END_recepcion_ok"
+  },
+
+  "END_recepcion_ok": {
+    "type": "end",
+    "titulo": "Proceso finalizado — Recepción completada",
+    "rol": "HMI",
+    "mensaje": "El proceso PRO200 (Recepción de Materiales a Distancia) ha concluido exitosamente. El material fue recibido, revisado, inspeccionado (si aplicaba), almacenado y registrado en sistema. Se notificó disponibilidad si correspondía.",
+    "estado_final": "FINALIZADO"
+  },
+
+  "X1_notificar_rechazo_material": {
+    "type": "task",
+    "titulo": "Notificar rechazo de material",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "[ETAPA 4 — RECHAZO/DEVOLUCIÓN] Notificar el rechazo del material recibido indicando OC/proveedor y motivo.",
+    "acciones": [
+      "Notificar rechazo de material indicando OC/proveedor y motivo del rechazo.",
+      "Adjuntar/indicar guía de despacho u otro documento disponible."
+    ],
+    "checklist": [
+      "Rechazo notificado indicando OC, proveedor y motivo",
+      "Guía de despacho u otro documento adjuntado o referenciado"
+    ],
+    "validacion": "¿Se notificó el rechazo con OC/proveedor/motivo y documento asociado?",
+    "next": "X2_preparar_material_devolucion"
+  },
+
+  "X2_preparar_material_devolucion": {
+    "type": "task",
+    "titulo": "Preparar material para devolución",
+    "rol": "Supervisor O&M Solar (on-site)",
+    "descripcion": "Asegurar que el material rechazado queda preparado y segregado para devolución al proveedor.",
+    "acciones": [
+      "Segregar material rechazado en zona definida y segura.",
+      "Preparar embalaje/condición para devolución según práctica del sitio y proveedor."
+    ],
+    "checklist": [
+      "Material rechazado segregado en zona segura definida",
+      "Embalaje/condición de devolución preparada según práctica del sitio"
+    ],
+    "validacion": "¿El material quedó segregado y preparado para devolución?",
+    "next": "X3_verificar_notificacion_recepcion_rechazada"
+  },
+
+  "X3_verificar_notificacion_recepcion_rechazada": {
+    "type": "task",
+    "titulo": "Verificar notificación de recepción rechazada",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Verificar la notificación de recepción rechazada y preparar el registro de devolución en sistema.",
+    "acciones": [
+      "Revisar notificación de rechazo y documentación asociada.",
+      "Confirmar datos mínimos para gestionar devolución en SAP."
+    ],
+    "checklist": [
+      "Notificación de rechazo y documentación revisadas",
+      "Datos mínimos para devolución en SAP confirmados"
+    ],
+    "validacion": "¿La notificación de rechazo fue verificada y están los datos mínimos para devolución?",
+    "next": "X4_registrar_devolucion_libre_utilizacion"
+  },
+
+  "X4_registrar_devolucion_libre_utilizacion": {
+    "type": "task",
+    "titulo": "Registrar devolución en SAP (MIGO -122)",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Registrar la devolución del material en SAP mediante movimiento MIGO -122 para devolución a proveedor.",
+    "acciones": [
+      "Registrar devolución del material en SAP según corresponda (MIGO -122)."
+    ],
+    "checklist": [
+      "Devolución registrada en SAP (MIGO -122) de forma verificable"
+    ],
+    "validacion": "¿La devolución quedó registrada en SAP (MIGO -122) de forma verificable?",
+    "next": "X5_generar_devolucion_proveedor"
+  },
+
+  "X5_generar_devolucion_proveedor": {
+    "type": "task",
+    "titulo": "Generar devolución al proveedor",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Generar la devolución al proveedor según PRO183 (Devolución a proveedores) y asegurar coordinación logística.",
+    "acciones": [
+      "Gestionar generación de devolución al proveedor según PRO183 (Devolución a proveedores)."
+    ],
+    "checklist": [
+      "Devolución al proveedor generada según PRO183"
+    ],
+    "validacion": "¿La devolución al proveedor fue generada según PRO183?",
+    "next": "X6_notificar_devolucion_al_proveedor"
+  },
+
+  "X6_notificar_devolucion_al_proveedor": {
+    "type": "task",
+    "titulo": "Notificar devolución al proveedor",
+    "rol": "Especialista de Almacén (a distancia)",
+    "descripcion": "Notificar que la devolución fue generada y coordinar el retiro/entrega con proveedor y abastecimiento.",
+    "acciones": [
+      "Notificar devolución al proveedor (y a abastecimiento si corresponde)."
+    ],
+    "checklist": [
+      "Devolución notificada al proveedor",
+      "Abastecimiento notificado si correspondía"
+    ],
+    "validacion": "¿La devolución fue notificada al proveedor (y abastecimiento si aplica)?",
+    "next": "END_PRO183"
+  },
+
+  "END_PRO183": {
+    "type": "end",
+    "titulo": "Proceso derivado — PRO183 Devolución a proveedores",
+    "rol": "HMI",
+    "mensaje": "El material fue rechazado y la devolución al proveedor fue gestionada según PRO183. El proceso PRO200 ha concluido derivándose a PRO183 para la gestión logística/administrativa de la devolución.",
+    "estado_final": "FINALIZADO"
+  }
+}
