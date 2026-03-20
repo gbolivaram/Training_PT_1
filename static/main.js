@@ -1290,8 +1290,12 @@ function showFlow() {
   elFlowTitle.textContent = `Flujo — ${proId}: ${appPro?.nombre || ""}`;
   elFlowBody.innerHTML    = "";
 
-  if (pdfUrl && typeof pdfjsLib !== "undefined") {
-    renderPdfFlow(pdfUrl);
+  if (pdfUrl) {
+    const iframe = document.createElement("iframe");
+    iframe.className = "flow-pdf-iframe";
+    iframe.src       = pdfUrl;
+    iframe.title     = `Flujo ${proId}`;
+    elFlowBody.appendChild(iframe);
   } else {
     elFlowBody.innerHTML = `
       <div class="flow-placeholder">
@@ -1302,42 +1306,6 @@ function showFlow() {
   }
 
   showScreen(screenFlow);
-}
-
-async function renderPdfFlow(pdfUrl) {
-  elFlowBody.innerHTML = `<div class="flow-loading">Cargando flujo…</div>`;
-
-  try {
-    const loadingTask = pdfjsLib.getDocument(pdfUrl);
-    const pdf = await loadingTask.promise;
-
-    elFlowBody.innerHTML = "";
-
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page    = await pdf.getPage(pageNum);
-      const scale   = Math.min(2, (elFlowBody.clientWidth - 32) / page.getViewport({ scale: 1 }).width) || 1.5;
-      const viewport = page.getViewport({ scale });
-
-      const canvas    = document.createElement("canvas");
-      canvas.className = "flow-pdf-page";
-      canvas.width    = viewport.width;
-      canvas.height   = viewport.height;
-
-      const wrapper = document.createElement("div");
-      wrapper.className = "flow-page-wrapper";
-      wrapper.appendChild(canvas);
-      elFlowBody.appendChild(wrapper);
-
-      await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
-    }
-  } catch (err) {
-    elFlowBody.innerHTML = `
-      <div class="flow-placeholder">
-        <div class="flow-placeholder-icon">⚠</div>
-        <div class="flow-placeholder-title">Error al cargar el flujo</div>
-        <div class="flow-placeholder-sub">${esc(err.message || "No se pudo renderizar el PDF.")}</div>
-      </div>`;
-  }
 }
 
 // Wire up flow buttons
