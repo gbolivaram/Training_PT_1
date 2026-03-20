@@ -82,7 +82,8 @@
                 "Plazo NT en riesgo — requiere escalamiento",
                 "Aprobación interna pendiente",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO114.pdf"
         },
         "PRO115": {
             "id": "PRO115",
@@ -119,7 +120,8 @@
                 "Sistema no disponible (SIGO / correo / comunicaciones)",
                 "No se logra contacto con COC/CDC después de 3 intentos",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO115.pdf"
         },
         "PRO128": {
             "id": "PRO128",
@@ -193,7 +195,8 @@
                 "Sistema no disponible",
                 "No se logra contacto",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO128.pdf"
         },
         "PRO130": {
             "id": "PRO130",
@@ -234,7 +237,8 @@
                 "Sistema SAP no disponible (MIGO / ZMM_IMP_ETIQUETA)",
                 "Material dañado o en mal estado",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO130.pdf"
         },
         "PRO139": {
             "id": "PRO139",
@@ -268,7 +272,8 @@
                 "Discrepancia stock físico vs sistema",
                 "Material sin etiqueta o sin identificación",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO139.pdf"
         },
         "PRO141": {
             "id": "PRO141",
@@ -377,7 +382,8 @@
                 "Falla no resuelta — requiere escalamiento",
                 "Informe técnico incompleto o rechazado",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO173.pdf"
         },
         "PRO174": {
             "id": "PRO174",
@@ -423,7 +429,8 @@
                 "Informe técnico incompleto o rechazado",
                 "Hallazgos sin gestionar",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO174.pdf"
         },
         "PRO183": {
             "id": "PRO183",
@@ -465,7 +472,8 @@
                 "Proveedor no confirma recepción de información",
                 "Depósito de proveedor no recibido",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO183.pdf"
         },
         "PRO200": {
             "id": "PRO200",
@@ -549,7 +557,8 @@
                 "EPP sin Registro ISP o Registro ISP no vigente",
                 "Información incompleta para creación (fabricante, N° parte, etc.)",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO132.pdf"
         },
         "PRO131": {
             "id": "PRO131",
@@ -585,7 +594,8 @@
                 "HES sin liberar — falta aprobación DOA",
                 "Factura no disponible o inconsistente con HES/OC",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO131.pdf"
         },
         "PRO134": {
             "id": "PRO134",
@@ -638,7 +648,8 @@
                 "No es posible registrar en sistema (SAP indisponible / sin acceso)",
                 "Falta información mínima para enriquecer (cuando aplica)",
                 "Otro"
-            ]
+            ],
+            "flow_pdf": "/static/docs/PRO134.pdf"
         }
     }
 }
