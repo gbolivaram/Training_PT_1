@@ -273,6 +273,7 @@
             "descripcion": "Procedimiento para el análisis y tratamiento de materiales y repuestos obsoletos en almacén.",
             "data": "nodos.json",
             "has_stop": false,
+            "flow_pdf": "/static/docs/PRO141.pdf",
             "primer_nodo": "S0_alcance",
             "flow_order": [
                 "S0_alcance",

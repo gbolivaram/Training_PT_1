@@ -177,6 +177,11 @@
         <!-- Step counter -->
         <div class="step-meta" id="step-meta"></div>
 
+        <!-- Flow button bar -->
+        <div id="flow-bar" class="flow-bar hidden">
+          <button class="btn-ver-flujo" id="btn-ver-flujo">⬡ Ver Flujo</button>
+        </div>
+
         <!-- STOP button (solo PROs con has_stop) -->
         <div id="stop-bar" class="hidden">
           <button class="btn-stop" id="btn-stop" title="Detener proceso por condición crítica">⛔ PARAR proceso</button>
@@ -224,6 +229,21 @@
     </div><!-- /.layout -->
   </div><!-- /#screen-checklist -->
 
+  <!-- ══════════════════════════════════════════════════════════════
+       SCREEN 6: FLOW VIEWER — Ver flujo del procedimiento
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="screen-flow" class="screen hidden">
+    <div class="flow-viewer-wrap">
+      <div class="flow-viewer-topbar">
+        <button class="btn btn-back" id="btn-flow-back">← Volver al PRO</button>
+        <div class="flow-viewer-title" id="flow-viewer-title">Flujo del Procedimiento</div>
+      </div>
+      <div class="flow-viewer-body" id="flow-viewer-body">
+        <!-- Páginas del PDF o placeholder renderizados por JS -->
+      </div>
+    </div>
+  </div>
+
   <!-- ── Sidebar overlay (mobile) ── -->
   <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
 
@@ -252,6 +272,12 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
   <script src="/static/main.js"></script>
 </body>
 </html>
