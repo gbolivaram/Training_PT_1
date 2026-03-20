@@ -187,14 +187,20 @@ function renderHome() {
   if (!grid || !appAreas) return;
 
   grid.innerHTML = appAreas.areas.map((area, i) => {
-    const hasPros = area.pros.length > 0;
+    const hasPros      = area.pros.length > 0;
+    const soloManual   = area.solo_informarme === true;
+    const isActive     = hasPros || soloManual;
+    let badge;
+    if (hasPros)        badge = `<span class="area-pro-count">${area.pros.length} procedimiento${area.pros.length > 1 ? "s" : ""}</span>`;
+    else if (soloManual) badge = `<span class="area-pro-count">Manuales disponibles</span>`;
+    else                badge = `<span class="area-coming">Próximamente</span>`;
     return `
-      <button class="area-card ${hasPros ? "" : "area-card-disabled"}"
+      <button class="area-card ${isActive ? "" : "area-card-disabled"}"
               data-area-id="${esc(area.id)}"
-              ${hasPros ? "" : "disabled"}>
+              ${isActive ? "" : "disabled"}>
         <span class="area-num">${i + 1}</span>
         <span class="area-nombre">${esc(area.nombre)}</span>
-        ${hasPros ? `<span class="area-pro-count">${area.pros.length} procedimiento${area.pros.length > 1 ? "s" : ""}</span>` : '<span class="area-coming">Próximamente</span>'}
+        ${badge}
       </button>`;
   }).join("");
 
@@ -202,7 +208,12 @@ function renderHome() {
     btn.addEventListener("click", () => {
       const areaId = btn.dataset.areaId;
       appArea = appAreas.areas.find(a => a.id === areaId);
-      showIntent(appArea);
+      if (appArea.solo_informarme) {
+        navPush(appArea.nombre, () => { appArea = appAreas.areas.find(a => a.id === areaId); showInformChoice(appArea); });
+        showInformChoice(appArea);
+      } else {
+        showIntent(appArea);
+      }
     });
   });
 }
