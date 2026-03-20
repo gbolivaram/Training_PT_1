@@ -40,12 +40,14 @@
         {
             "id": "ma_suspel",
             "nombre": "MA y SUSPEL",
-            "pros": []
+            "pros": [],
+            "solo_informarme": true
         },
         {
             "id": "seguridad",
             "nombre": "Seguridad y riesgos operacionales",
-            "pros": []
+            "pros": [],
+            "solo_informarme": true
         }
     ],
     "pros": {
