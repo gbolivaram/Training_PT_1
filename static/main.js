@@ -1106,7 +1106,16 @@ function esc(str) {
 
   function currentPath() {
     if (!navStack.length) return "Inicio";
-    return navStack.map(s => s.label).join(" › ");
+    let path = navStack.map(s => s.label).join(" › ");
+    // Si hay un nodo activo dentro de un PRO, añadir el paso exacto
+    if (state.current_node && state.nodos && state.nodos[state.current_node]) {
+      const flowOrder = appPro?.flow_order || [];
+      const idx = flowOrder.indexOf(state.current_node);
+      const stepNum = idx >= 0 ? `Paso ${idx + 1}` : state.current_node;
+      const stepTitle = state.nodos[state.current_node].titulo || state.current_node;
+      path += ` › ${stepNum}: ${stepTitle}`;
+    }
+    return path;
   }
 
   function getCurrentProId() {
