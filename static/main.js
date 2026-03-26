@@ -7,8 +7,8 @@
   document.addEventListener("DOMContentLoaded", () => {
     const btn = document.getElementById("btn-theme");
     const lbl = document.getElementById("theme-label");
-    const themes = ["corporativo", "verde"];
-    const names  = { corporativo: "Corporativo", verde: "Verde Natural" };
+    const themes = ["corporativo", "oscuro", "verde"];
+    const names  = { corporativo: "Corporativo", oscuro: "🌙 Oscuro", verde: "Verde Natural" };
     if (lbl) lbl.textContent = names[saved] || "Corporativo";
     if (btn) {
       btn.addEventListener("click", () => {
@@ -173,6 +173,16 @@ async function init() {
 // ══════════════════════════════════════════════════════════════════════════
 // SCREEN 1: HOME
 // ══════════════════════════════════════════════════════════════════════════
+// ── Area metadata: icon + description per area id ─────────────────────────
+const AREA_META = {
+  bodega:       { icon: "🏭", desc: "Gestión de compras, abastecimiento y recepción de materiales." },
+  fallas:       { icon: "⚡", desc: "Protocolos de respuesta ante fallas, emergencias y crisis." },
+  inventario:   { icon: "📦", desc: "Control de stock, almacén, obsolescencia y despacho." },
+  mantenimiento:{ icon: "🔧", desc: "Mantenimiento preventivo, correctivo y operación de equipos." },
+  ma_suspel:    { icon: "🌿", desc: "Manuales de Medio Ambiente y Suspensiones Eléctricas." },
+  seguridad:    { icon: "🛡️", desc: "Seguridad operacional, riesgos y normativa de planta." },
+};
+
 function renderHome() {
   navStack.length = 0;
   navStack.push({ label: "Inicio", fn: () => {
@@ -186,21 +196,32 @@ function renderHome() {
   const grid = $("areas-grid");
   if (!grid || !appAreas) return;
 
-  grid.innerHTML = appAreas.areas.map((area, i) => {
-    const hasPros      = area.pros.length > 0;
-    const soloManual   = area.solo_informarme === true;
-    const isActive     = hasPros || soloManual;
-    let badge;
-    if (hasPros)        badge = `<span class="area-pro-count">${area.pros.length} procedimiento${area.pros.length > 1 ? "s" : ""}</span>`;
-    else if (soloManual) badge = `<span class="area-pro-count">Manuales disponibles</span>`;
-    else                badge = `<span class="area-coming">Próximamente</span>`;
+  grid.innerHTML = appAreas.areas.map((area) => {
+    const hasPros    = area.pros.length > 0;
+    const soloManual = area.solo_informarme === true;
+    const isActive   = hasPros || soloManual;
+    const meta       = AREA_META[area.id] || { icon: "📋", desc: "" };
+
+    let footerBadge;
+    if (hasPros)         footerBadge = `<span class="area-pro-count">📋 ${area.pros.length} procedimiento${area.pros.length > 1 ? "s" : ""}</span>`;
+    else if (soloManual) footerBadge = `<span class="area-pro-count">📄 Manuales disponibles</span>`;
+    else                 footerBadge = `<span class="area-coming">Próximamente</span>`;
+
     return `
       <button class="area-card ${isActive ? "" : "area-card-disabled"}"
               data-area-id="${esc(area.id)}"
               ${isActive ? "" : "disabled"}>
-        <span class="area-num">${i + 1}</span>
-        <span class="area-nombre">${esc(area.nombre)}</span>
-        ${badge}
+        <div class="area-card-icon-bar">
+          <div class="area-card-icon">${meta.icon}</div>
+          <span class="area-card-arrow">→</span>
+        </div>
+        <div class="area-card-body">
+          <div class="area-nombre">${esc(area.nombre)}</div>
+          <div class="area-desc">${esc(meta.desc)}</div>
+        </div>
+        <div class="area-card-footer">
+          ${footerBadge}
+        </div>
       </button>`;
   }).join("");
 
