@@ -115,7 +115,7 @@
     "opciones": [
       {
         "label": "SÍ → Derivar a PRO-141 (Análisis de Obsolescencia)",
-        "next": "END_pro141"
+        "next": "D_confirmar_ir_pro141"
       },
       {
         "label": "NO → Volver a Revisar SOLPED (MRP) tras corrección de antecedentes",
@@ -124,12 +124,30 @@
     ],
     "ayuda": "El diagrama del PRO128 deriva a PRO-141 cuando corresponde; si NO, retorna al ciclo de revisión/corrección."
   },
+  "D_confirmar_ir_pro141": {
+    "type": "decision",
+    "titulo": "¿Ir a PRO-141 ahora?",
+    "rol": "Almacén",
+    "pregunta": "¿Deseas ir al PRO-141 (Análisis de Obsolescencia) ahora?",
+    "opciones": [
+      {
+        "label": "SÍ → Ir a PRO-141",
+        "next": "END_pro141"
+      },
+      {
+        "label": "NO → Continuar en PRO-128",
+        "next": "T4_abast_revisar_solped_mrp"
+      }
+    ],
+    "ayuda": "Si eliges SÍ, serás dirigido al PRO-141 para iniciar el análisis de obsolescencia. Si eliges NO, continuarás el ciclo de revisión en PRO-128."
+  },
   "END_pro141": {
     "type": "end",
     "titulo": "Derivar a PRO-141 – Análisis de Obsolescencia",
     "rol": "Almacén",
     "mensaje": "Caso derivado a PRO-141 (Análisis de Obsolescencia) según flujo PRO128.",
-    "estado_final": "DERIVADO_PRO141"
+    "estado_final": "DERIVADO_PRO141",
+    "ir_a_pro": { "pro_id": "PRO141", "area_id": "inventario" }
   },
   "T5_iniciar_proceso_cotizacion": {
     "type": "task",

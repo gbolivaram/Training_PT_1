@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opciones de Inicio — Previsualización</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #e2e8f0; color: #0f172a; }
+
+  .page-title {
+    text-align: center; padding: 40px 20px 20px;
+    font-size: 28px; font-weight: 800; color: #1e293b;
+  }
+  .page-sub { text-align: center; color: #64748b; margin-bottom: 40px; font-size: 15px; }
+
+  .option-wrapper {
+    max-width: 980px; margin: 0 auto 60px;
+    padding: 0 20px;
+  }
+  .option-label {
+    font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: #1e40af; background: #dbeafe; border-radius: 8px 8px 0 0;
+    padding: 10px 20px; display: inline-block;
+  }
+  .option-frame {
+    border-radius: 0 12px 12px 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,.18);
+    border: 2px solid #bfdbfe;
+  }
+
+  /* ══════════════════════════════════════
+     OPCIÓN 1 — Dashboard con estadísticas
+  ══════════════════════════════════════ */
+  .opt1 { background: #f1f5f9; }
+  .opt1-topbar {
+    background: #1e40af; color: #fff; padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .opt1-topbar-title { font-size: 17px; font-weight: 700; }
+  .opt1-topbar-right { display: flex; gap: 10px; }
+  .opt1-pill { background: rgba(255,255,255,.2); border-radius: 99px; padding: 4px 12px; font-size: 12px; }
+  .opt1-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    padding: 20px 28px; background: #1e3a8a;
+  }
+  .opt1-stat {
+    background: rgba(255,255,255,.12); border-radius: 10px; padding: 14px;
+    color: #fff; text-align: center;
+  }
+  .opt1-stat-num { font-size: 26px; font-weight: 800; }
+  .opt1-stat-lbl { font-size: 11px; opacity: .75; margin-top: 2px; }
+  .opt1-body { padding: 24px 28px; }
+  .opt1-section-title { font-size: 13px; font-weight: 700; color: #64748b; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px; }
+  .opt1-areas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .opt1-area-card {
+    background: #fff; border-radius: 12px; padding: 18px;
+    border-left: 4px solid #1e40af; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .opt1-area-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+  .opt1-area-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .opt1-area-icon { font-size: 22px; }
+  .opt1-area-badge {
+    background: #eff6ff; color: #1e40af; font-size: 11px; font-weight: 700;
+    border-radius: 99px; padding: 2px 8px;
+  }
+  .opt1-area-name { font-size: 14px; font-weight: 700; color: #0f172a; }
+  .opt1-area-bar { height: 4px; background: #e2e8f0; border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .opt1-area-bar-fill { height: 100%; background: #1e40af; border-radius: 2px; }
+  .opt1-c1 { border-left-color: #1e40af; } .opt1-c1 .opt1-area-bar-fill { background: #1e40af; }
+  .opt1-c2 { border-left-color: #0891b2; } .opt1-c2 .opt1-area-bar-fill { background: #0891b2; }
+  .opt1-c3 { border-left-color: #7c3aed; } .opt1-c3 .opt1-area-bar-fill { background: #7c3aed; }
+  .opt1-c4 { border-left-color: #b45309; } .opt1-c4 .opt1-area-bar-fill { background: #b45309; }
+  .opt1-c5 { border-left-color: #059669; } .opt1-c5 .opt1-area-bar-fill { background: #059669; }
+  .opt1-c6 { border-left-color: #dc2626; } .opt1-c6 .opt1-area-bar-fill { background: #dc2626; }
+
+  /* ══════════════════════════════════════
+     OPCIÓN 2 — Hero con buscador central
+  ══════════════════════════════════════ */
+  .opt2 { background: #0f172a; }
+  .opt2-hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 60%);
+    padding: 50px 40px 40px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .opt2-hero::before {
+    content: ''; position: absolute; top: -80px; right: -80px;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: rgba(99,102,241,.15);
+  }
+  .opt2-hero-title { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .opt2-hero-sub { color: #94a3b8; font-size: 14px; margin-bottom: 28px; }
+  .opt2-search {
+    display: flex; align-items: center;
+    background: #fff; border-radius: 50px; padding: 10px 20px;
+    max-width: 500px; margin: 0 auto;
+    box-shadow: 0 4px 24px rgba(0,0,0,.3);
+  }
+  .opt2-search-icon { font-size: 18px; margin-right: 10px; }
+  .opt2-search input {
+    border: none; outline: none; flex: 1;
+    font-size: 15px; background: transparent; color: #0f172a;
+  }
+  .opt2-search-btn {
+    background: #1e40af; color: #fff; border: none;
+    border-radius: 99px; padding: 6px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .opt2-areas { background: #1e293b; padding: 28px 32px; }
+  .opt2-areas-title { font-size: 12px; font-weight: 700; color: #64748b; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 16px; }
+  .opt2-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .opt2-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: #334155; color: #e2e8f0; border-radius: 99px;
+    padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid #475569; transition: all .15s;
+  }
+  .opt2-chip:hover { background: #1e40af; border-color: #1e40af; color: #fff; }
+  .opt2-chip-icon { font-size: 16px; }
+  .opt2-chip-count {
+    background: rgba(255,255,255,.15); border-radius: 99px;
+    padding: 1px 7px; font-size: 11px;
+  }
+  .opt2-recent { background: #0f172a; padding: 20px 32px 28px; }
+  .opt2-recent-title { font-size: 12px; font-weight: 700; color: #475569; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; }
+  .opt2-recent-items { display: flex; gap: 10px; }
+  .opt2-recent-item {
+    background: #1e293b; border: 1px solid #334155;
+    border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #94a3b8; cursor: pointer;
+  }
+  .opt2-recent-item strong { color: #e2e8f0; display: block; }
+
+  /* ══════════════════════════════════════
+     OPCIÓN 3 — Layout dos columnas
+  ══════════════════════════════════════ */
+  .opt3 { background: #f8fafc; display: flex; min-height: 420px; }
+  .opt3-sidebar {
+    width: 240px; flex-shrink: 0;
+    background: #1e293b; padding: 20px 0;
+  }
+  .opt3-sidebar-logo {
+    padding: 0 20px 20px; border-bottom: 1px solid #334155;
+    margin-bottom: 12px;
+  }
+  .opt3-sidebar-logo-title { font-size: 14px; font-weight: 800; color: #fff; }
+  .opt3-sidebar-logo-sub { font-size: 11px; color: #64748b; }
+  .opt3-sidebar-section { padding: 8px 20px 4px; font-size: 10px; font-weight: 700; color: #475569; letter-spacing: .08em; text-transform: uppercase; }
+  .opt3-sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; cursor: pointer; color: #94a3b8; font-size: 13px; font-weight: 500;
+    transition: all .1s; position: relative;
+  }
+  .opt3-sidebar-item:hover { background: #334155; color: #fff; }
+  .opt3-sidebar-item.active {
+    background: #1e40af; color: #fff;
+    border-right: 3px solid #60a5fa;
+  }
+  .opt3-sidebar-item-icon { font-size: 16px; width: 20px; text-align: center; }
+  .opt3-sidebar-badge {
+    margin-left: auto; background: rgba(255,255,255,.15);
+    border-radius: 99px; padding: 1px 8px; font-size: 10px;
+  }
+  .opt3-main { flex: 1; padding: 28px; overflow: auto; }
+  .opt3-main-header { margin-bottom: 20px; }
+  .opt3-main-title { font-size: 20px; font-weight: 800; color: #0f172a; }
+  .opt3-main-sub { font-size: 13px; color: #64748b; margin-top: 4px; }
+  .opt3-pros { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .opt3-pro-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 14px 16px; cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .opt3-pro-card:hover { border-color: #1e40af; box-shadow: 0 2px 12px rgba(30,64,175,.1); }
+  .opt3-pro-icon { font-size: 20px; }
+  .opt3-pro-info {}
+  .opt3-pro-id { font-size: 11px; font-weight: 700; color: #1e40af; }
+  .opt3-pro-name { font-size: 13px; font-weight: 600; color: #1e293b; }
+
+  /* ══════════════════════════════════════
+     OPCIÓN 4 — Cards visuales con colores
+  ══════════════════════════════════════ */
+  .opt4 { background: #fff; padding: 32px; }
+  .opt4-header { text-align: center; margin-bottom: 28px; }
+  .opt4-header-title { font-size: 24px; font-weight: 800; color: #0f172a; }
+  .opt4-header-sub { font-size: 14px; color: #64748b; margin-top: 6px; }
+  .opt4-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .opt4-card {
+    border-radius: 16px; overflow: hidden; cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08); transition: transform .2s, box-shadow .2s;
+  }
+  .opt4-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.15); }
+  .opt4-card-header { padding: 24px 20px 18px; color: #fff; }
+  .opt4-card-icon { font-size: 36px; margin-bottom: 10px; }
+  .opt4-card-name { font-size: 15px; font-weight: 800; line-height: 1.3; }
+  .opt4-card-body { background: #fff; padding: 12px 16px; }
+  .opt4-card-pros { font-size: 11px; color: #64748b; margin-bottom: 8px; }
+  .opt4-card-list { list-style: none; }
+  .opt4-card-list li {
+    font-size: 11px; color: #1e293b; padding: 3px 0;
+    border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 6px;
+  }
+  .opt4-card-list li::before { content: '›'; color: #94a3b8; }
+  .opt4-bg1 { background: linear-gradient(135deg, #1e40af, #3b82f6); }
+  .opt4-bg2 { background: linear-gradient(135deg, #0891b2, #22d3ee); }
+  .opt4-bg3 { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+  .opt4-bg4 { background: linear-gradient(135deg, #b45309, #f59e0b); }
+  .opt4-bg5 { background: linear-gradient(135deg, #059669, #34d399); }
+  .opt4-bg6 { background: linear-gradient(135deg, #dc2626, #f87171); }
+
+  /* ══════════════════════════════════════
+     OPCIÓN 5 — Mapa visual / honeycomb
+  ══════════════════════════════════════ */
+  .opt5 { background: linear-gradient(160deg, #0f172a 0%, #1e3a8a 100%); padding: 36px; min-height: 420px; }
+  .opt5-header { text-align: center; margin-bottom: 32px; }
+  .opt5-title { font-size: 24px; font-weight: 800; color: #fff; }
+  .opt5-sub { font-size: 13px; color: #93c5fd; margin-top: 6px; }
+  .opt5-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 700px; margin: 0 auto; }
+  .opt5-hex {
+    aspect-ratio: 1; background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.15); border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .2s; text-align: center; padding: 16px;
+    backdrop-filter: blur(4px);
+  }
+  .opt5-hex:hover {
+    background: rgba(99,102,241,.35);
+    border-color: rgba(99,102,241,.7);
+    transform: scale(1.04);
+    box-shadow: 0 0 28px rgba(99,102,241,.4);
+  }
+  .opt5-hex-big {
+    grid-column: span 1; aspect-ratio: auto; padding: 22px;
+    background: rgba(30,64,175,.4); border-color: rgba(96,165,250,.5);
+  }
+  .opt5-hex-icon { font-size: 32px; margin-bottom: 8px; }
+  .opt5-hex-name { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3; }
+  .opt5-hex-count { font-size: 11px; color: #93c5fd; margin-top: 4px; }
+  .opt5-hex-tag {
+    display: inline-block; margin-top: 6px;
+    background: rgba(96,165,250,.25); color: #bfdbfe;
+    border-radius: 99px; padding: 2px 10px; font-size: 10px; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">5 Opciones de Pantalla de Inicio</div>
+<div class="page-sub">Elige la que más te guste — luego la implementamos</div>
+
+<!-- ═══════════════════════════════════════
+     OPCIÓN 1 — Dashboard con estadísticas
+═══════════════════════════════════════ -->
+<div class="option-wrapper">
+  <div class="option-label">Opción 1 — Dashboard con estadísticas</div>
+  <div class="option-frame">
+    <div class="opt1">
+      <div class="opt1-topbar">
+        <span class="opt1-topbar-title">⚡ Guía de Procedimientos Operativos</span>
+        <div class="opt1-topbar-right">
+          <span class="opt1-pill">🌙 Modo oscuro</span>
+          <span class="opt1-pill">💬 Comentar</span>
+        </div>
+      </div>
+      <div class="opt1-stats">
+        <div class="opt1-stat"><div class="opt1-stat-num">13</div><div class="opt1-stat-lbl">PROs activos</div></div>
+        <div class="opt1-stat"><div class="opt1-stat-num">6</div><div class="opt1-stat-lbl">Áreas</div></div>
+        <div class="opt1-stat"><div class="opt1-stat-num">3</div><div class="opt1-stat-lbl">Próximamente</div></div>
+        <div class="opt1-stat"><div class="opt1-stat-num">247</div><div class="opt1-stat-lbl">Pasos totales</div></div>
+      </div>
+      <div class="opt1-body">
+        <div class="opt1-section-title">Selecciona un área para comenzar</div>
+        <div class="opt1-areas">
+          <div class="opt1-area-card opt1-c1">
+            <div class="opt1-area-top"><span class="opt1-area-icon">🏭</span><span class="opt1-area-badge">4 PROs</span></div>
+            <div class="opt1-area-name">Bodega y abastecimiento</div>
+            <div class="opt1-area-bar"><div class="opt1-area-bar-fill" style="width:80%"></div></div>
+          </div>
+          <div class="opt1-area-card opt1-c2">
+            <div class="opt1-area-top"><span class="opt1-area-icon">⚡</span><span class="opt1-area-badge">2 PROs</span></div>
+            <div class="opt1-area-name">Fallas, emergencias y crisis</div>
+            <div class="opt1-area-bar"><div class="opt1-area-bar-fill" style="width:50%"></div></div>
+          </div>
+          <div class="opt1-area-card opt1-c3">
+            <div class="opt1-area-top"><span class="opt1-area-icon">📦</span><span class="opt1-area-badge">3 PROs</span></div>
+            <div class="opt1-area-name">Inventario y almacén</div>
+            <div class="opt1-area-bar"><div class="opt1-area-bar-fill" style="width:65%"></div></div>
+          </div>
+          <div class="opt1-area-card opt1-c4">
+            <div class="opt1-area-top"><span class="opt1-area-icon">🔧</span><span class="opt1-area-badge">2 PROs</span></div>
+            <div class="opt1-area-name">Mantenimiento y activos</div>
+            <div class="opt1-area-bar"><div class="opt1-area-bar-fill" style="width:40%"></div></div>
+          </div>
+          <div class="opt1-area-card opt1-c5">
+            <div class="opt1-area-top"><span class="opt1-area-icon">🛡️</span><span class="opt1-area-badge">1 PRO</span></div>
+            <div class="opt1-area-name">Seguridad</div>
+            <div class="opt1-area-bar"><div class="opt1-area-bar-fill" style="width:30%"></div></div>
+          </div>
+          <div class="opt1-area-card opt1-c6" style="opacity:.5; cursor:not-allowed;">
+            <div class="opt1-area-top"><span class="opt1-area-icon">📋</span><span class="opt1-area-badge" style="background:#fee2e2;color:#dc2626;">Pronto</span></div>
+            <div class="opt1-area-name">Suspensiones (próximamente)</div>
+            <div class="opt1-area-bar"><div class="opt1-area-bar-fill" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     OPCIÓN 2 — Hero con buscador central
+═══════════════════════════════════════ -->
+<div class="option-wrapper">
+  <div class="option-label">Opción 2 — Hero oscuro con buscador de PROs</div>
+  <div class="option-frame">
+    <div class="opt2">
+      <div class="opt2-hero">
+        <div class="opt2-hero-title">¿Qué procedimiento necesitas hoy?</div>
+        <div class="opt2-hero-sub">Busca por nombre, código o área — o selecciona directamente</div>
+        <div class="opt2-search">
+          <span class="opt2-search-icon">🔍</span>
+          <input type="text" placeholder="Ej: PRO128, recepción de materiales, inventario…" readonly>
+          <button class="opt2-search-btn">Buscar</button>
+        </div>
+      </div>
+      <div class="opt2-areas">
+        <div class="opt2-areas-title">Navegar por área</div>
+        <div class="opt2-chips">
+          <div class="opt2-chip"><span class="opt2-chip-icon">🏭</span> Bodega y abastecimiento <span class="opt2-chip-count">4</span></div>
+          <div class="opt2-chip"><span class="opt2-chip-icon">⚡</span> Fallas y emergencias <span class="opt2-chip-count">2</span></div>
+          <div class="opt2-chip"><span class="opt2-chip-icon">📦</span> Inventario y almacén <span class="opt2-chip-count">3</span></div>
+          <div class="opt2-chip"><span class="opt2-chip-icon">🔧</span> Mantenimiento <span class="opt2-chip-count">2</span></div>
+          <div class="opt2-chip"><span class="opt2-chip-icon">🛡️</span> Seguridad <span class="opt2-chip-count">1</span></div>
+        </div>
+      </div>
+      <div class="opt2-recent">
+        <div class="opt2-recent-title">Accesos rápidos</div>
+        <div class="opt2-recent-items">
+          <div class="opt2-recent-item"><strong>PRO128</strong>Compras y abastecimiento</div>
+          <div class="opt2-recent-item"><strong>PRO114</strong>Gestión de fallas</div>
+          <div class="opt2-recent-item"><strong>PRO141</strong>Análisis de obsolescencia</div>
+          <div class="opt2-recent-item"><strong>PRO115</strong>Emergencias</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     OPCIÓN 3 — Dos columnas con sidebar
+═══════════════════════════════════════ -->
+<div class="option-wrapper">
+  <div class="option-label">Opción 3 — Sidebar de navegación + PROs a la derecha</div>
+  <div class="option-frame">
+    <div class="opt3">
+      <div class="opt3-sidebar">
+        <div class="opt3-sidebar-logo">
+          <div class="opt3-sidebar-logo-title">⚡ Procedimientos</div>
+          <div class="opt3-sidebar-logo-sub">Guía Operativa</div>
+        </div>
+        <div class="opt3-sidebar-section">Áreas</div>
+        <div class="opt3-sidebar-item active">
+          <span class="opt3-sidebar-item-icon">🏭</span> Bodega
+          <span class="opt3-sidebar-badge">4</span>
+        </div>
+        <div class="opt3-sidebar-item">
+          <span class="opt3-sidebar-item-icon">⚡</span> Fallas
+          <span class="opt3-sidebar-badge">2</span>
+        </div>
+        <div class="opt3-sidebar-item">
+          <span class="opt3-sidebar-item-icon">📦</span> Inventario
+          <span class="opt3-sidebar-badge">3</span>
+        </div>
+        <div class="opt3-sidebar-item">
+          <span class="opt3-sidebar-item-icon">🔧</span> Mantención
+          <span class="opt3-sidebar-badge">2</span>
+        </div>
+        <div class="opt3-sidebar-item">
+          <span class="opt3-sidebar-item-icon">🛡️</span> Seguridad
+          <span class="opt3-sidebar-badge">1</span>
+        </div>
+        <div class="opt3-sidebar-item" style="opacity:.45; cursor:not-allowed;">
+          <span class="opt3-sidebar-item-icon">🔒</span> Suspensiones
+          <span class="opt3-sidebar-badge">pronto</span>
+        </div>
+      </div>
+      <div class="opt3-main">
+        <div class="opt3-main-header">
+          <div class="opt3-main-title">🏭 Bodega y abastecimiento</div>
+          <div class="opt3-main-sub">Selecciona el procedimiento que necesitas ejecutar</div>
+        </div>
+        <div class="opt3-pros">
+          <div class="opt3-pro-card">
+            <span class="opt3-pro-icon">🛒</span>
+            <div class="opt3-pro-info">
+              <div class="opt3-pro-id">PRO128</div>
+              <div class="opt3-pro-name">Proceso de Compras y Abastecimiento</div>
+            </div>
+          </div>
+          <div class="opt3-pro-card">
+            <span class="opt3-pro-icon">📦</span>
+            <div class="opt3-pro-info">
+              <div class="opt3-pro-id">PRO130</div>
+              <div class="opt3-pro-name">Recepción de Materiales</div>
+            </div>
+          </div>
+          <div class="opt3-pro-card">
+            <span class="opt3-pro-icon">🚚</span>
+            <div class="opt3-pro-info">
+              <div class="opt3-pro-id">PRO200</div>
+              <div class="opt3-pro-name">Recepción a Distancia</div>
+            </div>
+          </div>
+          <div class="opt3-pro-card">
+            <span class="opt3-pro-icon">📋</span>
+            <div class="opt3-pro-info">
+              <div class="opt3-pro-id">PRO145</div>
+              <div class="opt3-pro-name">Alta de Proveedores</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     OPCIÓN 4 — Cards visuales con colores y lista PROs
+═══════════════════════════════════════ -->
+<div class="option-wrapper">
+  <div class="option-label">Opción 4 — Cards coloridas con lista de PROs visible</div>
+  <div class="option-frame">
+    <div class="opt4">
+      <div class="opt4-header">
+        <div class="opt4-header-title">Guía de Procedimientos Operativos</div>
+        <div class="opt4-header-sub">Selecciona el área — haz clic en la tarjeta para iniciar</div>
+      </div>
+      <div class="opt4-grid">
+        <div class="opt4-card">
+          <div class="opt4-card-header opt4-bg1">
+            <div class="opt4-card-icon">🏭</div>
+            <div class="opt4-card-name">Bodega y abastecimiento</div>
+          </div>
+          <div class="opt4-card-body">
+            <div class="opt4-card-pros">4 procedimientos disponibles</div>
+            <ul class="opt4-card-list">
+              <li>PRO128 — Compras</li>
+              <li>PRO130 — Recepción</li>
+              <li>PRO145 — Proveedores</li>
+              <li>PRO200 — Recepción remota</li>
+            </ul>
+          </div>
+        </div>
+        <div class="opt4-card">
+          <div class="opt4-card-header opt4-bg2">
+            <div class="opt4-card-icon">⚡</div>
+            <div class="opt4-card-name">Fallas, emergencias y crisis</div>
+          </div>
+          <div class="opt4-card-body">
+            <div class="opt4-card-pros">2 procedimientos disponibles</div>
+            <ul class="opt4-card-list">
+              <li>PRO114 — Gestión de fallas</li>
+              <li>PRO115 — Emergencias</li>
+            </ul>
+          </div>
+        </div>
+        <div class="opt4-card">
+          <div class="opt4-card-header opt4-bg3">
+            <div class="opt4-card-icon">📦</div>
+            <div class="opt4-card-name">Inventario y almacén</div>
+          </div>
+          <div class="opt4-card-body">
+            <div class="opt4-card-pros">3 procedimientos disponibles</div>
+            <ul class="opt4-card-list">
+              <li>PRO131 — Control de stock</li>
+              <li>PRO141 — Obsolescencia</li>
+              <li>PRO139 — Despacho</li>
+            </ul>
+          </div>
+        </div>
+        <div class="opt4-card">
+          <div class="opt4-card-header opt4-bg4">
+            <div class="opt4-card-icon">🔧</div>
+            <div class="opt4-card-name">Mantenimiento y activos</div>
+          </div>
+          <div class="opt4-card-body">
+            <div class="opt4-card-pros">2 procedimientos disponibles</div>
+            <ul class="opt4-card-list">
+              <li>PRO173 — Mantención preventiva</li>
+              <li>PRO174 — Mantención correctiva</li>
+            </ul>
+          </div>
+        </div>
+        <div class="opt4-card">
+          <div class="opt4-card-header opt4-bg5">
+            <div class="opt4-card-icon">🛡️</div>
+            <div class="opt4-card-name">Seguridad</div>
+          </div>
+          <div class="opt4-card-body">
+            <div class="opt4-card-pros">1 procedimiento disponible</div>
+            <ul class="opt4-card-list">
+              <li>PRO183 — Seguridad operativa</li>
+            </ul>
+          </div>
+        </div>
+        <div class="opt4-card" style="opacity:.5; cursor:not-allowed;">
+          <div class="opt4-card-header opt4-bg6">
+            <div class="opt4-card-icon">🔒</div>
+            <div class="opt4-card-name">Suspensiones / MA</div>
+          </div>
+          <div class="opt4-card-body">
+            <div class="opt4-card-pros" style="color:#dc2626; font-weight:700;">Próximamente…</div>
+            <ul class="opt4-card-list">
+              <li style="color:#94a3b8;">Contenido en preparación</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     OPCIÓN 5 — Mapa visual / estilo glassmorphism
+═══════════════════════════════════════ -->
+<div class="option-wrapper">
+  <div class="option-label">Opción 5 — Mapa visual estilo glassmorphism</div>
+  <div class="option-frame">
+    <div class="opt5">
+      <div class="opt5-header">
+        <div class="opt5-title">Centro de Procedimientos Operativos</div>
+        <div class="opt5-sub">Selecciona el área con la que quieres trabajar</div>
+      </div>
+      <div class="opt5-grid">
+        <div class="opt5-hex opt5-hex-big">
+          <div class="opt5-hex-icon">🏭</div>
+          <div class="opt5-hex-name">Bodega y abastecimiento</div>
+          <div class="opt5-hex-count">4 procedimientos</div>
+          <div class="opt5-hex-tag">ACTIVO</div>
+        </div>
+        <div class="opt5-hex">
+          <div class="opt5-hex-icon">⚡</div>
+          <div class="opt5-hex-name">Fallas y emergencias</div>
+          <div class="opt5-hex-count">2 PROs</div>
+        </div>
+        <div class="opt5-hex">
+          <div class="opt5-hex-icon">📦</div>
+          <div class="opt5-hex-name">Inventario y almacén</div>
+          <div class="opt5-hex-count">3 PROs</div>
+        </div>
+        <div class="opt5-hex">
+          <div class="opt5-hex-icon">🔧</div>
+          <div class="opt5-hex-name">Mantenimiento y activos</div>
+          <div class="opt5-hex-count">2 PROs</div>
+        </div>
+        <div class="opt5-hex">
+          <div class="opt5-hex-icon">🛡️</div>
+          <div class="opt5-hex-name">Seguridad</div>
+          <div class="opt5-hex-count">1 PRO</div>
+        </div>
+        <div class="opt5-hex" style="opacity:.4; cursor:not-allowed;">
+          <div class="opt5-hex-icon">🔒</div>
+          <div class="opt5-hex-name">Suspensiones</div>
+          <div class="opt5-hex-count">Próximamente</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

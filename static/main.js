@@ -813,6 +813,12 @@ function renderEndBody(n) {
 
   const icon = isStop ? "⛔" : isRechazo ? "⚠" : "🏁";
 
+  const irAProHtml = n.ir_a_pro
+    ? `<button class="btn btn-si btn-ir-a-pro" id="btn-ir-a-pro" style="margin-top:16px;width:100%;">
+        ➡ Ir a ${esc(n.ir_a_pro.pro_id)}
+       </button>`
+    : "";
+
   elBody.innerHTML = `
     <div class="${boxClass}">
       <div class="end-icon">${icon}</div>
@@ -820,6 +826,7 @@ function renderEndBody(n) {
       <div class="end-mensaje">${esc(n.mensaje || n.descripcion || "")}</div>
       <div class="end-estado">${esc(n.estado_final || "FINALIZADO")}</div>
       ${inputsHtml}
+      ${irAProHtml}
       <button class="btn-download" id="btn-download-inline">
         ⬇ Descargar trazabilidad JSON
       </button>
@@ -827,6 +834,11 @@ function renderEndBody(n) {
 
   requestAnimationFrame(() => {
     $("btn-download-inline")?.addEventListener("click", () => triggerExport());
+    if (n.ir_a_pro) {
+      $("btn-ir-a-pro")?.addEventListener("click", () => {
+        startPro(n.ir_a_pro.pro_id, n.ir_a_pro.area_id);
+      });
+    }
   });
 }
 
