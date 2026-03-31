@@ -175,12 +175,12 @@ async function init() {
 // ══════════════════════════════════════════════════════════════════════════
 // ── Area metadata: icon + description per area id ─────────────────────────
 const AREA_META = {
-  bodega:       { icon: "🏭", desc: "Gestión de compras, abastecimiento y recepción de materiales." },
-  fallas:       { icon: "⚡", desc: "Protocolos de respuesta ante fallas, emergencias y crisis." },
-  inventario:   { icon: "📦", desc: "Control de stock, almacén, obsolescencia y despacho." },
-  mantenimiento:{ icon: "🔧", desc: "Mantenimiento preventivo, correctivo y operación de equipos." },
-  ma_suspel:    { icon: "🌿", desc: "Manuales de Medio Ambiente y Suspensiones Eléctricas." },
-  seguridad:    { icon: "🛡️", desc: "Seguridad operacional, riesgos y normativa de planta." },
+  bodega:        { icon: "🏭", desc: "Compras, abastecimiento y recepción de materiales." },
+  fallas:        { icon: "⚡", desc: "Respuesta ante fallas, emergencias y crisis operacionales." },
+  inventario:    { icon: "📦", desc: "Control de stock, almacén, obsolescencia y despacho." },
+  mantenimiento: { icon: "🔧", desc: "Mantenimiento preventivo, correctivo y operación de equipos." },
+  ma_suspel:     { icon: "🌿", desc: "Manuales de Medio Ambiente y Suspensiones Eléctricas." },
+  seguridad:     { icon: "🛡️", desc: "Seguridad operacional, riesgos y normativa de planta." },
 };
 
 function renderHome() {
@@ -193,50 +193,133 @@ function renderHome() {
   }});
   renderBreadcrumb();
 
-  const grid = $("areas-grid");
-  if (!grid || !appAreas) return;
+  const areaList  = $("home-area-list");
+  const proPanel  = $("home-pro-panel");
+  if (!areaList || !proPanel || !appAreas) return;
 
-  grid.innerHTML = appAreas.areas.map((area) => {
+  // ── Render area list items ──────────────────────────────────────
+  const items = appAreas.areas.map(area => {
     const hasPros    = area.pros.length > 0;
     const soloManual = area.solo_informarme === true;
     const isActive   = hasPros || soloManual;
-    const meta       = AREA_META[area.id] || { icon: "📋", desc: "" };
-
-    let footerBadge;
-    if (hasPros)         footerBadge = `<span class="area-pro-count">📋 ${area.pros.length} procedimiento${area.pros.length > 1 ? "s" : ""}</span>`;
-    else if (soloManual) footerBadge = `<span class="area-pro-count">📄 Manuales disponibles</span>`;
-    else                 footerBadge = `<span class="area-coming">Próximamente</span>`;
+    const meta       = AREA_META[area.id] || { icon: "📋" };
+    let countTxt;
+    if (hasPros)         countTxt = `${area.pros.length} procedimiento${area.pros.length > 1 ? "s" : ""}`;
+    else if (soloManual) countTxt = "Manuales disponibles";
+    else                 countTxt = "Próximamente";
 
     return `
-      <button class="area-card ${isActive ? "" : "area-card-disabled"}"
-              data-area-id="${esc(area.id)}"
-              ${isActive ? "" : "disabled"}>
-        <div class="area-card-icon-bar">
-          <div class="area-card-icon">${meta.icon}</div>
-          <span class="area-card-arrow">→</span>
-        </div>
-        <div class="area-card-body">
-          <div class="area-nombre">${esc(area.nombre)}</div>
-          <div class="area-desc">${esc(meta.desc)}</div>
-        </div>
-        <div class="area-card-footer">
-          ${footerBadge}
-        </div>
+      <button class="home-area-item ${isActive ? "" : "home-area-item-disabled"}"
+              data-area-id="${esc(area.id)}" ${isActive ? "" : "disabled"}>
+        <span class="home-area-item-icon">${meta.icon}</span>
+        <span class="home-area-item-info">
+          <span class="home-area-item-name">${esc(area.nombre)}</span>
+          <span class="home-area-item-count">${countTxt}</span>
+        </span>
       </button>`;
   }).join("");
 
-  grid.querySelectorAll(".area-card:not([disabled])").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const areaId = btn.dataset.areaId;
-      appArea = appAreas.areas.find(a => a.id === areaId);
-      if (appArea.solo_informarme) {
-        navPush(appArea.nombre, () => { appArea = appAreas.areas.find(a => a.id === areaId); showInformChoice(appArea); });
-        showInformChoice(appArea);
-      } else {
+  // Re-render only the items (keep the header)
+  const header = areaList.querySelector(".home-area-list-header");
+  areaList.innerHTML = "";
+  if (header) areaList.appendChild(header);
+  areaList.insertAdjacentHTML("beforeend", items);
+
+  // ── Show procedures panel for an area ──────────────────────────
+  function showProPanel(area) {
+    const meta    = AREA_META[area.id] || { icon: "📋", desc: "" };
+    const hasPros = area.pros.length > 0;
+
+    // Active state on list
+    areaList.querySelectorAll(".home-area-item").forEach(el =>
+      el.classList.toggle("active", el.dataset.areaId === area.id));
+
+    if (area.solo_informarme) {
+      // Manuales-only area
+      proPanel.innerHTML = `
+        <div class="home-pro-panel-content">
+          <div class="home-pro-panel-header">
+            <span class="home-pro-panel-icon">${meta.icon}</span>
+            <div>
+              <div class="home-pro-panel-title">${esc(area.nombre)}</div>
+              <div class="home-pro-panel-sub">Manuales y documentación disponible</div>
+            </div>
+          </div>
+          <div class="home-manual-cta">
+            <div class="home-manual-cta-desc">${esc(meta.desc)}</div>
+            <button class="home-manual-btn" id="btn-ver-manuales">
+              📄 Ver manuales y documentación →
+            </button>
+          </div>
+        </div>`;
+      $("btn-ver-manuales").addEventListener("click", () => {
+        navPush(area.nombre, () => { appArea = appAreas.areas.find(a => a.id === area.id); showInformChoice(appArea); });
+        showInformChoice(area);
+      });
+      return;
+    }
+
+    if (!hasPros) {
+      proPanel.innerHTML = `
+        <div class="home-pro-panel-content home-pro-empty">
+          <div class="home-pro-empty-icon">🔒</div>
+          <div class="home-pro-empty-text">Próximamente — contenido en preparación</div>
+        </div>`;
+      return;
+    }
+
+    // Build PRO cards
+    const proCards = area.pros.map(proId => {
+      const pro = appAreas.pros[proId];
+      if (!pro) return "";
+      const desc = (pro.descripcion || "").slice(0, 90) + (pro.descripcion?.length > 90 ? "…" : "");
+      return `
+        <button class="home-pro-card" data-pro-id="${esc(proId)}" data-area-id="${esc(area.id)}">
+          <span class="home-pro-card-badge">${esc(proId)}</span>
+          <span class="home-pro-card-body">
+            <span class="home-pro-card-name">${esc(pro.nombre || proId)}</span>
+            <span class="home-pro-card-desc">${esc(desc)}</span>
+          </span>
+        </button>`;
+    }).join("");
+
+    proPanel.innerHTML = `
+      <div class="home-pro-panel-content">
+        <div class="home-pro-panel-header">
+          <span class="home-pro-panel-icon">${meta.icon}</span>
+          <div>
+            <div class="home-pro-panel-title">${esc(area.nombre)}</div>
+            <div class="home-pro-panel-sub">${area.pros.length} procedimiento${area.pros.length > 1 ? "s" : ""} disponible${area.pros.length > 1 ? "s" : ""}</div>
+          </div>
+        </div>
+        <div class="home-pro-grid">${proCards}</div>
+      </div>`;
+
+    // Click on a PRO card → go to intent (with pre-selected PRO)
+    proPanel.querySelectorAll(".home-pro-card").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const proId  = btn.dataset.proId;
+        const areaId = btn.dataset.areaId;
+        appArea = appAreas.areas.find(a => a.id === areaId);
+        appPro  = appAreas.pros[proId];
+        // Store selected proId so handleIntent can skip the PRO select screen
+        appArea._selectedProId = proId;
         showIntent(appArea);
-      }
+      });
+    });
+  }
+
+  // ── Area item click ─────────────────────────────────────────────
+  areaList.querySelectorAll(".home-area-item:not([disabled])").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const area = appAreas.areas.find(a => a.id === btn.dataset.areaId);
+      if (area) showProPanel(area);
     });
   });
+
+  // Auto-select first active area
+  const firstActive = appAreas.areas.find(a => a.pros.length > 0 || a.solo_informarme);
+  if (firstActive) showProPanel(firstActive);
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -254,8 +337,14 @@ function showIntent(area) {
 }
 
 function handleIntent(area, intent) {
+  // If a specific PRO was pre-selected from the home panel, skip PRO select screen
+  const preselected = area._selectedProId;
+  delete area._selectedProId;
+
   if (intent === "ejecutar") {
-    if (area.pros.length === 1) {
+    if (preselected) {
+      startPro(preselected, area.id);
+    } else if (area.pros.length === 1) {
       startPro(area.pros[0], area.id);
     } else {
       showProSelect(area);
@@ -266,7 +355,9 @@ function handleIntent(area, intent) {
     showDiagnose(area);
   } else {
     // Reportar → IA chat
-    if (area.pros.length === 1) {
+    if (preselected) {
+      startAiChat(preselected, area.id, intent);
+    } else if (area.pros.length === 1) {
       startAiChat(area.pros[0], area.id, intent);
     } else {
       showProSelectForChat(area, intent);

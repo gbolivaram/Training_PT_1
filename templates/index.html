@@ -41,13 +41,20 @@
   <div id="screen-home" class="screen">
     <div class="home-wrap">
       <div class="home-hero">
-        <div class="home-hero-eyebrow">⚡ Guía de Procedimientos Operativos</div>
-        <div class="home-hero-title">¿Con qué área necesitas trabajar?</div>
-        <div class="home-hero-sub">Selecciona el área para ver procedimientos, manuales y ejecutar tareas paso a paso.</div>
+        <div class="home-hero-title">Guía de Procedimientos Operativos</div>
+        <div class="home-hero-sub">Selecciona un área para ver sus procedimientos disponibles.</div>
       </div>
-      <div class="home-section-label">Áreas disponibles</div>
-      <div class="areas-grid" id="areas-grid">
-        <!-- Renderizado por JS -->
+      <div class="home-split">
+        <div class="home-area-list" id="home-area-list">
+          <div class="home-area-list-header">Áreas</div>
+          <!-- Renderizado por JS -->
+        </div>
+        <div class="home-pro-panel" id="home-pro-panel">
+          <div class="home-pro-panel-content home-pro-empty">
+            <div class="home-pro-empty-icon">←</div>
+            <div class="home-pro-empty-text">Selecciona un área para ver sus procedimientos</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
