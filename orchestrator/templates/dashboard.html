@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orquestador Operacional - Colbun</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Orquestador de Ejecución Operacional</h1>
+        <p class="subtitle">Sistema de Activación Operativa - Colbun S.A.</p>
+    </header>
+
+    <main>
+        <!-- Trigger manual -->
+        <section class="card trigger-card">
+            <h2>Gatillar Procedimiento</h2>
+            <p>Simula un evento real que inicia un procedimiento.</p>
+            <div class="trigger-form">
+                <select id="pro-select">
+                    {% for pid, pro in procedures.items() %}
+                    <option value="{{ pid }}">{{ pid }} - {{ pro.nombre }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" id="trigger-event" placeholder="Descripción del evento (ej: Falla en S/E Quillota, Feeder F3)">
+                <button onclick="triggerProcess()" class="btn btn-danger">Gatillar Proceso</button>
+            </div>
+            <div id="trigger-result" class="result-msg" style="display:none;"></div>
+        </section>
+
+        <!-- Bandejas por usuario -->
+        <section class="card">
+            <h2>Bandejas de Notificación</h2>
+            <p>Seleccione un usuario para ver sus tareas pendientes.</p>
+            <div class="contact-grid">
+                {% for rol, contact in contacts.items() %}
+                <a href="/inbox/{{ contact.email }}" class="contact-card">
+                    <div class="contact-role">{{ rol }}</div>
+                    <div class="contact-name">{{ contact.nombre }}</div>
+                    <div class="contact-email">{{ contact.email }}</div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Procesos activos -->
+        <section class="card">
+            <h2>Procesos Activos</h2>
+            {% if instances %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Proceso</th>
+                        <th>Estado</th>
+                        <th>Nodo Actual</th>
+                        <th>Evento</th>
+                        <th>Inicio</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inst in instances %}
+                    <tr class="estado-{{ inst.estado|lower|replace(' ', '-') }}">
+                        <td><strong>{{ inst.pro_id }}</strong></td>
+                        <td><span class="badge badge-{{ inst.estado|lower|replace(' ', '-') }}">{{ inst.estado }}</span></td>
+                        <td>{{ inst.current_node }}</td>
+                        <td>{{ inst.trigger_event }}</td>
+                        <td>{{ inst.created_at }}</td>
+                        <td><a href="/process/{{ inst.id }}" class="btn btn-small">Ver detalle</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state">No hay procesos activos. Use el botón "Gatillar Proceso" para iniciar uno.</p>
+            {% endif %}
+        </section>
+
+        <!-- Notificaciones pendientes globales -->
+        <section class="card">
+            <h2>Notificaciones Pendientes Globales <span class="badge badge-pendiente">{{ pending_count }}</span></h2>
+            <div id="pending-list"></div>
+        </section>
+    </main>
+
+    <script>
+        function triggerProcess() {
+            const proId = document.getElementById('pro-select').value;
+            const event = document.getElementById('trigger-event').value || 'Trigger manual';
+            const resultDiv = document.getElementById('trigger-result');
+
+            fetch('/api/trigger', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({pro_id: proId, trigger_event: event})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    resultDiv.innerHTML = `Proceso iniciado: <a href="/process/${data.instance_id}">${data.pro_id} - ${data.instance_id.slice(0,8)}</a>`;
+                    resultDiv.className = 'result-msg success';
+                } else {
+                    resultDiv.innerHTML = `Error: ${data.error}`;
+                    resultDiv.className = 'result-msg error';
+                }
+                resultDiv.style.display = 'block';
+                setTimeout(() => location.reload(), 1500);
+            });
+        }
+
+        // Cargar notificaciones pendientes
+        fetch('/api/pending')
+        .then(r => r.json())
+        .then(data => {
+            const list = document.getElementById('pending-list');
+            if (data.length === 0) {
+                list.innerHTML = '<p class="empty-state">Sin notificaciones pendientes.</p>';
+                return;
+            }
+            let html = '<div class="notif-list">';
+            data.forEach(n => {
+                html += `
+                    <div class="notif-item pendiente">
+                        <div class="notif-header">
+                            <strong>${n.titulo}</strong>
+                            <span class="notif-time">${n.created_at}</span>
+                        </div>
+                        <div class="notif-meta">
+                            Para: <strong>${n.contact_name}</strong> (${n.contact_email}) | Rol: ${n.rol}
+                        </div>
+                        <a href="${n.link}" class="btn btn-small">Ir a tarea</a>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            list.innerHTML = html;
+        });
+    </script>
+</body>
+</html>

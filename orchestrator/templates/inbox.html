@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bandeja - {{ contact_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <a href="/" class="back-link">← Dashboard</a>
+        <h1>Bandeja de {{ contact_name }}</h1>
+        <p class="subtitle">{{ email }}</p>
+    </header>
+
+    <main>
+        <!-- Simulación de email -->
+        <section class="card">
+            <h2>Notificaciones
+                {% set pendientes = notifications|selectattr('estado', 'eq', 'PENDIENTE')|list %}
+                {% if pendientes %}
+                <span class="badge badge-pendiente">{{ pendientes|length }} pendiente{{ 's' if pendientes|length > 1 }}</span>
+                {% endif %}
+            </h2>
+
+            {% if not notifications %}
+            <p class="empty-state">No tiene notificaciones. Cuando un procedimiento requiera su acción, aparecerá aquí.</p>
+            {% else %}
+            <div class="notif-list">
+                {% for notif in notifications %}
+                <div class="notif-item {{ notif.estado|lower }}" id="notif-{{ notif.id }}">
+                    <div class="notif-header">
+                        <div class="notif-status-icon">
+                            {% if notif.estado == 'PENDIENTE' %}
+                                <span class="dot dot-pendiente" title="Pendiente"></span>
+                            {% elif notif.estado == 'LEIDA' %}
+                                <span class="dot dot-leida" title="Leída"></span>
+                            {% else %}
+                                <span class="dot dot-completada" title="Completada"></span>
+                            {% endif %}
+                        </div>
+                        <strong>{{ notif.titulo }}</strong>
+                        <span class="notif-time">{{ notif.created_at }}</span>
+                    </div>
+
+                    <div class="notif-body">
+                        <p>{{ notif.mensaje|replace('\n', '<br>')|safe }}</p>
+                    </div>
+
+                    <div class="notif-actions">
+                        {% if notif.estado == 'PENDIENTE' %}
+                        <a href="{{ notif.link }}" class="btn btn-primary"
+                           onclick="markRead('{{ notif.id }}')">
+                            Ejecutar Tarea
+                        </a>
+                        {% elif notif.estado == 'LEIDA' %}
+                        <a href="{{ notif.link }}" class="btn btn-secondary">Continuar Tarea</a>
+                        {% else %}
+                        <span class="badge badge-completada">Completada</span>
+                        {% if notif.acted_at %}
+                        <span class="notif-time">{{ notif.acted_at }}</span>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        function markRead(nid) {
+            fetch(`/api/notification/${nid}/read`, {method: 'POST'});
+        }
+    </script>
+</body>
+</html>

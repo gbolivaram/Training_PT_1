@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ instance.pro_id }} - Proceso {{ instance.id[:8] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <a href="/" class="back-link">← Dashboard</a>
+        <h1>{{ instance.pro_id }} - {{ pro_info.nombre }}</h1>
+        <p class="subtitle">
+            Estado: <span class="badge badge-{{ instance.estado|lower|replace(' ', '-') }}">{{ instance.estado }}</span>
+            | Evento: {{ instance.trigger_event }}
+            | Inicio: {{ instance.created_at }}
+        </p>
+    </header>
+
+    <main>
+        <!-- Nodo actual -->
+        <section class="card">
+            <h2>Paso actual</h2>
+            {% if current_node %}
+            <div class="current-node-card">
+                <h3>{{ current_node.titulo or instance.current_node }}</h3>
+                <p>Responsable: <strong>{{ current_node.rol or 'N/A' }}</strong></p>
+                {% if current_node.descripcion %}
+                <p>{{ current_node.descripcion }}</p>
+                {% endif %}
+                {% if current_node.type != 'end' %}
+                <a href="/task/{{ instance.id }}/{{ instance.current_node }}" class="btn btn-primary">
+                    Ir a ejecutar esta tarea
+                </a>
+                {% endif %}
+            </div>
+            {% else %}
+            <p>Nodo: {{ instance.current_node }}</p>
+            {% endif %}
+        </section>
+
+        <!-- Timeline visual -->
+        <section class="card">
+            <h2>Línea de tiempo del proceso</h2>
+            <div class="timeline">
+                {% for h in instance.history %}
+                <div class="timeline-item completed">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>{{ h.titulo }}</strong>
+                        {% if h.inputs %}
+                        <div class="timeline-inputs">
+                            {% for k, v in h.inputs.items() %}
+                            <span>{{ k }}: {{ v }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% if h.decision is not none %}
+                        <span class="timeline-decision">Decisión: opción {{ h.decision + 1 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Nodo actual en la timeline -->
+                {% if instance.estado == 'EN_CURSO' %}
+                <div class="timeline-item current">
+                    <div class="timeline-marker pulse"></div>
+                    <div class="timeline-content">
+                        <strong>{{ current_node.titulo or instance.current_node }}</strong>
+                        <span class="badge badge-en_curso">EN CURSO</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Todos los nodos del procedimiento -->
+        <section class="card">
+            <h2>Mapa completo del procedimiento</h2>
+            <div class="node-map">
+                {% for nid, node in nodos.items() %}
+                <div class="node-map-item {{ 'active' if nid == instance.current_node else 'done' if nid in (instance.history|map(attribute='node_id')|list) else '' }}">
+                    <span class="node-type-badge {{ node.type }}">{{ node.type }}</span>
+                    <strong>{{ nid }}</strong>: {{ node.titulo or node.get('mensaje', '') }}
+                    <span class="node-rol">{{ node.rol }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

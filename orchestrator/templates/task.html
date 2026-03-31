@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ node.titulo }} - {{ instance.pro_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <a href="/process/{{ instance.id }}" class="back-link">← Ver proceso completo</a>
+        <h1>{{ instance.pro_id }} - {{ pro_info.nombre }}</h1>
+        <p class="subtitle">Instancia: {{ instance.id[:8] }}...</p>
+    </header>
+
+    <main>
+        {% if not is_current %}
+        <div class="alert alert-warning">
+            Esta tarea ya no es la tarea actual del proceso.
+            El proceso está ahora en: <strong>{{ instance.current_node }}</strong>
+        </div>
+        {% endif %}
+
+        <!-- Tarea actual -->
+        <section class="card task-card">
+            <div class="task-header">
+                <span class="badge badge-{{ 'en_curso' if is_current else 'completada' }}">
+                    {{ 'ACTIVA' if is_current else 'YA COMPLETADA' }}
+                </span>
+                <h2>{{ node.titulo }}</h2>
+                <div class="task-rol">Responsable: <strong>{{ node.rol }}</strong></div>
+            </div>
+
+            <div class="task-description">
+                <p>{{ node.descripcion }}</p>
+            </div>
+
+            {% if node.type == 'task' %}
+            <!-- Acciones a realizar -->
+            {% if node.acciones %}
+            <div class="task-section">
+                <h3>Acciones a realizar</h3>
+                <ol class="action-list">
+                    {% for accion in node.acciones %}
+                    <li>{{ accion }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            {% endif %}
+
+            <!-- Checklist -->
+            {% if node.checklist %}
+            <div class="task-section">
+                <h3>Checklist de verificación</h3>
+                <div class="checklist">
+                    {% for item in node.checklist %}
+                    <label class="checklist-item">
+                        <input type="checkbox" class="check-item" {{ 'disabled' if not is_current }}>
+                        <span>{{ item }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Inputs -->
+            {% if node.inputs and is_current %}
+            <div class="task-section">
+                <h3>Datos a registrar</h3>
+                <div class="input-group">
+                    {% for inp in node.inputs %}
+                    <div class="form-field">
+                        <label for="input-{{ inp.key }}">
+                            {{ inp.label }}
+                            {% if inp.required %}<span class="required">*</span>{% endif %}
+                        </label>
+                        <input type="text" id="input-{{ inp.key }}"
+                               name="{{ inp.key }}"
+                               placeholder="{{ inp.placeholder }}"
+                               value="{{ saved_inputs.get(inp.key, '') }}"
+                               class="task-input"
+                               {{ 'required' if inp.required }}>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Validación -->
+            {% if node.validacion %}
+            <div class="task-section validation-section">
+                <h3>Validación</h3>
+                <p class="validation-question">{{ node.validacion }}</p>
+            </div>
+            {% endif %}
+
+            {% elif node.type == 'decision' %}
+            <!-- Nodo de decisión -->
+            <div class="task-section">
+                <h3>{{ node.pregunta }}</h3>
+                {% if is_current %}
+                <div class="decision-options">
+                    {% for opt in node.opciones %}
+                    <button class="btn btn-decision" onclick="submitDecision({{ loop.index0 }})">
+                        {{ opt.label }}
+                    </button>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="decision-options">
+                    {% for opt in node.opciones %}
+                    <div class="decision-option-disabled">{{ opt.label }} → {{ opt.next }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            {% elif node.type == 'end' %}
+            <!-- Nodo final -->
+            <div class="task-section end-section">
+                <div class="end-message">
+                    <h3>{{ node.mensaje }}</h3>
+                    <span class="badge badge-{{ 'completado' if 'COMPLETADO' in (node.estado_final or '') else 'detenido' }}">
+                        {{ node.estado_final }}
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Botón de completar (solo para tareas activas) -->
+            {% if is_current and node.type == 'task' %}
+            <div class="task-actions">
+                <button onclick="completeTask()" class="btn btn-primary btn-large" id="btn-complete">
+                    Completar y avanzar al siguiente paso
+                </button>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Historial -->
+        {% if history %}
+        <section class="card">
+            <h2>Historial de este proceso</h2>
+            <div class="history-list">
+                {% for h in history %}
+                <div class="history-item">
+                    <span class="history-step">{{ loop.index }}.</span>
+                    <strong>{{ h.titulo }}</strong>
+                    {% if h.inputs %}
+                    <div class="history-inputs">
+                        {% for k, v in h.inputs.items() %}
+                        <span class="history-input">{{ k }}: {{ v }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <div id="task-result" class="result-msg" style="display:none;"></div>
+    </main>
+
+    <script>
+        function gatherInputs() {
+            const inputs = {};
+            document.querySelectorAll('.task-input').forEach(el => {
+                if (el.value.trim()) inputs[el.name] = el.value.trim();
+            });
+            return inputs;
+        }
+
+        function validateChecklist() {
+            const checks = document.querySelectorAll('.check-item');
+            if (checks.length === 0) return true;
+            const allChecked = Array.from(checks).every(c => c.checked);
+            if (!allChecked) {
+                alert('Por favor complete todos los ítems del checklist antes de avanzar.');
+                return false;
+            }
+            return true;
+        }
+
+        function validateInputs() {
+            const required = document.querySelectorAll('.task-input[required]');
+            for (const inp of required) {
+                if (!inp.value.trim()) {
+                    alert(`El campo "${inp.previousElementSibling.textContent.trim()}" es obligatorio.`);
+                    inp.focus();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function completeTask() {
+            if (!validateChecklist()) return;
+            if (!validateInputs()) return;
+
+            const btn = document.getElementById('btn-complete');
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+
+            fetch('/api/complete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    instance_id: '{{ instance.id }}',
+                    node_id: '{{ node_id }}',
+                    inputs: gatherInputs()
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                const resultDiv = document.getElementById('task-result');
+                if (data.error) {
+                    resultDiv.innerHTML = `Error: ${data.error}`;
+                    resultDiv.className = 'result-msg error';
+                    resultDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Completar y avanzar al siguiente paso';
+                } else if (data.status === 'FINALIZADO') {
+                    resultDiv.innerHTML = `Proceso finalizado: ${data.node.mensaje || data.node.titulo}`;
+                    resultDiv.className = 'result-msg success';
+                    resultDiv.style.display = 'block';
+                    setTimeout(() => window.location.href = `/process/{{ instance.id }}`, 2000);
+                } else {
+                    resultDiv.innerHTML = `Avanzado a: <strong>${data.node.titulo}</strong>. Se notificó al siguiente responsable.`;
+                    resultDiv.className = 'result-msg success';
+                    resultDiv.style.display = 'block';
+                    setTimeout(() => window.location.href = `/process/{{ instance.id }}`, 2000);
+                }
+            });
+        }
+
+        function submitDecision(index) {
+            fetch('/api/complete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    instance_id: '{{ instance.id }}',
+                    node_id: '{{ node_id }}',
+                    decision: index
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                const resultDiv = document.getElementById('task-result');
+                if (data.error) {
+                    resultDiv.innerHTML = `Error: ${data.error}`;
+                    resultDiv.className = 'result-msg error';
+                } else {
+                    resultDiv.innerHTML = `Decisión registrada. Avanzando a: <strong>${data.node.titulo}</strong>`;
+                    resultDiv.className = 'result-msg success';
+                    setTimeout(() => window.location.href = `/task/{{ instance.id }}/${data.node_id}`, 1500);
+                }
+                resultDiv.style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>
