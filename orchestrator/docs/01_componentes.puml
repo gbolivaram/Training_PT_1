@@ -1,0 +1,139 @@
+@startuml Componentes_Orquestador_Colbun
+
+title Diagrama de Componentes - Orquestador de Ejecución Operacional\nColbun S.A.
+
+skinparam componentStyle uml2
+skinparam backgroundColor #FEFEFE
+skinparam component {
+    BackgroundColor #E8F4FD
+    BorderColor #1A5276
+    FontColor #2C3E50
+}
+skinparam database {
+    BackgroundColor #FEF9E7
+    BorderColor #F39C12
+}
+skinparam node {
+    BackgroundColor #EAFAF1
+    BorderColor #27AE60
+}
+
+' ── Actores ──────────────────────────────────────────────────
+actor "Operador de Turno /\nJefe de Turno" as OP
+actor "Operador COC" as COC
+actor "Despachador CDC/CEN" as CDC
+actor "Ingeniero de Turno" as ING
+
+' ── Capa de Presentación (HMI) ───────────────────────────────
+package "HMI - Interfaz Web (Flask Templates)" as HMI {
+    component [dashboard.html\n---\nPanel principal:\n- Gatillar procesos\n- Ver procesos activos\n- Ver notificaciones globales\n- Acceso a bandejas por rol] as DASH
+
+    component [inbox.html\n---\nBandeja por usuario:\n- Notificaciones PENDIENTE/LEIDA/COMPLETADA\n- Enlace directo a tarea\n- Simulación de email] as INBOX
+
+    component [task.html\n---\nHMI de ejecución:\n- Acciones a realizar (ol)\n- Checklist de verificación\n- Inputs con validación required\n- Nodos de decisión (opciones)\n- Validación final\n- Botón completar] as TASK
+
+    component [process.html\n---\nVista de proceso:\n- Nodo actual destacado\n- Timeline visual con historial\n- Mapa completo del procedimiento\n- Estado actual] as PROC
+}
+
+' ── Capa de API (Flask Routes) ───────────────────────────────
+package "Backend API (app.py - Flask)" as API {
+    component [POST /api/trigger\n---\nRecibe: pro_id, trigger_event\nCrea instancia vía engine\nRetorna: instance_id] as TRIG
+
+    component [POST /api/complete\n---\nRecibe: instance_id, node_id,\ninputs, decision\nAvanza estado vía engine\nRetorna: status, next node] as COMP
+
+    component [POST /api/notification/<id>/read\n---\nMarca notificación como LEIDA] as NREAD
+
+    component [GET /api/instances\nGET /api/pending\n---\nConsultas de estado] as QUERY
+
+    component [GET /inbox/<email>\nGET /task/<iid>/<nid>\nGET /process/<iid>\n---\nRutas de renderizado HTML] as RENDER
+}
+
+' ── Capa de Lógica (Motor) ───────────────────────────────────
+package "Motor de Estados (engine.py)" as ENGINE {
+    component [trigger_process()\n---\n1. Carga procedimiento JSON\n2. create_instance(primer_nodo)\n3. _notify_node() al primer rol] as E_TRIG
+
+    component [complete_task()\n---\n1. Valida nodo actual\n2. Guarda inputs en instancia\n3. Agrega paso al history[]\n4. Marca notificaciones COMPLETADA\n5. _resolve_next() → siguiente nodo\n6. update_instance()\n7. _notify_node() al siguiente rol] as E_COMP
+
+    component [_resolve_next()\n---\ntype=task → node.next\ntype=decision → opciones[decision].next\ntype=end → None] as E_NEXT
+
+    component [_notify_node()\n---\n1. resolve_contacts(rol)\n2. Por cada contacto:\n   create_notification()\n   con link=/task/<iid>/<nid>] as E_NOTIF
+}
+
+' ── Capa de Configuración ────────────────────────────────────
+package "Configuración (config.py)" as CONFIG {
+    component [ROLE_CONTACTS{}\n---\nMapeo rol → {nombre, email}\n- Operador de Turno\n- Jefe de Turno\n- Ingeniero de Turno\n- Operador COC\n- Despachador CDC] as ROLES
+
+    component [resolve_contacts(rol_string)\n---\nParsea "Rol A / Rol B"\nBusca match parcial en ROLE_CONTACTS\nRetorna lista de contactos] as RESOLVE
+
+    component [PROCEDURES{}\n---\nPRO115:\n  nombre, data_file,\n  primer_nodo, trigger_description] as PROCS
+}
+
+' ── Capa de Datos ────────────────────────────────────────────
+database "SQLite (models.py)" as DB {
+    component [process_instances\n---\nid TEXT PK\npro_id TEXT\ntrigger_event TEXT\ncurrent_node TEXT\nestado TEXT (EN_CURSO|COMPLETADO|...)\ninputs JSON\nhistory JSON\ncreated_at, updated_at] as TBL_INST
+
+    component [notifications\n---\nid TEXT PK\ninstance_id TEXT FK\nnode_id TEXT\nrol TEXT\ncontact_name, contact_email\ntitulo, mensaje\nestado (PENDIENTE|LEIDA|COMPLETADA)\nlink TEXT\ncreated_at, read_at, acted_at] as TBL_NOTIF
+}
+
+database "Procedimientos JSON" as JSONDATA {
+    component [pro115.json\n---\nT1..T9: type=task\n  titulo, rol, descripcion\n  acciones[], checklist[]\n  inputs[], validacion\n  next → siguiente nodo\nD_PRUEBA_UNIDAD: type=decision\n  opciones[] → next\nEND_OK/END_RECHAZO/END_STOP:\n  type=end, estado_final] as PRO115
+}
+
+' ── Integraciones futuras (mock) ─────────────────────────────
+node "Integraciones Externas\n(futuro - mock actual)" as EXT {
+    component [SIGO / SAP PM\n---\nCrear avisos de falla\nConsultar equipos\n(mock: input manual)] as SIGO
+    component [SCADA\n---\nAlarmas de falla\n(mock: trigger manual)] as SCADA
+    component [Email / Resend\n---\nNOTIF_MODE=web → panel\nNOTIF_MODE=email → API\n(preparado, no activo)] as EMAIL
+}
+
+' ── Conexiones ───────────────────────────────────────────────
+
+' Actores → HMI
+OP --> DASH : accede
+OP --> INBOX : ve sus notificaciones
+OP --> TASK : ejecuta tarea
+COC --> INBOX
+CDC --> INBOX
+ING --> INBOX
+
+' HMI → API
+DASH --> TRIG : gatillar proceso
+DASH --> QUERY : listar procesos/pendientes
+INBOX --> NREAD : marcar leída
+TASK --> COMP : completar tarea
+RENDER --> PROC
+
+' API → Engine
+TRIG --> E_TRIG
+COMP --> E_COMP
+
+' Engine internals
+E_COMP --> E_NEXT : determinar siguiente
+E_TRIG --> E_NOTIF : notificar primer rol
+E_COMP --> E_NOTIF : notificar siguiente rol
+E_NOTIF --> RESOLVE : resolver contactos
+
+' Engine → Config
+E_TRIG ..> PROCS : cargar config procedimiento
+RESOLVE --> ROLES : buscar contactos
+
+' Engine → Data
+E_TRIG --> PRO115 : load_procedure()
+E_COMP --> PRO115 : load_procedure()
+E_TRIG --> TBL_INST : create_instance()
+E_COMP --> TBL_INST : update_instance()
+E_NOTIF --> TBL_NOTIF : create_notification()
+E_COMP --> TBL_NOTIF : mark_notification()
+
+' API → Data (consultas directas)
+QUERY --> TBL_INST : list_instances()
+QUERY --> TBL_NOTIF : get_all_pending()
+NREAD --> TBL_NOTIF : mark_notification()
+RENDER --> TBL_INST : get_instance()
+
+' Integraciones futuras
+SCADA ..> TRIG : evento de falla\n(futuro)
+TASK ..> SIGO : datos ingresados\nmanualmente (mock)
+E_NOTIF ..> EMAIL : envío de email\n(preparado)
+
+@enduml

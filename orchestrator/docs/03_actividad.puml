@@ -1,0 +1,418 @@
+@startuml Actividad_PRO115_Completo
+
+title Diagrama de Actividad - PRO115 Aviso de Falla en Instalaciones\nFlujo completo con decisiones, bloqueos y caminos alternativos
+
+skinparam backgroundColor #FEFEFE
+skinparam activity {
+    BackgroundColor #E8F4FD
+    BorderColor #1A5276
+    FontColor #2C3E50
+    DiamondBackgroundColor #FEF9E7
+    DiamondBorderColor #F39C12
+}
+skinparam swimlane {
+    BorderColor #1A5276
+}
+
+|#EAFAF1| Evento Externo / Sistema |
+|#E8F4FD| Operador de Turno / Jefe de Turno |
+|#FEF9E7| Motor de Estados (engine.py) |
+|#F5EEF8| Jefe de Turno / Ingeniero de Turno |
+|#FFF5F5| Operador COC / Despachador CDC |
+|#FDEDEC| Base de Datos (SQLite) |
+
+' ══════════════════════════════════════════════════════════════
+' INICIO: TRIGGER
+' ══════════════════════════════════════════════════════════════
+
+|Evento Externo / Sistema|
+start
+:Evento real detectado
+(Falla en instalación / Alarma SCADA);
+note right
+  **Trigger actual:** Manual desde Dashboard
+  **Futuro:** Integración SCADA/SIGO
+end note
+
+|Motor de Estados (engine.py)|
+:trigger_process("PRO115", evento);
+note right
+  engine.py:
+  1. load_procedure()
+  2. create_instance(primer_nodo="T1")
+  3. _notify_node() al primer rol
+end note
+
+|Base de Datos (SQLite)|
+:Crear **process_instance**
+estado = "EN_CURSO"
+current_node = "T1"
+history = [], inputs = {};
+
+:Crear **notification** × 2
+(Operador + Jefe de Turno)
+estado = "PENDIENTE"
+link = /task/<iid>/T1;
+
+' ══════════════════════════════════════════════════════════════
+' T1: Detectar y confirmar falla
+' ══════════════════════════════════════════════════════════════
+
+|Operador de Turno / Jefe de Turno|
+#LightGreen:==T1: Detectar y confirmar la falla
+----
+**Acciones:**
+- Identificar alarma en SCADA/SIGO
+- Confirmar visual o telemetría
+- Registrar hora de detección
+----
+**Checklist (obligatorio):**
+☑ Alarma identificada
+☑ Falla confirmada
+☑ Hora registrada
+----
+**Inputs:**
+- hora_deteccion* (HH:MM)
+- instalacion_afectada* (texto)
+----
+**Validación:**
+¿La falla fue detectada correctamente?;
+
+if (¿Checklist completo\ne inputs válidos?) then (NO)
+  :Bloqueo: no puede avanzar
+  hasta completar todos los campos;
+  note right
+    Validación client-side:
+    validateChecklist()
+    validateInputs()
+  end note
+  backward :Corregir datos;
+else (SI)
+endif
+
+|Motor de Estados (engine.py)|
+:complete_task(iid, "T1", inputs);
+note right
+  1. Guarda inputs["T1"]
+  2. Agrega a history[]
+  3. Marca notifs T1 → COMPLETADA
+  4. _resolve_next() → "T2"
+  5. update_instance(current_node="T2")
+  6. _notify_node() para T2
+end note
+
+|Base de Datos (SQLite)|
+:Update instance:
+current_node = "T2"
+inputs.T1 = {hora, instalacion}
+history += [{T1...}];
+
+:Notificaciones T1 → COMPLETADA;
+:Nuevas notificaciones para T2 → PENDIENTE;
+
+' ══════════════════════════════════════════════════════════════
+' T2: Informar al COC
+' ══════════════════════════════════════════════════════════════
+
+|Operador de Turno / Jefe de Turno|
+#LightGreen:==T2: Informar al COC
+----
+**Acciones:**
+- Contactar COC (radio/teléfono/sistema)
+- Informar: instalación, tipo, hora, estado
+- Registrar nombre operador COC receptor
+----
+**Checklist:**
+☑ COC contactado y notificado
+☑ Info de falla comunicada
+☑ Operador COC registrado
+----
+**Input:** operador_coc*;
+
+|Motor de Estados (engine.py)|
+:complete_task → _resolve_next() → "T3"
+Mismo ciclo: guardar, avanzar, notificar;
+
+' ══════════════════════════════════════════════════════════════
+' T3: Maniobras de seguridad
+' ══════════════════════════════════════════════════════════════
+
+|Operador de Turno / Jefe de Turno|
+#LightGreen:==T3: Ejecutar maniobras iniciales de seguridad
+----
+**Acciones:**
+- Aislar equipo/tramo según protocolo
+- Verificar seguridad del personal
+- Comunicar estado al COC
+- Si riesgo crítico → PARAR
+----
+**Checklist:**
+☑ Equipo/tramo aislado
+☑ Seguridad personal verificada
+☑ COC informado post-maniobras
+☑ No hay riesgo crítico;
+
+note right #FDEDEC
+  **POSIBLE STOP:**
+  Si hay riesgo crítico,
+  el operador NO debería
+  marcar el último check.
+  (Control futuro: nodo STOP)
+end note
+
+|Motor de Estados (engine.py)|
+:complete_task → "T4";
+
+' ══════════════════════════════════════════════════════════════
+' T4: Crear aviso SIGO
+' ══════════════════════════════════════════════════════════════
+
+|Operador de Turno / Jefe de Turno|
+#LightGreen:==T4: Crear aviso de falla en SIGO
+----
+**Acciones:**
+- Acceder a SIGO, crear aviso M2/M1
+- Completar campos: instalación, equipo,
+  descripción, fecha/hora
+- Registrar N° aviso
+----
+**Input:** numero_aviso_sigo*;
+note right
+  **Integración futura:** API SIGO/SAP PM
+  Actualmente: input manual del N° aviso
+end note
+
+|Motor de Estados (engine.py)|
+:complete_task → "T5";
+
+' ══════════════════════════════════════════════════════════════
+' T5: Clasificar falla (CAMBIO DE ROL → HANDOFF)
+' ══════════════════════════════════════════════════════════════
+
+|Motor de Estados (engine.py)|
+:_notify_node("T5")
+resolve_contacts("Jefe de Turno / Ingeniero de Turno");
+note right #FFFACD
+  ** HANDOFF **
+  El rol cambia.
+  Se notifica al Ingeniero de Turno
+  además del Jefe de Turno.
+end note
+
+|Base de Datos (SQLite)|
+:Notificación a Ingeniero de Turno
++ Jefe de Turno → PENDIENTE;
+
+|Jefe de Turno / Ingeniero de Turno|
+#LightBlue:==T5: Clasificar tipo y severidad de la falla
+----
+**Acciones:**
+- Clasificar: eléctrica, mecánica, civil, etc.
+- Determinar severidad: catastrófica/mayor/menor
+- Evaluar reconexión inmediata vs reparación
+----
+**Checklist:**
+☑ Tipo clasificado
+☑ Severidad determinada
+☑ Reconexión evaluada;
+
+|Motor de Estados (engine.py)|
+:complete_task → "T6";
+
+' ══════════════════════════════════════════════════════════════
+' T6: Coordinar con CDC (OTRO HANDOFF)
+' ══════════════════════════════════════════════════════════════
+
+|Motor de Estados (engine.py)|
+:_notify_node("T6")
+resolve_contacts("Jefe de Turno / Operador COC");
+note right #FFFACD
+  ** HANDOFF **
+  Entra el Operador COC
+end note
+
+|Operador COC / Despachador CDC|
+#LightCoral:==T6: Coordinar con CDC/CDEC
+----
+**Acciones:**
+- Contactar despachador CDC/CEN
+- Proporcionar datos técnicos
+- Consultar autorización reconexión
+- Si no se logra contacto → PARAR
+----
+**Input:** despachador_cdc*
+----
+**Checklist:**
+☑ CDC/CEN contactado
+☑ Datos técnicos comunicados
+☑ Respuesta recibida y registrada;
+
+|Motor de Estados (engine.py)|
+:complete_task → "D_PRUEBA_UNIDAD";
+
+' ══════════════════════════════════════════════════════════════
+' DECISIÓN: ¿Autoriza prueba de unidad?
+' ══════════════════════════════════════════════════════════════
+
+|Operador COC / Despachador CDC|
+#Yellow:==D_PRUEBA_UNIDAD
+¿Cuál es la decisión del CDC/CEN
+respecto a la prueba de unidad?;
+
+if (Decisión CDC/CEN?) then
+  if (Opción 0:\nSÍ — autoriza prueba) then (SÍ)
+
+    |Motor de Estados (engine.py)|
+    :_resolve_next(decision=0)
+    opciones[0].next = "T7";
+
+    ' ── T7: Prueba de unidad ────────────────────
+    |Operador COC / Despachador CDC|
+    #LightCoral:==T7: Coordinar y ejecutar prueba de unidad
+    ----
+    - Confirmar ventana horaria con CDC
+    - Verificar personal fuera de peligro
+    - Ejecutar prueba según instrucción CDC
+    - Registrar resultado (exitosa/fallida)
+    ----
+    **Checklist:**
+    ☑ Ventana confirmada
+    ☑ Personal en zona segura
+    ☑ Prueba ejecutada
+    ☑ Resultado registrado;
+
+    |Motor de Estados (engine.py)|
+    :complete_task → "T8";
+
+    ' ── T8: Registrar resultado ─────────────────
+    |Operador COC / Despachador CDC|
+    #LightCoral:==T8: Registrar resultado prueba de unidad
+    ----
+    - Si exitosa: registrar reconexión en SIGO
+    - Si fallida: mantener fuera de servicio
+    - Comunicar resultado a COC y CDC
+    ----
+    **Input:** resultado_prueba*;
+
+    |Motor de Estados (engine.py)|
+    :complete_task → "T9";
+
+  elseif (Opción 1:\nNO — sin reconexión) then (NO)
+
+    |Motor de Estados (engine.py)|
+    :_resolve_next(decision=1)
+    opciones[1].next = "T9";
+    note right
+      Salta T7 y T8.
+      Va directo a cierre.
+    end note
+
+  else (Opción 2:\nRECHAZA)
+
+    |Motor de Estados (engine.py)|
+    :_resolve_next(decision=2)
+    opciones[2].next = "END_RECHAZO";
+
+    :next_node.type == "end"
+    → Cerrar proceso;
+
+    |Base de Datos (SQLite)|
+    #Salmon:update_instance:
+    current_node = "END_RECHAZO"
+    estado = "RECHAZADO — ESCALAR A MANTENIMIENTO";
+
+    |Operador COC / Despachador CDC|
+    #Salmon:==END_RECHAZO
+    ====
+    CDC/CEN rechazó la prueba de unidad.
+    Registre motivo en SIGO.
+    Mantenga equipo fuera de servicio.
+    Coordine plan de reparación
+    con mantenimiento.;
+
+    |Base de Datos (SQLite)|
+    :Trazabilidad completa guardada:
+    history[], inputs{}, estado final;
+
+    stop
+  endif
+endif
+
+' ══════════════════════════════════════════════════════════════
+' T9: Cierre del aviso
+' ══════════════════════════════════════════════════════════════
+
+|Motor de Estados (engine.py)|
+:_notify_node("T9")
+Notificar a Jefe de Turno / Operador;
+
+|Operador de Turno / Jefe de Turno|
+#LightGreen:==T9: Registrar resolución y cerrar aviso
+----
+**Acciones:**
+- Actualizar aviso SIGO con resolución
+- Registrar hora de cierre
+- Si equipo fuera de servicio → OT correctiva
+- Comunicar cierre al COC
+- Verificar sin tareas pendientes
+----
+**Input:** hora_cierre*
+----
+**Checklist:**
+☑ Aviso SIGO actualizado
+☑ Hora cierre registrada
+☑ OT correctiva creada (si aplica)
+☑ COC informado
+☑ Sin tareas pendientes;
+
+|Motor de Estados (engine.py)|
+:complete_task(iid, "T9", inputs)
+_resolve_next() → "END_OK"
+next_node.type == "end" → CERRAR;
+
+|Base de Datos (SQLite)|
+#PaleGreen:update_instance:
+current_node = "END_OK"
+estado = "COMPLETADO"
+inputs = {T1:{...}, T2:{...}, ..., T9:{hora_cierre}}
+history = [{T1}, {T2}, ..., {T9}]
+====
+**TRAZABILIDAD COMPLETA**
+Cada paso registrado con:
+- qué se hizo (titulo)
+- qué datos se ingresaron (inputs)
+- qué decisiones se tomaron (decision)
+- cuándo se hizo (timestamps);
+
+' ══════════════════════════════════════════════════════════════
+' FIN
+' ══════════════════════════════════════════════════════════════
+
+|Operador de Turno / Jefe de Turno|
+#PaleGreen:==END_OK
+====
+El proceso PRO115 finalizó exitosamente.
+El aviso de falla fue creado,
+gestionado con COC/CDC
+y cerrado en SIGO.
+----
+Estado final: **COMPLETADO**;
+
+stop
+
+' ══════════════════════════════════════════════════════════════
+' LEYENDA
+' ══════════════════════════════════════════════════════════════
+
+legend bottom
+  |= Color |= Significado |
+  | <#LightGreen> | Tarea ejecutada por Operador/Jefe de Turno |
+  | <#LightBlue> | Tarea ejecutada por Ingeniero de Turno |
+  | <#LightCoral> | Tarea ejecutada por Operador COC / Despachador CDC |
+  | <#Yellow> | Nodo de decisión |
+  | <#Salmon> | Fin con rechazo/error |
+  | <#PaleGreen> | Fin exitoso |
+  | <#FFFACD> | Handoff (cambio de responsable) |
+end legend
+
+@enduml
