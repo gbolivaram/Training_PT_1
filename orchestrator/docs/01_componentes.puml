@@ -1,139 +1,144 @@
-@startuml Componentes_Orquestador_Colbun
+@startuml Componentes_Orquestador_Colbun_v2
 
-title Diagrama de Componentes - Orquestador de Ejecución Operacional\nColbun S.A.
+title Diagrama de Componentes v2 — Orquestador de Ejecución Operacional\nColbun S.A. | Arquitectura basada en máquina de estados
 
 skinparam componentStyle uml2
 skinparam backgroundColor #FEFEFE
-skinparam component {
-    BackgroundColor #E8F4FD
-    BorderColor #1A5276
-    FontColor #2C3E50
-}
-skinparam database {
-    BackgroundColor #FEF9E7
-    BorderColor #F39C12
-}
-skinparam node {
-    BackgroundColor #EAFAF1
-    BorderColor #27AE60
-}
+skinparam component { BackgroundColor #E8F4FD; BorderColor #1A5276; FontColor #2C3E50 }
+skinparam database { BackgroundColor #FEF9E7; BorderColor #F39C12 }
+skinparam node { BackgroundColor #EAFAF1; BorderColor #27AE60 }
+skinparam package { BorderColor #1A5276; FontColor #1A5276; FontStyle Bold }
 
 ' ── Actores ──────────────────────────────────────────────────
 actor "Operador de Turno /\nJefe de Turno" as OP
-actor "Operador COC" as COC
-actor "Despachador CDC/CEN" as CDC
-actor "Ingeniero de Turno" as ING
+actor "Jefe de Turno /\nIngeniero de Turno" as ING
+actor "Jefe de Turno /\nOperador COC" as COC
+actor "Despachador CDC /\nOperador COC" as CDC
 
-' ── Capa de Presentación (HMI) ───────────────────────────────
-package "HMI - Interfaz Web (Flask Templates)" as HMI {
-    component [dashboard.html\n---\nPanel principal:\n- Gatillar procesos\n- Ver procesos activos\n- Ver notificaciones globales\n- Acceso a bandejas por rol] as DASH
+' ── Frontend HMI (interfaz de ejecución — NO controla el flujo) ──
+package "Frontend (HMI)" as HMI #F0F7FB {
+    component [task.html\n---\nEjecuta la tarea del actor\n- Checklist + inputs + validación\n- Botón COMPLETAR (→ POST /complete)\n- Botón STOP si allow_stop=true (→ POST /stop)\n- Decisiones: opciones visibles para nodos type=decision] as TASK
 
-    component [inbox.html\n---\nBandeja por usuario:\n- Notificaciones PENDIENTE/LEIDA/COMPLETADA\n- Enlace directo a tarea\n- Simulación de email] as INBOX
+    component [process.html\n---\nVisualiza el flujo\n- Timeline con history_log\n- node_state por nodo\n- Estado actual del proceso] as PROC
 
-    component [task.html\n---\nHMI de ejecución:\n- Acciones a realizar (ol)\n- Checklist de verificación\n- Inputs con validación required\n- Nodos de decisión (opciones)\n- Validación final\n- Botón completar] as TASK
-
-    component [process.html\n---\nVista de proceso:\n- Nodo actual destacado\n- Timeline visual con historial\n- Mapa completo del procedimiento\n- Estado actual] as PROC
+    note bottom of HMI
+        El HMI es solo una interfaz de ejecución.
+        No decide el flujo. Solo llama a la API.
+    end note
 }
 
-' ── Capa de API (Flask Routes) ───────────────────────────────
-package "Backend API (app.py - Flask)" as API {
-    component [POST /api/trigger\n---\nRecibe: pro_id, trigger_event\nCrea instancia vía engine\nRetorna: instance_id] as TRIG
-
-    component [POST /api/complete\n---\nRecibe: instance_id, node_id,\ninputs, decision\nAvanza estado vía engine\nRetorna: status, next node] as COMP
-
-    component [POST /api/notification/<id>/read\n---\nMarca notificación como LEIDA] as NREAD
-
-    component [GET /api/instances\nGET /api/pending\n---\nConsultas de estado] as QUERY
-
-    component [GET /inbox/<email>\nGET /task/<iid>/<nid>\nGET /process/<iid>\n---\nRutas de renderizado HTML] as RENDER
+' ── API Flask (capa delgada) ──────────────────────────────────
+package "API (Flask)" as API #F5EFF7 {
+    component [POST /trigger\n---\nInicia instancia vía InstanceManager\nLuego NotificationDispatcher activa T1] as A_TRIG
+    component [POST /complete\n---\nDelega a StateEngine.execute_transition()\nRecibe: instance_id, node_id, inputs, decision] as A_COMP
+    component [POST /stop\n---\nDelega a StateEngine.stop_process()\nRequiere: motivo + allow_stop=true en nodo] as A_STOP
+    component [POST /block  POST /unblock\n---\nDelega a StateEngine.block/unblock_process()] as A_BLOCK
+    component [GET /instance  GET /inbox\n---\nConsultas directas a DB\nNo pasa por CORE] as A_QUERY
 }
 
-' ── Capa de Lógica (Motor) ───────────────────────────────────
-package "Motor de Estados (engine.py)" as ENGINE {
-    component [trigger_process()\n---\n1. Carga procedimiento JSON\n2. create_instance(primer_nodo)\n3. _notify_node() al primer rol] as E_TRIG
+' ── CORE: El núcleo del orquestador ──────────────────────────
+package "Orquestador (CORE)" as CORE #FFF8E8 {
 
-    component [complete_task()\n---\n1. Valida nodo actual\n2. Guarda inputs en instancia\n3. Agrega paso al history[]\n4. Marca notificaciones COMPLETADA\n5. _resolve_next() → siguiente nodo\n6. update_instance()\n7. _notify_node() al siguiente rol] as E_COMP
+    component [InstanceManager\n---\ncreate_process():\n  1. Valida PROCEDURES config\n  2. create_instance() en DB\n  3. create_node_state(T1, IN_PROGRESS)\nget_process() / list_active()] as IM
 
-    component [_resolve_next()\n---\ntype=task → node.next\ntype=decision → opciones[decision].next\ntype=end → None] as E_NEXT
+    component [StateEngine\n---\nexecute_transition():\n  1. Valida estado == EN_CURSO\n  2. Valida current_node == node_id\n  3. Guarda inputs en process_instances\n  4. Delega append → history_log\n  5. update_node_state → COMPLETED\n  6. Delega → TransitionLogic\n  7. update_instance(current_node)\n  8. create_node_state(next, IN_PROGRESS)\n  9. Delega → NotificationDispatcher\nstop_process() / block_process() / unblock_process()] as SE
 
-    component [_notify_node()\n---\n1. resolve_contacts(rol)\n2. Por cada contacto:\n   create_notification()\n   con link=/task/<iid>/<nid>] as E_NOTIF
+    component [TransitionLogic\n---\nLógica pura — SIN acceso a DB\nresolve_next(node, decision):\n  type=task     → node["next"]\n  type=decision → opciones[decision]["next"]\n  type=end      → None (cierre)\nresolve_contacts(rol_string):\n  Parsea "Rol A / Rol B"\n  Match exacto primero, parcial fallback\n  Retorna lista [{nombre, email}]\nis_stop_allowed(node) → bool] as TL
+
+    component [NotificationDispatcher\n---\ndispatch_to_actor():\n  1. resolve_contacts(rol) via TransitionLogic\n  2. create_notification() en DB por contacto\n  3. Si NOTIF_MODE=email → _send_email()\ndispatch_stop_alert():\n  Notifica a TODOS los roles (emergencia)] as ND
+
+    note bottom of CORE
+        El CORE es el núcleo real del sistema.
+        La API lo llama — nunca implementa lógica de flujo.
+        Las notificaciones son el mecanismo de activación,
+        no un efecto secundario.
+    end note
 }
 
-' ── Capa de Configuración ────────────────────────────────────
-package "Configuración (config.py)" as CONFIG {
-    component [ROLE_CONTACTS{}\n---\nMapeo rol → {nombre, email}\n- Operador de Turno\n- Jefe de Turno\n- Ingeniero de Turno\n- Operador COC\n- Despachador CDC] as ROLES
+' ── Base de Datos ─────────────────────────────────────────────
+package "Base de Datos (SQLite)" as DB #EAFAF1 {
+    database "process_instances\n---\nid, pro_id, trigger_event\ncurrent_node\nestado: EN_CURSO|COMPLETADO|\n  BLOQUEADO|RECHAZADO|DETENIDO\ninputs (JSON por nodo)\ncreated_at, updated_at" as TBL_PROC
 
-    component [resolve_contacts(rol_string)\n---\nParsea "Rol A / Rol B"\nBusca match parcial en ROLE_CONTACTS\nRetorna lista de contactos] as RESOLVE
+    database "node_state\n---\nid, instance_id, node_id\nestado: IN_PROGRESS|COMPLETED|\n  STOPPED|BLOCKED\nstarted_at\ncompleted_at (nullable)" as TBL_NS
 
-    component [PROCEDURES{}\n---\nPRO115:\n  nombre, data_file,\n  primer_nodo, trigger_description] as PROCS
+    database "history_log\n---\nid, instance_id, node_id\ntitulo, rol\ninputs (JSON)\ndecision, decision_label\ncompleted_at (timestamp real)" as TBL_HIST
+
+    database "notifications\n---\nid, instance_id, node_id\nrol, contact_name, contact_email\ntitulo, mensaje\ntipo: TASK|STOP\nestado: PENDIENTE|LEIDA|COMPLETADA\nlink (/task/<iid>/<nid>)\ncreated_at, read_at, acted_at" as TBL_NOTIF
 }
 
-' ── Capa de Datos ────────────────────────────────────────────
-database "SQLite (models.py)" as DB {
-    component [process_instances\n---\nid TEXT PK\npro_id TEXT\ntrigger_event TEXT\ncurrent_node TEXT\nestado TEXT (EN_CURSO|COMPLETADO|...)\ninputs JSON\nhistory JSON\ncreated_at, updated_at] as TBL_INST
-
-    component [notifications\n---\nid TEXT PK\ninstance_id TEXT FK\nnode_id TEXT\nrol TEXT\ncontact_name, contact_email\ntitulo, mensaje\nestado (PENDIENTE|LEIDA|COMPLETADA)\nlink TEXT\ncreated_at, read_at, acted_at] as TBL_NOTIF
+' ── Procedimientos JSON ───────────────────────────────────────
+database "Procedimientos JSON\n(pro115.json)" as JSON #FEF9E7 {
+    component [Nodo task:\n  titulo, rol, descripcion\n  acciones[], checklist[]\n  inputs[] (key, label, required)\n  validacion, allow_stop\n  next → node_id\nNodo decision:\n  pregunta, opciones[]\n  opciones[i].label + .next\n  allow_stop\nNodo end:\n  titulo, mensaje\n  estado_final] as JSON_DEF
 }
 
-database "Procedimientos JSON" as JSONDATA {
-    component [pro115.json\n---\nT1..T9: type=task\n  titulo, rol, descripcion\n  acciones[], checklist[]\n  inputs[], validacion\n  next → siguiente nodo\nD_PRUEBA_UNIDAD: type=decision\n  opciones[] → next\nEND_OK/END_RECHAZO/END_STOP:\n  type=end, estado_final] as PRO115
+' ── Canales de notificación ───────────────────────────────────
+node "Canales de Notificación" as CHAN {
+    component [Inbox UI\n(/inbox/<email>)\n---\nBandeja web simulada\nVis. PENDIENTE/LEIDA/COMPLETADA\nLink directo a /task/<iid>/<nid>] as INBOX_UI
+    component [Email (Resend)\n---\nActivo con NOTIF_MODE=email\nResend API (free tier: 100/día)\nPreparado, no activo por defecto] as EMAIL
 }
 
-' ── Integraciones futuras (mock) ─────────────────────────────
-node "Integraciones Externas\n(futuro - mock actual)" as EXT {
-    component [SIGO / SAP PM\n---\nCrear avisos de falla\nConsultar equipos\n(mock: input manual)] as SIGO
-    component [SCADA\n---\nAlarmas de falla\n(mock: trigger manual)] as SCADA
-    component [Email / Resend\n---\nNOTIF_MODE=web → panel\nNOTIF_MODE=email → API\n(preparado, no activo)] as EMAIL
+' ── Integraciones externas (futuro) ──────────────────────────
+node "Integraciones Externas\n(futuro — mock actual)" as EXT {
+    component [SIGO / SAP PM\n(input manual hoy)] as SIGO
+    component [SCADA\n(trigger manual hoy)] as SCADA
 }
 
 ' ── Conexiones ───────────────────────────────────────────────
 
 ' Actores → HMI
-OP --> DASH : accede
-OP --> INBOX : ve sus notificaciones
-OP --> TASK : ejecuta tarea
-COC --> INBOX
-CDC --> INBOX
-ING --> INBOX
+OP -down-> TASK
+OP -down-> PROC
+ING -down-> TASK
+COC -down-> TASK
+CDC -down-> TASK
 
 ' HMI → API
-DASH --> TRIG : gatillar proceso
-DASH --> QUERY : listar procesos/pendientes
-INBOX --> NREAD : marcar leída
-TASK --> COMP : completar tarea
-RENDER --> PROC
+TASK -down-> A_COMP : POST /complete
+TASK -down-> A_STOP : POST /stop
+PROC -down-> A_QUERY : GET /instance
+OP --> A_TRIG : POST /trigger (dashboard)
 
-' API → Engine
-TRIG --> E_TRIG
-COMP --> E_COMP
+' API → CORE
+A_TRIG -down-> IM : create_process()
+A_COMP -down-> SE : execute_transition()
+A_STOP -down-> SE : stop_process()
+A_BLOCK -down-> SE : block/unblock_process()
 
-' Engine internals
-E_COMP --> E_NEXT : determinar siguiente
-E_TRIG --> E_NOTIF : notificar primer rol
-E_COMP --> E_NOTIF : notificar siguiente rol
-E_NOTIF --> RESOLVE : resolver contactos
+' CORE internals
+IM -right-> SE : (inicia primer nodo)
+SE -down-> TL : resolve_next()\nresolve_contacts()
+SE -down-> ND : dispatch_to_actor()\ndispatch_stop_alert()
+ND -right-> TL : resolve_contacts()
 
-' Engine → Config
-E_TRIG ..> PROCS : cargar config procedimiento
-RESOLVE --> ROLES : buscar contactos
+' CORE → DB
+IM -down-> TBL_PROC : create_instance()
+IM -down-> TBL_NS : create_node_state(T1, IN_PROGRESS)
+SE -down-> TBL_PROC : update_instance()
+SE -down-> TBL_NS : update_node_state()\ncreate_node_state(next)
+SE -down-> TBL_HIST : append_history_log()
+SE -down-> TBL_NOTIF : mark_notification(COMPLETADA)
+ND -down-> TBL_NOTIF : create_notification()
 
-' Engine → Data
-E_TRIG --> PRO115 : load_procedure()
-E_COMP --> PRO115 : load_procedure()
-E_TRIG --> TBL_INST : create_instance()
-E_COMP --> TBL_INST : update_instance()
-E_NOTIF --> TBL_NOTIF : create_notification()
-E_COMP --> TBL_NOTIF : mark_notification()
+' CORE → JSON
+SE -right-> JSON_DEF : load_procedure()\nnodos[node_id]
+TL -right-> JSON_DEF : resolve_next(node)
 
-' API → Data (consultas directas)
-QUERY --> TBL_INST : list_instances()
-QUERY --> TBL_NOTIF : get_all_pending()
-NREAD --> TBL_NOTIF : mark_notification()
-RENDER --> TBL_INST : get_instance()
+' Notificaciones → Canales
+ND -down-> INBOX_UI : crea registro DB
+ND ..> EMAIL : si NOTIF_MODE=email
 
-' Integraciones futuras
-SCADA ..> TRIG : evento de falla\n(futuro)
-TASK ..> SIGO : datos ingresados\nmanualmente (mock)
-E_NOTIF ..> EMAIL : envío de email\n(preparado)
+' Canal → Actor
+INBOX_UI -up-> OP : activa actor
+INBOX_UI -up-> ING : activa actor
+INBOX_UI -up-> COC : activa actor
+INBOX_UI -up-> CDC : activa actor
+
+' Consultas directas DB
+A_QUERY -down-> TBL_PROC
+A_QUERY -down-> TBL_NOTIF
+
+' Futuro
+SCADA ..> A_TRIG : evento falla (futuro)
+TASK ..> SIGO : input manual (mock)
 
 @enduml

@@ -128,11 +128,22 @@
             {% endif %}
 
             <!-- Botón de completar (solo para tareas activas) -->
-            {% if is_current and node.type == 'task' %}
+            {% if is_current and is_active and node.type == 'task' %}
             <div class="task-actions">
                 <button onclick="completeTask()" class="btn btn-primary btn-large" id="btn-complete">
                     Completar y avanzar al siguiente paso
                 </button>
+                {% if node.allow_stop %}
+                <button onclick="triggerStop()" class="btn btn-stop btn-large" id="btn-stop">
+                    STOP — Detener por condición crítica
+                </button>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if not is_active %}
+            <div class="alert alert-warning" style="margin-top:1rem;">
+                Este proceso está en estado <strong>{{ instance.estado }}</strong> y no acepta nuevas acciones.
             </div>
             {% endif %}
         </section>
@@ -231,6 +242,35 @@
                     resultDiv.style.display = 'block';
                     setTimeout(() => window.location.href = `/process/{{ instance.id }}`, 2000);
                 }
+            });
+        }
+
+        function triggerStop() {
+            const motivo = prompt('Indique el motivo de la detención de emergencia:');
+            if (!motivo || !motivo.trim()) return;
+            if (!confirm(`¿Confirma la detención del proceso?\n\nMotivo: ${motivo}`)) return;
+
+            fetch('/api/stop', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    instance_id: '{{ instance.id }}',
+                    node_id: '{{ node_id }}',
+                    motivo: motivo
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                const resultDiv = document.getElementById('task-result');
+                if (data.error) {
+                    resultDiv.innerHTML = `Error: ${data.error}`;
+                    resultDiv.className = 'result-msg error';
+                } else {
+                    resultDiv.innerHTML = `PROCESO DETENIDO. Se notificó a todos los actores.`;
+                    resultDiv.className = 'result-msg error';
+                    setTimeout(() => window.location.href = `/process/{{ instance.id }}`, 2000);
+                }
+                resultDiv.style.display = 'block';
             });
         }
 

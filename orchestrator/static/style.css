@@ -73,7 +73,9 @@ main { max-width: 1000px; margin: 0 auto; padding: 1.5rem; }
 .btn-secondary { background: #ecf0f1; color: var(--text); border: 1px solid var(--border); }
 .btn-secondary:hover { background: #dce1e6; }
 .btn-small { padding: 0.3rem 0.8rem; font-size: 0.8rem; }
-.btn-large { padding: 0.8rem 2rem; font-size: 1rem; width: 100%; text-align: center; }
+.btn-large { padding: 0.8rem 2rem; font-size: 1rem; width: 100%; text-align: center; margin-bottom: 0.5rem; }
+.btn-stop { background: var(--danger); color: white; border: none; }
+.btn-stop:hover { background: #e74c3c; }
 .btn-decision {
     background: white;
     border: 2px solid var(--primary);

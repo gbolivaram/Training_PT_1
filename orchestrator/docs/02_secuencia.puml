@@ -1,289 +1,289 @@
-@startuml Secuencia_PRO115_Completo
+@startuml Secuencia_PRO115_v2
 
-title Diagrama de Secuencia - PRO115 Aviso de Falla en Instalaciones\nFlujo completo desde detección hasta cierre
+title Diagrama de Secuencia v2 — PRO115 Aviso de Falla\nOrquestador basado en máquina de estados + activación por notificación
 
 skinparam backgroundColor #FEFEFE
 skinparam sequenceMessageAlign center
 skinparam sequence {
     ArrowColor #1A5276
-    LifeLineBorderColor #1A5276
+    LifeLineBorderColor #7F8C8D
     ParticipantBackgroundColor #E8F4FD
     ParticipantBorderColor #1A5276
     ActorBorderColor #2C3E50
     GroupBackgroundColor #F8FAFC
+    GroupBorderColor #BDC3C7
 }
 
-' ── Participantes ────────────────────────────────────────────
-actor "Operador de Turno /\nJefe de Turno" as OP #EAFAF1
-participant "HMI\n(Flask Templates)" as HMI #E8F4FD
-participant "API\n(app.py)" as API #E8F4FD
-participant "Motor de Estados\n(engine.py)" as ENG #FEF9E7
-database "SQLite\n(models.py)" as DB #FEF9E7
-participant "Config\n(config.py)" as CFG #EAFAF1
-actor "Operador COC /\nJefe de Turno" as COC #EAFAF1
-actor "Despachador\nCDC/CEN" as CDC #EAFAF1
+' ── Participantes ordenados por capa ─────────────────────────
+actor      "Operador de Turno\n(actor)" as OP #D5F5E3
+participant "HMI\n(task.html)" as HMI #EBF5FB
+participant "API\n(Flask — thin)" as API #F5EFF7
+participant "InstanceManager\n(core/)" as IM #FEF9E7
+participant "StateEngine\n(core/)" as SE #FEF9E7
+participant "TransitionLogic\n(core/ — sin DB)" as TL #FFF8DC
+participant "NotifDispatcher\n(core/)" as ND #FDEDEC
+database   "DB\n(SQLite)" as DB #EAFAF1
+participant "Inbox UI\n(canal)" as INBOX #F9EBEA
+actor      "Actor siguiente\n(rol del nodo next)" as NEXT #D5F5E3
 
 ' ══════════════════════════════════════════════════════════════
-' FASE 1: TRIGGER - Evento de falla detectado
+' FASE 1 — TRIGGER: Inicia el proceso
 ' ══════════════════════════════════════════════════════════════
+group #FFF5F5 "Fase 1 — Trigger: instanciar proceso y activar primer actor"
 
-group #FFF5F5 Fase 1: Trigger del Proceso
-    OP -> HMI : Accede al Dashboard\n(o evento SCADA futuro)
-    HMI -> API : POST /api/trigger\n{pro_id: "PRO115",\ntrigger_event: "Falla S/E Quillota"}
+    OP -> API : POST /trigger\n{pro_id: "PRO115", trigger_event: "Falla S/E Quillota"}
+    activate API
 
-    API -> ENG : trigger_process("PRO115", evento)
-    activate ENG
+    API -> IM : create_process("PRO115", evento)
+    activate IM
+    IM -> DB : create_instance(pro_id, primer_nodo="T1", estado="EN_CURSO")
+    DB --> IM : instance_id (UUID)
+    IM -> DB : create_node_state(instance_id, "T1", "IN_PROGRESS")
+    deactivate IM
 
-    ENG -> ENG : load_procedure("PRO115")\nCarga pro115.json
-    ENG -> CFG : PROCEDURES["PRO115"]\nprimer_nodo = "T1"
+    API -> ND : dispatch_to_actor(instance_id, "PRO115", "T1", nodo_T1)
+    activate ND
+    ND -> TL : resolve_contacts("Operador de Turno / Jefe de Turno")
+    TL --> ND : [{email: operador@…}, {email: jefeturno@…}]
+    ND -> DB : create_notification(node_id="T1", contact=operador, estado="PENDIENTE",\nlink="/task/<iid>/T1", tipo="TASK")
+    ND -> DB : create_notification(node_id="T1", contact=jefeturno, estado="PENDIENTE")
+    deactivate ND
 
-    ENG -> DB : create_instance(\npro_id="PRO115",\nprimer_nodo="T1",\ntrigger_event)
-    DB --> ENG : instance_id (UUID)
-
-    note right of DB
-        process_instances:
-        estado = "EN_CURSO"
-        current_node = "T1"
-        history = []
-        inputs = {}
+    note over DB, INBOX #FFFACD
+        ** La notificación IS la activación **
+        El sistema no "espera" al actor — le avisa.
+        Sin esta notificación, el actor no sabe que debe actuar.
     end note
 
-    ENG -> ENG : _notify_node(instance_id,\n"PRO115", "T1", nodos)
-    ENG -> CFG : resolve_contacts(\n"Operador de Turno / Jefe de Turno")
-    CFG --> ENG : [{nombre, email}, {nombre, email}]
+    API --> OP : {ok: true, instance_id}
+    deactivate API
 
-    ENG -> DB : create_notification(\nnode_id="T1",\nrol="Operador de Turno / Jefe de Turno",\ntitulo="[PRO115] 1. Detectar...",\nlink="/task/<iid>/T1",\nestado="PENDIENTE")
-    note right of DB
-        Se crea 1 notificación
-        por cada contacto del rol
-        (2 en este caso)
-    end note
-    ENG -> DB : create_notification(...)\n(segundo contacto)
-
-    deactivate ENG
-    API --> HMI : {ok: true, instance_id}
-    HMI --> OP : "Proceso iniciado:\nPRO115 - <instance_id>"
+    ' Canal activa al actor
+    INBOX -> OP : Notificación PENDIENTE:\n"[PRO115] 1. Detectar y confirmar la falla"
 end
 
 ' ══════════════════════════════════════════════════════════════
-' FASE 2: EJECUCIÓN DE TAREA (T1 como ejemplo detallado)
+' FASE 2 — EJECUCIÓN: Actor completa tarea
 ' ══════════════════════════════════════════════════════════════
+group #F0FFF0 "Fase 2 — Ejecución de T1: actor recibe, actúa y completa"
 
-group #F0FFF0 Fase 2: Ejecución de Tarea T1 - Detectar falla
-    OP -> HMI : Accede a /inbox/<email>
+    OP -> HMI : GET /inbox/<email>\n(abre la bandeja)
     HMI -> DB : get_notifications_for_email(email)
-    DB --> HMI : [notif con estado PENDIENTE]
-    HMI --> OP : Bandeja con notificación:\n"[PRO115] 1. Detectar y confirmar\nla falla en instalación"
+    DB --> HMI : [notif T1 PENDIENTE]
+    HMI --> OP : Bandeja: notificación T1 con link "/task/<iid>/T1"
 
-    OP -> HMI : Click "Ejecutar Tarea"\n→ marca como leída
-    HMI -> API : POST /api/notification/<nid>/read
-    API -> DB : mark_notification(nid, "LEIDA",\ntimestamp_field="read_at")
+    OP -> HMI : Click "Ejecutar Tarea" → POST /notification/<nid>/read
+    HMI -> DB : mark_notification(nid, "LEIDA", read_at=now)
 
-    OP -> HMI : Navega a /task/<iid>/T1
+    OP -> HMI : GET /task/<iid>/T1
     HMI -> DB : get_instance(iid)
-    HMI -> ENG : load_procedure("PRO115")
-    HMI --> OP : Renderiza task.html:\n- Acciones (3 ítems)\n- Checklist (3 ítems obligatorios)\n- Inputs: hora_deteccion*, instalacion*\n- Validación
+    HMI --> OP : Renderiza task.html:\n- 3 acciones\n- 3 checklist\n- 2 inputs required (hora, instalacion)\n- Validación final
+
+    note over OP #D5F5E3
+        Operador ejecuta en terreno:
+        ✓ Identifica alarma en SCADA/SIGO
+        ✓ Confirma falla visualmente
+        ✓ Registra hora de detección
+        Luego completa el HMI.
+    end note
+
+    OP -> HMI : Marca checklist + llena inputs\n+ click "Completar"
+    HMI -> HMI : validateChecklist() → OK\nvalidateInputs() → OK
+    HMI -> API : POST /complete\n{instance_id, node_id:"T1",\ninputs:{hora_deteccion:"09:45", instalacion:"S/E Quillota"}}
+end
+
+' ══════════════════════════════════════════════════════════════
+' FASE 3 — TRANSICIÓN: StateEngine avanza el estado
+' ══════════════════════════════════════════════════════════════
+group #FFF8E8 "Fase 3 — StateEngine ejecuta la transición"
+
+    activate API
+    API -> SE : execute_transition(iid, "T1", inputs)
+    activate SE
+
+    SE -> DB : get_instance(iid)
+    DB --> SE : {estado:"EN_CURSO", current_node:"T1"} ✓
+
+    note over SE #FFFACD
+        Validaciones:
+        ① estado == "EN_CURSO" ✓
+        ② current_node == "T1" ✓
+        Si alguna falla → retorna error, NO avanza
+    end note
+
+    SE -> DB : update_instance(inputs["T1"]={hora, instalacion})
+    SE -> DB : append_history_log(node_id="T1", titulo, rol,\ninputs, completed_at=NOW_ISO)
+    note right of DB #EAFAF1
+        history_log — registro auditable:
+        - id, instance_id, node_id
+        - titulo, rol
+        - inputs (JSON)
+        - completed_at (timestamp real)
+    end note
+    SE -> DB : update_node_state("T1", "COMPLETED", completed_at=NOW)
+    SE -> DB : mark_notification(notifs de T1 → "COMPLETADA")
+
+    SE -> TL : resolve_next(nodo_T1, decision=None)
+    TL --> SE : "T2"
+    note over TL : type="task" → node["next"] = "T2"\nSIN acceso a DB
+
+    SE -> DB : update_instance(current_node="T2")
+    SE -> DB : create_node_state(iid, "T2", "IN_PROGRESS")
+
+    ' NotificationDispatcher activa siguiente actor
+    SE -> ND : dispatch_to_actor(iid, "PRO115", "T2", nodo_T2)
+    activate ND
+    ND -> TL : resolve_contacts("Operador de Turno / Jefe de Turno")
+    TL --> ND : [{operador}, {jefeturno}]
+    ND -> DB : create_notification(T2, PENDIENTE)×2
+    deactivate ND
+
+    SE --> API : {status:"AVANZADO", node_id:"T2", node:{titulo:...}}
+    deactivate SE
+
+    API --> HMI : {status:"AVANZADO", node_id:"T2"}
+    deactivate API
+    HMI --> OP : "Avanzado a T2. Se notificó al siguiente responsable."
+
+    ' El canal activa al MISMO rol (T2 = mismo actor)
+    INBOX -> OP : Nueva notificación PENDIENTE: T2
+end
+
+' ══════════════════════════════════════════════════════════════
+' FASE 4 — HANDOFF: Cambio de actor en T5
+' ══════════════════════════════════════════════════════════════
+group #F0F0FF "Fase 4 — Handoff: T4→T5 cambia el actor responsable"
+
+    note over OP, NEXT #FFFACD
+        T2, T3, T4 siguen el mismo ciclo (Fase 2+3) con el mismo rol.
+        En T5 el rol cambia: "Jefe de Turno / Ingeniero de Turno"
+        → NotificationDispatcher activa a un actor diferente.
+    end note
+
+    OP -> API : POST /complete {node_id:"T4", inputs:{numero_aviso_sigo:"10045621"}}
+    activate API
+    API -> SE : execute_transition(iid, "T4", inputs)
+    activate SE
+    SE -> TL : resolve_next(nodo_T4) → "T5"
+    SE -> ND : dispatch_to_actor(iid, "PRO115", "T5", nodo_T5)
+    activate ND
+    ND -> TL : resolve_contacts("Jefe de Turno / Ingeniero de Turno")
+    TL --> ND : [{jefeturno}, {ingeniero}]
+    ND -> DB : create_notification(T5, PENDIENTE) × 2
+    note right of ND #FFFACD
+        ** HANDOFF **
+        La notificación activa
+        a un actor diferente.
+        El Ingeniero de Turno
+        ahora es el responsable.
+    end note
+    deactivate ND
+    deactivate SE
+    deactivate API
+
+    INBOX -> NEXT : Notificación PENDIENTE:\n"[PRO115] 5. Clasificar tipo y severidad"
+    NEXT -> API : POST /complete {node_id:"T5",...}
+end
+
+' ══════════════════════════════════════════════════════════════
+' FASE 5a — STOP: Detención de emergencia
+' ══════════════════════════════════════════════════════════════
+group #FDEDEC "Fase 5a — STOP: Detención por condición crítica (T3 o T6)"
 
     note over OP, HMI
-        El operador ejecuta las acciones en terreno:
-        1. Identifica alarma en SCADA/SIGO
-        2. Confirma visualmente la falla
-        3. Registra hora de detección
-
-        Luego completa en el HMI:
-        ✓ Checklist (todos marcados)
-        ✓ Inputs (hora, instalación)
+        Si en T3 o T6 (allow_stop=true) hay riesgo crítico,
+        el actor presiona el botón STOP en lugar de completar.
     end note
 
-    OP -> HMI : Click "Completar y avanzar"
-
-    HMI -> HMI : validateChecklist()\n→ todos los checks marcados?
-    HMI -> HMI : validateInputs()\n→ campos required llenos?
-
-    alt Validación falla
-        HMI --> OP : alert("Complete todos\nlos ítems del checklist")
-    else Validación OK
-        HMI -> API : POST /api/complete\n{instance_id, node_id: "T1",\ninputs: {hora_deteccion: "09:45",\ninstalacion_afectada: "S/E Quillota"}}
-    end
+    OP -> HMI : Click "STOP — Condición crítica"\n(prompt: motivo)
+    HMI -> API : POST /stop\n{instance_id, node_id:"T3",\nmotivo:"Riesgo eléctrico en área"}
+    activate API
+    API -> SE : stop_process(iid, "T3", motivo)
+    activate SE
+    SE -> SE : is_stop_allowed(nodo_T3) → true ✓
+    SE -> DB : append_history_log("[STOP] T3", motivo)
+    SE -> DB : update_node_state("T3", "STOPPED")
+    SE -> DB : update_instance(current_node="END_STOP",\nestado="DETENIDO — REQUIERE INTERVENCIÓN")
+    SE -> ND : dispatch_stop_alert(iid, "PRO115", "T3", motivo)
+    activate ND
+    ND -> DB : create_notification(tipo="STOP") × TODOS los roles
+    note right of ND #FDEDEC
+        Alerta de STOP a TODOS:
+        operador, jefeturno,
+        ingeniero, coc, cdc
+    end note
+    deactivate ND
+    deactivate SE
+    API --> HMI : {status:"DETENIDO"}
+    deactivate API
+    HMI --> OP : "PROCESO DETENIDO."
 end
 
 ' ══════════════════════════════════════════════════════════════
-' FASE 3: TRANSICIÓN DE ESTADO Y HANDOFF
+' FASE 5b — DECISIÓN: D_PRUEBA_UNIDAD + D_RESULTADO_PRUEBA
 ' ══════════════════════════════════════════════════════════════
+group #FFF5DC "Fase 5b — Decisiones: D_PRUEBA_UNIDAD y D_RESULTADO_PRUEBA"
 
-group #FFF8F0 Fase 3: Motor avanza estado + Handoff
-    API -> ENG : complete_task(iid, "T1", inputs)
-    activate ENG
-
-    ENG -> DB : get_instance(iid)
-    DB --> ENG : instancia actual
-
-    ENG -> ENG : Validar:\n- estado == "EN_CURSO" ✓\n- current_node == "T1" ✓
-
-    ENG -> ENG : load_procedure("PRO115")\nObtener nodo T1
-
-    ENG -> ENG : Guardar inputs en\nall_inputs["T1"] = {hora, instalacion}
-
-    ENG -> ENG : Agregar a history[]:\n{node_id: "T1",\ntitulo: "1. Detectar...",\ninputs: {hora, instalacion}}
-
-    ENG -> DB : mark_notification(\nnotifs de T1 → "COMPLETADA")
-    note right of DB
-        notifications:
-        estado: PENDIENTE → COMPLETADA
-        acted_at: timestamp
+    note over NEXT
+        CDC/CEN ejecuta D_PRUEBA_UNIDAD
+        con 3 opciones reales del JSON
     end note
 
-    ENG -> ENG : _resolve_next(T1_node)\ntype="task" → next="T2"
+    NEXT -> HMI : GET /task/<iid>/D_PRUEBA_UNIDAD
+    HMI --> NEXT : Renderiza 3 opciones:\n[0] SÍ → T7\n[1] NO → T9\n[2] RECHAZA → END_RECHAZO
 
-    ENG -> ENG : Verificar tipo de T2:\ntype="task" (no es "end")
+    NEXT -> API : POST /complete {node_id:"D_PRUEBA_UNIDAD", decision:0}
+    activate API
+    API -> SE : execute_transition(iid, "D_PRUEBA_UNIDAD", decision=0)
+    activate SE
+    SE -> TL : resolve_next(nodo_decision, decision=0)
+    TL --> SE : "T7" (opciones[0].next)
+    SE -> ND : dispatch_to_actor(T7)
+    deactivate SE
+    deactivate API
 
-    ENG -> DB : update_instance(\ncurrent_node="T2",\ninputs={T1: {...}},\nhistory=[{T1...}])
-
-    note right of DB
-        process_instances actualizado:
-        current_node: "T1" → "T2"
-        inputs: {T1: {hora, instalacion}}
-        history: [{node_id: "T1", ...}]
-        updated_at: nuevo timestamp
+    note over SE, TL
+        Si decision=2 → END_RECHAZO (type=end)
+        StateEngine detecta type=="end" y cierra el proceso
+        sin llamar a NotificationDispatcher.
     end note
 
-    ENG -> ENG : _notify_node(iid,\n"PRO115", "T2", nodos)
-    ENG -> CFG : resolve_contacts(\n"Operador de Turno / Jefe de Turno")
-    ENG -> DB : create_notification(\nnode_id="T2",\ntitulo="[PRO115] 2. Informar al COC",\nlink="/task/<iid>/T2",\nestado="PENDIENTE")
-
-    deactivate ENG
-    API --> HMI : {status: "AVANZADO",\nnode_id: "T2",\nnode: {titulo: "2. Informar..."}}
-    HMI --> OP : "Avanzado a: 2. Informar al COC.\nSe notificó al siguiente responsable."
-    HMI -> HMI : setTimeout → redirect\na /process/<iid>
+    ' T7 completa → D_RESULTADO_PRUEBA (nodo nuevo, antes era T8 con next fijo)
+    NEXT -> API : POST /complete {node_id:"T7"}
+    API -> SE : execute_transition → "D_RESULTADO_PRUEBA"
+    NEXT -> HMI : Renderiza D_RESULTADO_PRUEBA:\n[0] EXITOSA → T9\n[1] FALLIDA sin riesgo → T9\n[2] FALLIDA con riesgo crítico → END_STOP
+    NEXT -> API : POST /complete {node_id:"D_RESULTADO_PRUEBA", decision:0}
+    API -> SE : execute_transition → "T9"
 end
 
 ' ══════════════════════════════════════════════════════════════
-' FASE 4: TAREAS T2-T6 (resumido, mismo patrón)
+' FASE 6 — FINALIZACIÓN
 ' ══════════════════════════════════════════════════════════════
+group #D5F5E3 "Fase 6 — Cierre: T9 → END_OK"
 
-group #F0F0FF Fase 4: T2→T6 (mismo ciclo por tarea)
-    note over OP, CDC
-        Las tareas T2 a T6 siguen el mismo patrón:
+    OP -> API : POST /complete {node_id:"T9",\ninputs:{hora_cierre:"11:30", estado_equipo:"Reconectado"}}
+    activate API
+    API -> SE : execute_transition(iid, "T9", inputs)
+    activate SE
+    SE -> TL : resolve_next(nodo_T9) → "END_OK"
+    SE -> SE : nodos["END_OK"].type == "end" → CERRAR
+    SE -> DB : update_instance(\n  current_node="END_OK",\n  estado="COMPLETADO")
+    SE -> DB : append_history_log(T9, completed_at)
+    SE -> DB : update_node_state("T9", "COMPLETED")
+    SE --> API : {status:"FINALIZADO", estado_final:"COMPLETADO"}
+    deactivate SE
 
-        T2: Informar al COC → Rol: Operador/Jefe de Turno
-            Input: operador_coc (nombre receptor)
-        T3: Maniobras de seguridad → Rol: Operador/Jefe de Turno
-            Sin inputs, solo checklist
-        T4: Crear aviso SIGO → Rol: Operador/Jefe de Turno
-            Input: numero_aviso_sigo
-        T5: Clasificar falla → Rol: Jefe de Turno / Ingeniero
-            Solo checklist (tipo, severidad, reconexión)
-        T6: Coordinar con CDC → Rol: Jefe de Turno / Operador COC
-            Input: despachador_cdc
-
-        Cada una:
-        1. Notificación PENDIENTE al rol
-        2. Operador accede vía inbox/link
-        3. Completa acciones + checklist + inputs
-        4. Motor avanza y notifica al siguiente
-
-        ** En T5 cambia el rol → se notifica al Ingeniero de Turno **
-        ** En T6 cambia el rol → se notifica al Operador COC **
+    note right of DB #D5F5E3
+        Estado final en DB:
+        process_instances.estado = "COMPLETADO"
+        history_log: 9+ entradas con timestamps reales
+        node_state: todos los nodos COMPLETED
+        notifications: todas COMPLETADA
     end note
 
-    OP -> HMI : Completa T2, T3, T4
-    HMI -> API : complete_task (×3)
-    API -> ENG : avanza T2→T3→T4→T5
-
-    ENG -> DB : Notificación a Ingeniero de Turno\n(T5 cambia de rol)
-    note right of ENG #FFFACD
-        ** HANDOFF **
-        El responsable cambia.
-        Se notifica a un actor diferente.
-    end note
-
-    ING -> HMI : Recibe notificación T5\nen su bandeja
-    ING -> HMI : Completa T5 (clasificación)
-    HMI -> API : complete_task(T5)
-
-    ENG -> DB : Notificación a Jefe de Turno\ny Operador COC para T6
-    COC -> HMI : Recibe notificación T6
-    COC -> HMI : Completa T6 (coordinar CDC)
-    HMI -> API : complete_task(T6)
-end
-
-' ══════════════════════════════════════════════════════════════
-' FASE 5: NODO DE DECISIÓN
-' ══════════════════════════════════════════════════════════════
-
-group #FFF5F5 Fase 5: Decisión CDC - ¿Autoriza prueba de unidad?
-    ENG -> DB : Notificación para D_PRUEBA_UNIDAD\nal Despachador CDC / Operador COC
-
-    CDC -> HMI : Accede a /task/<iid>/D_PRUEBA_UNIDAD
-    HMI --> CDC : Renderiza nodo tipo "decision":\nPregunta: "¿Cuál es la decisión\ndel CDC/CEN?"\n\nOpciones:\n[0] SÍ — autoriza prueba → T7\n[1] NO — sin reconexión → T9\n[2] RECHAZA → END_RECHAZO
-
-    alt Opción 0: SÍ autoriza
-        CDC -> HMI : Click "SÍ — autoriza prueba"
-        HMI -> API : POST /api/complete\n{instance_id, node_id: "D_PRUEBA_UNIDAD",\ndecision: 0}
-        API -> ENG : complete_task(decision=0)
-        ENG -> ENG : _resolve_next()\nopciones[0].next = "T7"
-        ENG -> DB : update_instance(current_node="T7")
-        ENG -> DB : create_notification(T7)
-        API --> HMI : {status: "AVANZADO", node_id: "T7"}
-
-        note over OP, CDC
-            Continúa con T7 (prueba unidad) → T8 (registro) → T9 (cierre)
-        end note
-
-    else Opción 1: NO autoriza
-        CDC -> HMI : Click "NO — sin reconexión"
-        HMI -> API : POST /api/complete\n{decision: 1}
-        ENG -> ENG : opciones[1].next = "T9"
-        ENG -> DB : update_instance(current_node="T9")
-        note over ENG
-            Salta directamente a T9 (cierre)
-            sin pasar por T7/T8
-        end note
-
-    else Opción 2: RECHAZA
-        CDC -> HMI : Click "RECHAZA"
-        HMI -> API : POST /api/complete\n{decision: 2}
-        ENG -> ENG : opciones[2].next = "END_RECHAZO"
-        ENG -> ENG : next_node.type == "end"\n→ cerrar proceso
-        ENG -> DB : update_instance(\ncurrent_node="END_RECHAZO",\nestado="RECHAZADO — ESCALAR A MANTENIMIENTO")
-        API --> HMI : {status: "FINALIZADO"}
-    end
-end
-
-' ══════════════════════════════════════════════════════════════
-' FASE 6: FINALIZACIÓN
-' ══════════════════════════════════════════════════════════════
-
-group #F0FFF0 Fase 6: Cierre del proceso (T9 → END_OK)
-    OP -> HMI : Completa T9 (cierre aviso)\nInput: hora_cierre
-    HMI -> API : POST /api/complete\n{node_id: "T9",\ninputs: {hora_cierre: "11:30"}}
-
-    API -> ENG : complete_task(iid, "T9", inputs)
-    activate ENG
-
-    ENG -> ENG : _resolve_next(T9)\nnext = "END_OK"
-    ENG -> ENG : nodos["END_OK"].type == "end"\n→ CERRAR PROCESO
-
-    ENG -> DB : update_instance(\ncurrent_node="END_OK",\nestado="COMPLETADO",\ninputs={T1:{...}, T2:{...}, ..., T9:{hora_cierre}},\nhistory=[{T1}, {T2}, ..., {T9}])
-
-    note right of DB #EAFAF1
-        Estado final del proceso:
-
-        estado: "COMPLETADO"
-        current_node: "END_OK"
-        inputs: registro completo de
-                cada tarea con sus datos
-        history: trazabilidad completa
-                 de todos los pasos
-    end note
-
-    deactivate ENG
-
-    API --> HMI : {status: "FINALIZADO",\nnode: {titulo: "Aviso de Falla —\nProceso completado",\nmensaje: "El proceso PRO115\nfinalizó exitosamente..."}}
-
-    HMI --> OP : "Proceso finalizado:\nEl aviso de falla fue procesado,\ngestionado y cerrado correctamente."
-    HMI -> HMI : redirect → /process/<iid>
-    HMI --> OP : Vista process.html con\ntimeline completa y\nestado COMPLETADO
+    API --> HMI : {status:"FINALIZADO"}
+    deactivate API
+    HMI --> OP : "Proceso finalizado exitosamente."
 end
 
 @enduml

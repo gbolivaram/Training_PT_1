@@ -19,6 +19,7 @@
       "Hora de detección registrada"
     ],
     "validacion": "¿La falla fue detectada y confirmada correctamente?",
+    "allow_stop": false,
     "next": "T2"
   },
   "T2": {
@@ -40,6 +41,7 @@
       "Operador COC receptor registrado"
     ],
     "validacion": "¿El COC fue informado correctamente de la falla?",
+    "allow_stop": false,
     "next": "T3"
   },
   "T3": {
@@ -51,7 +53,7 @@
       "Aislar el equipo o tramo de línea afectado según el protocolo de maniobras.",
       "Verificar que no existan riesgos para el personal en el área afectada.",
       "Comunicar al COC el estado luego de las maniobras iniciales.",
-      "Si la situación representa riesgo crítico, activar protocolo de emergencia y PARAR el proceso."
+      "Si la situación representa riesgo crítico, usar el botón STOP para detener el proceso."
     ],
     "checklist": [
       "Equipo / tramo aislado correctamente",
@@ -60,6 +62,7 @@
       "No hay riesgo crítico que requiera detención del proceso"
     ],
     "validacion": "¿Las maniobras iniciales de seguridad fueron ejecutadas correctamente?",
+    "allow_stop": true,
     "next": "T4"
   },
   "T4": {
@@ -81,6 +84,7 @@
       "Aviso asignado al equipo/instalación correcta"
     ],
     "validacion": "¿El aviso de falla fue creado correctamente en SIGO?",
+    "allow_stop": false,
     "next": "T5"
   },
   "T5": {
@@ -93,12 +97,17 @@
       "Determinar si la falla es catastrófica, mayor, menor o de bajo impacto.",
       "Determinar si el equipo tiene posibilidad de reconexión inmediata o requiere reparación previa."
     ],
+    "inputs": [
+      {"key": "tipo_falla", "label": "Tipo de falla", "placeholder": "ej: Eléctrica / Mecánica / Civil", "required": true},
+      {"key": "severidad", "label": "Severidad", "placeholder": "ej: Catastrófica / Mayor / Menor", "required": true}
+    ],
     "checklist": [
       "Tipo de falla clasificado",
       "Severidad de falla determinada",
       "Posibilidad de reconexión evaluada"
     ],
     "validacion": "¿La falla fue correctamente clasificada en tipo y severidad?",
+    "allow_stop": false,
     "next": "T6"
   },
   "T6": {
@@ -110,7 +119,7 @@
       "Contactar al despachador del CDC/CEN para informar el estado de la falla.",
       "Proporcionar los datos técnicos del equipo afectado y el resultado de las maniobras.",
       "Consultar si el CDC/CEN autoriza intentar la reconexión o realizar prueba de unidad.",
-      "Si no se logra contacto con COC/CDC, evaluar PARAR el proceso."
+      "Si no se logra contacto con COC/CDC, usar el botón STOP para detener el proceso."
     ],
     "inputs": [
       {"key": "despachador_cdc", "label": "Nombre despachador CDC/CEN contactado", "placeholder": "ej: Carlos Fuentes", "required": true}
@@ -121,6 +130,7 @@
       "Respuesta del CDC/CEN recibida y registrada"
     ],
     "validacion": "¿El CDC/CEN fue contactado y su respuesta fue recibida?",
+    "allow_stop": true,
     "next": "D_PRUEBA_UNIDAD"
   },
   "D_PRUEBA_UNIDAD": {
@@ -133,7 +143,8 @@
       {"label": "SÍ — autoriza realizar prueba de unidad", "next": "T7"},
       {"label": "NO — no autoriza prueba (gestión sin reconexión)", "next": "T9"},
       {"label": "RECHAZA / NO AUTORIZA reconexión en ninguna condición", "next": "END_RECHAZO"}
-    ]
+    ],
+    "allow_stop": false
   },
   "T7": {
     "type": "task",
@@ -153,29 +164,21 @@
       "Resultado registrado (exitosa / fallida)"
     ],
     "validacion": "¿La prueba de unidad fue coordinada y ejecutada según protocolo?",
-    "next": "T8"
+    "allow_stop": false,
+    "next": "D_RESULTADO_PRUEBA"
   },
-  "T8": {
-    "type": "task",
-    "titulo": "8. Registrar resultado de la prueba de unidad",
+  "D_RESULTADO_PRUEBA": {
+    "type": "decision",
+    "titulo": "Resultado de la prueba de unidad",
     "rol": "Jefe de Turno / Operador COC",
-    "descripcion": "Registrar en SIGO y comunicar al COC el resultado de la prueba de unidad.",
-    "acciones": [
-      "Si la prueba fue exitosa: registrar reconexión en SIGO y actualizar el aviso.",
-      "Si la prueba fue fallida: registrar el resultado, mantener el equipo fuera de servicio y coordinar reparación.",
-      "Comunicar el resultado al COC y al CDC/CEN.",
-      "Si la prueba resultó fallida con riesgo crítico, evaluar activar protocolo de emergencia."
+    "descripcion": "Registrar en SIGO y comunicar al COC el resultado de la prueba de unidad. Si el resultado fue fallida con riesgo crítico, detener el proceso.",
+    "pregunta": "¿Cuál fue el resultado de la prueba de unidad?",
+    "opciones": [
+      {"label": "EXITOSA — equipo reconectado correctamente", "next": "T9"},
+      {"label": "FALLIDA — equipo fuera de servicio, sin riesgo crítico", "next": "T9"},
+      {"label": "FALLIDA — con riesgo crítico, requiere intervención inmediata", "next": "END_STOP"}
     ],
-    "inputs": [
-      {"key": "resultado_prueba", "label": "Resultado de la prueba de unidad", "placeholder": "ej: Exitosa / Fallida — descripción", "required": true}
-    ],
-    "checklist": [
-      "Resultado de la prueba registrado en SIGO",
-      "COC y CDC/CEN informados del resultado",
-      "Aviso SIGO actualizado con resultado"
-    ],
-    "validacion": "¿El resultado de la prueba fue registrado y comunicado correctamente?",
-    "next": "T9"
+    "allow_stop": false
   },
   "T9": {
     "type": "task",
@@ -190,7 +193,8 @@
       "Verificar que no queden tareas pendientes asociadas al aviso."
     ],
     "inputs": [
-      {"key": "hora_cierre", "label": "Hora de cierre del aviso (HH:MM)", "placeholder": "ej: 11:30", "required": true}
+      {"key": "hora_cierre", "label": "Hora de cierre del aviso (HH:MM)", "placeholder": "ej: 11:30", "required": true},
+      {"key": "estado_equipo", "label": "Estado final del equipo", "placeholder": "ej: Reconectado / Fuera de servicio", "required": true}
     ],
     "checklist": [
       "Aviso SIGO actualizado con resolución completa",
@@ -200,6 +204,7 @@
       "Sin tareas pendientes"
     ],
     "validacion": "¿El aviso de falla fue completamente resuelto y cerrado en SIGO?",
+    "allow_stop": false,
     "next": "END_OK"
   },
   "END_OK": {
