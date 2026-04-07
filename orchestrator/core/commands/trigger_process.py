@@ -46,8 +46,12 @@ class TriggerProcessCommand(Command):
             trigger_event=self.trigger_event,
         )
 
-        # 2. Crear node_state inicial
-        NodeStateRepository.create(instance_id, primer_nodo, "IN_PROGRESS")
+        # 2. Crear node_state inicial (con deadline si el nodo lo define)
+        node = nodos.get(primer_nodo, {})
+        NodeStateRepository.create(
+            instance_id, primer_nodo, "IN_PROGRESS",
+            deadline_minutes=node.get("deadline_minutes"),
+        )
 
         bus = EventBus()
 

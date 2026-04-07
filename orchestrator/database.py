@@ -36,6 +36,7 @@ def init_schema():
             node_id         TEXT NOT NULL,
             estado          TEXT NOT NULL DEFAULT 'PENDING',
             started_at      TEXT NOT NULL,
+            deadline_at     TEXT,
             completed_at    TEXT,
             FOREIGN KEY (instance_id) REFERENCES process_instances(id)
         );

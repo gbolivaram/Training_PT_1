@@ -20,6 +20,7 @@
     ],
     "validacion": "¿La falla fue detectada y confirmada correctamente?",
     "allow_stop": false,
+    "deadline_minutes": 15,
     "next": "T2"
   },
   "T2": {
@@ -42,6 +43,7 @@
     ],
     "validacion": "¿El COC fue informado correctamente de la falla?",
     "allow_stop": false,
+    "deadline_minutes": 10,
     "next": "T3"
   },
   "T3": {
@@ -63,6 +65,7 @@
     ],
     "validacion": "¿Las maniobras iniciales de seguridad fueron ejecutadas correctamente?",
     "allow_stop": true,
+    "deadline_minutes": 20,
     "next": "T4"
   },
   "T4": {
@@ -85,6 +88,7 @@
     ],
     "validacion": "¿El aviso de falla fue creado correctamente en SIGO?",
     "allow_stop": false,
+    "deadline_minutes": 30,
     "next": "T5"
   },
   "T5": {
@@ -108,6 +112,7 @@
     ],
     "validacion": "¿La falla fue correctamente clasificada en tipo y severidad?",
     "allow_stop": false,
+    "deadline_minutes": 20,
     "next": "T6"
   },
   "T6": {
@@ -131,6 +136,7 @@
     ],
     "validacion": "¿El CDC/CEN fue contactado y su respuesta fue recibida?",
     "allow_stop": true,
+    "deadline_minutes": 30,
     "next": "D_PRUEBA_UNIDAD"
   },
   "D_PRUEBA_UNIDAD": {
@@ -144,7 +150,8 @@
       {"label": "NO — no autoriza prueba (gestión sin reconexión)", "next": "T9"},
       {"label": "RECHAZA / NO AUTORIZA reconexión en ninguna condición", "next": "END_RECHAZO"}
     ],
-    "allow_stop": false
+    "allow_stop": false,
+    "deadline_minutes": 15
   },
   "T7": {
     "type": "task",
@@ -165,6 +172,7 @@
     ],
     "validacion": "¿La prueba de unidad fue coordinada y ejecutada según protocolo?",
     "allow_stop": false,
+    "deadline_minutes": 60,
     "next": "D_RESULTADO_PRUEBA"
   },
   "D_RESULTADO_PRUEBA": {
@@ -178,7 +186,8 @@
       {"label": "FALLIDA — equipo fuera de servicio, sin riesgo crítico", "next": "T9"},
       {"label": "FALLIDA — con riesgo crítico, requiere intervención inmediata", "next": "END_STOP"}
     ],
-    "allow_stop": false
+    "allow_stop": false,
+    "deadline_minutes": 10
   },
   "T9": {
     "type": "task",
@@ -205,6 +214,7 @@
     ],
     "validacion": "¿El aviso de falla fue completamente resuelto y cerrado en SIGO?",
     "allow_stop": false,
+    "deadline_minutes": 45,
     "next": "END_OK"
   },
   "END_OK": {

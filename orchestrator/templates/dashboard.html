@@ -82,6 +82,12 @@
             <h2>Notificaciones Pendientes Globales <span class="badge badge-pendiente">{{ pending_count }}</span></h2>
             <div id="pending-list"></div>
         </section>
+
+        <!-- Alertas de deadline -->
+        <section class="card" id="deadline-section" style="display:none;">
+            <h2>Alertas de Plazo <span class="badge badge-detenido" id="overdue-count"></span></h2>
+            <div id="deadline-list"></div>
+        </section>
     </main>
 
     <script>
@@ -108,6 +114,38 @@
                 setTimeout(() => location.reload(), 1500);
             });
         }
+
+        // Cargar deadlines
+        function loadDeadlines() {
+            fetch('/api/deadlines')
+            .then(r => r.json())
+            .then(data => {
+                const section = document.getElementById('deadline-section');
+                const list = document.getElementById('deadline-list');
+                const countBadge = document.getElementById('overdue-count');
+                if (data.length === 0) { section.style.display = 'none'; return; }
+                section.style.display = 'block';
+                const overdue = data.filter(d => d.is_overdue);
+                countBadge.textContent = overdue.length > 0 ? `${overdue.length} vencidas` : 'sin vencidas';
+                let html = '<div class="notif-list">';
+                data.forEach(d => {
+                    const cls = d.is_overdue ? 'overdue' : d.minutes_remaining < 5 ? 'urgent' : 'normal';
+                    const label = d.is_overdue
+                        ? `VENCIDO hace ${Math.round(-d.minutes_remaining)} min`
+                        : `${Math.round(d.minutes_remaining)} min restantes`;
+                    html += `
+                        <div class="deadline-item ${cls}">
+                            <strong>${d.node_id}</strong> — ${d.pro_id} (${d.instance_id.slice(0,8)})
+                            <span class="deadline-label">${label}</span>
+                            <span class="notif-time">Vence: ${d.deadline_at}</span>
+                        </div>`;
+                });
+                html += '</div>';
+                list.innerHTML = html;
+            });
+        }
+        loadDeadlines();
+        setInterval(loadDeadlines, 30000); // refresh cada 30s
 
         // Cargar notificaciones pendientes
         fetch('/api/pending')

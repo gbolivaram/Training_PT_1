@@ -131,7 +131,10 @@ class CompleteTaskCommand(Command):
             current_node=next_id,
             inputs=all_inputs,
         )
-        NodeStateRepository.create(self.instance_id, next_id, "IN_PROGRESS")
+        NodeStateRepository.create(
+            self.instance_id, next_id, "IN_PROGRESS",
+            deadline_minutes=next_node.get("deadline_minutes"),
+        )
 
         # ProcessAdvanced → NotificationHandler lo capta y activa al siguiente actor
         bus.publish(ProcessAdvanced(

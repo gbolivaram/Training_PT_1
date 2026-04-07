@@ -31,6 +31,23 @@
                 <div class="task-rol">Responsable: <strong>{{ node.rol }}</strong></div>
             </div>
 
+            {% if deadline and is_current %}
+            <div class="deadline-bar {{ 'overdue' if deadline.is_overdue else 'urgent' if deadline.minutes_remaining < 5 else 'normal' }}">
+                {% if deadline.is_overdue %}
+                <span class="deadline-icon">!!</span>
+                <strong>PLAZO VENCIDO</strong> — esta tarea debió completarse hace {{ (deadline.minutes_remaining * -1)|round(0)|int }} min.
+                Vencimiento: {{ deadline.deadline_at }}
+                {% elif deadline.minutes_remaining < 5 %}
+                <span class="deadline-icon">!</span>
+                <strong>URGENTE</strong> — quedan {{ deadline.minutes_remaining|round(0)|int }} min para completar.
+                Vencimiento: {{ deadline.deadline_at }}
+                {% else %}
+                Plazo: <strong>{{ deadline.minutes_remaining|round(0)|int }} min restantes</strong>
+                (vence a las {{ deadline.deadline_at[-8:] }})
+                {% endif %}
+            </div>
+            {% endif %}
+
             <div class="task-description">
                 <p>{{ node.descripcion }}</p>
             </div>

@@ -11,6 +11,7 @@ from repositories.process_repository import ProcessRepository
 from repositories.notification_repository import NotificationRepository
 from repositories.history_repository import HistoryRepository
 from repositories.node_state_repository import NodeStateRepository
+import datetime
 from config import PROCEDURES, ROLE_CONTACTS
 
 api = Blueprint("api", __name__)
@@ -51,6 +52,23 @@ def task_page(instance_id, node_id):
     node = nodos.get(node_id)
     if not node:
         return "Tarea no encontrada", 404
+
+    # Deadline info
+    deadline_info = None
+    node_states = NodeStateRepository.list_for_instance(instance_id)
+    for ns in reversed(node_states):
+        if ns["node_id"] == node_id and ns.get("deadline_at"):
+            dl = ns["deadline_at"]
+            now = datetime.datetime.now()
+            dl_dt = datetime.datetime.fromisoformat(dl)
+            mins = round((dl_dt - now).total_seconds() / 60, 1)
+            deadline_info = {
+                "deadline_at": dl,
+                "minutes_remaining": mins,
+                "is_overdue": mins < 0,
+            }
+            break
+
     return render_template("task.html",
         instance=inst, node_id=node_id, node=node,
         is_current=(inst["current_node"] == node_id),
@@ -58,6 +76,7 @@ def task_page(instance_id, node_id):
         pro_info=PROCEDURES.get(inst["pro_id"], {}),
         history=HistoryRepository.list_for_instance(instance_id),
         saved_inputs=inst["inputs"].get(node_id, {}),
+        deadline=deadline_info,
     )
 
 
@@ -172,3 +191,26 @@ def pending():
 def mark_read(nid):
     NotificationRepository.mark(nid, "LEIDA", timestamp_field="read_at")
     return jsonify({"ok": True})
+
+
+@api.route("/overdue")
+def overdue():
+    """Retorna nodos cuyo deadline ya venció."""
+    return jsonify(NodeStateRepository.overdue())
+
+
+@api.route("/deadlines")
+def deadlines():
+    """Retorna todos los nodos activos con deadline (vencidos y por vencer)."""
+    import datetime
+    now = datetime.datetime.now().isoformat(timespec="seconds")
+    items = NodeStateRepository.active_with_deadline()
+    for item in items:
+        dl = item.get("deadline_at")
+        if dl:
+            item["is_overdue"] = dl < now
+            # Minutos restantes (negativo = vencido)
+            dl_dt = datetime.datetime.fromisoformat(dl)
+            now_dt = datetime.datetime.now()
+            item["minutes_remaining"] = round((dl_dt - now_dt).total_seconds() / 60, 1)
+    return jsonify(items)

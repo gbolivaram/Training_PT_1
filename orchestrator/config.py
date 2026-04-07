@@ -8,24 +8,24 @@ import os
 # Placeholder: el usuario proporcionará emails @colbun.cl reales.
 ROLE_CONTACTS = {
     "Operador de Turno": {
-        "nombre": "Operador Demo",
-        "email": "operador@demo.colbun.cl",
+        "nombre": "Gustavo Bolívar",
+        "email": "ep_gbolivar@colbun.cl",
     },
     "Jefe de Turno": {
-        "nombre": "Jefe Turno Demo",
-        "email": "jefeturno@demo.colbun.cl",
+        "nombre": "Gustavo Bolívar",
+        "email": "ep_gbolivar@colbun.cl",
     },
     "Ingeniero de Turno": {
-        "nombre": "Ingeniero Demo",
-        "email": "ingeniero@demo.colbun.cl",
+        "nombre": "R. Cornejo",
+        "email": "rcornejo@colbun.cl",
     },
     "Operador COC": {
-        "nombre": "Operador COC Demo",
-        "email": "coc@demo.colbun.cl",
+        "nombre": "R. Cornejo",
+        "email": "rcornejo@colbun.cl",
     },
     "Despachador CDC": {
-        "nombre": "Despachador Demo",
-        "email": "cdc@demo.colbun.cl",
+        "nombre": "Gustavo Bolívar (ext)",
+        "email": "gustavo.bolivarggg@gmail.com",
     },
 }
 
