@@ -219,6 +219,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 1.5rem; }
 /* ── Alerts ───────────────────────────────────────────────────────────────── */
 .alert { padding: 1rem; border-radius: 5px; margin-bottom: 1rem; }
 .alert-warning { background: #fef9e7; border: 1px solid var(--warning); color: #856404; }
+.alert-rol { padding: 1rem; border-radius: 5px; margin: 1rem 0; background: #fdedec; border: 2px solid var(--danger); color: var(--danger); font-weight: 500; }
 
 /* ── Empty state ──────────────────────────────────────────────────────────── */
 .empty-state { color: var(--text-light); font-style: italic; padding: 1rem 0; }

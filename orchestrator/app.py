@@ -13,6 +13,7 @@ from api.routes import api, views
 
 def create_app():
     app = Flask(__name__)
+    app.secret_key = os.environ.get("SECRET_KEY", "colbun-orchestrator-dev-key")
 
     # Inicializar schema DB
     init_schema()

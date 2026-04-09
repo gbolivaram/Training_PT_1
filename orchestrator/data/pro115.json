@@ -94,7 +94,7 @@
   "T5": {
     "type": "task",
     "titulo": "5. Clasificar el tipo y severidad de la falla",
-    "rol": "Jefe de Turno / Ingeniero de Turno",
+    "rol": "Ingeniero de Turno",
     "descripcion": "Clasificar la falla según su tipo y severidad para determinar el flujo de gestión apropiado.",
     "acciones": [
       "Clasificar la falla según tipo: eléctrica, mecánica, civil, instrumentación, externa.",
@@ -118,7 +118,7 @@
   "T6": {
     "type": "task",
     "titulo": "6. Coordinar con CDC/CDEC para evaluación de reconexión",
-    "rol": "Jefe de Turno / Operador COC",
+    "rol": "Operador COC",
     "descripcion": "Coordinar con el Centro de Despacho y Control (CDC) o el Coordinador Eléctrico Nacional (CEN) la posibilidad de reconectar el equipo o realizar prueba de unidad.",
     "acciones": [
       "Contactar al despachador del CDC/CEN para informar el estado de la falla.",
@@ -156,7 +156,7 @@
   "T7": {
     "type": "task",
     "titulo": "7. Coordinar y ejecutar prueba de unidad",
-    "rol": "Jefe de Turno / Operador COC / Despachador CDC",
+    "rol": "Despachador CDC",
     "descripcion": "Coordinar con CDC/CEN y ejecutar la prueba de unidad (reconexión controlada) del equipo afectado.",
     "acciones": [
       "Confirmar con CDC/CEN la ventana horaria autorizada para realizar la prueba.",
@@ -178,7 +178,7 @@
   "D_RESULTADO_PRUEBA": {
     "type": "decision",
     "titulo": "Resultado de la prueba de unidad",
-    "rol": "Jefe de Turno / Operador COC",
+    "rol": "Operador COC",
     "descripcion": "Registrar en SIGO y comunicar al COC el resultado de la prueba de unidad. Si el resultado fue fallida con riesgo crítico, detener el proceso.",
     "pregunta": "¿Cuál fue el resultado de la prueba de unidad?",
     "opciones": [
@@ -192,7 +192,7 @@
   "T9": {
     "type": "task",
     "titulo": "9. Registrar resolución y cerrar aviso de falla",
-    "rol": "Jefe de Turno / Operador de Turno",
+    "rol": "Operador de Turno",
     "descripcion": "Registrar la resolución final del aviso de falla y cerrarlo en SIGO una vez solucionado.",
     "acciones": [
       "Actualizar el aviso SIGO con todos los datos de resolución: acciones tomadas, estado final del equipo.",

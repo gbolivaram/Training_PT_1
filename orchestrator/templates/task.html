@@ -115,13 +115,22 @@
             <!-- Nodo de decisión -->
             <div class="task-section">
                 <h3>{{ node.pregunta }}</h3>
-                {% if is_current %}
+                {% if is_current and is_authorized %}
                 <div class="decision-options">
                     {% for opt in node.opciones %}
                     <button class="btn btn-decision" onclick="submitDecision({{ loop.index0 }})">
                         {{ opt.label }}
                     </button>
                     {% endfor %}
+                </div>
+                {% elif is_current and not is_authorized %}
+                <div class="alert alert-rol">
+                    Esta decisión está asignada a: <strong>{{ node.rol }}</strong>.
+                    {% if current_user %}
+                    Usted ({{ current_user }}) no tiene permiso.
+                    {% else %}
+                    Identifíquese desde su bandeja.
+                    {% endif %}
                 </div>
                 {% else %}
                 <div class="decision-options">
@@ -144,18 +153,29 @@
             </div>
             {% endif %}
 
-            <!-- Botón de completar (solo para tareas activas) -->
+            <!-- Botón de completar (solo para tareas activas + usuario autorizado) -->
             {% if is_current and is_active and node.type == 'task' %}
-            <div class="task-actions">
-                <button onclick="completeTask()" class="btn btn-primary btn-large" id="btn-complete">
-                    Completar y avanzar al siguiente paso
-                </button>
-                {% if node.allow_stop %}
-                <button onclick="triggerStop()" class="btn btn-stop btn-large" id="btn-stop">
-                    STOP — Detener por condición crítica
-                </button>
+                {% if is_authorized %}
+                <div class="task-actions">
+                    <button onclick="completeTask()" class="btn btn-primary btn-large" id="btn-complete">
+                        Completar y avanzar al siguiente paso
+                    </button>
+                    {% if node.allow_stop %}
+                    <button onclick="triggerStop()" class="btn btn-stop btn-large" id="btn-stop">
+                        STOP — Detener por condición crítica
+                    </button>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="alert alert-rol">
+                    Esta tarea está asignada a: <strong>{{ node.rol }}</strong>.
+                    {% if current_user %}
+                    Usted está identificado como <strong>{{ current_user }}</strong> y no tiene permiso para ejecutarla.
+                    {% else %}
+                    Debe identificarse entrando por su bandeja de notificaciones para poder ejecutar tareas.
+                    {% endif %}
+                </div>
                 {% endif %}
-            </div>
             {% endif %}
 
             {% if not is_active %}
