@@ -40,15 +40,19 @@ PROCEDURES = {
 }
 
 # ── Notificaciones ───────────────────────────────────────────────────────────
-NOTIFICATION_MODE = os.environ.get("NOTIF_MODE", "email")  # "web" | "email"
+# Prioridad de email: 1) Resend API (solo API key), 2) SMTP nativo
 
-# ── SMTP (email nativo — funciona con Gmail, Outlook, cualquier SMTP) ────────
+# ── Resend (opción recomendada — solo necesita API key, sin SMTP/2FA) ────────
+# Registrarse gratis en resend.com → copiar API key → set RESEND_API_KEY
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+
+# ── SMTP (alternativa — Gmail, Outlook/365, etc.) ───────────────────────────
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-SMTP_USER = os.environ.get("SMTP_USER", "")          # ej: gustavo.bolivarggg@gmail.com
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")   # App Password de Gmail
-FROM_EMAIL = os.environ.get("FROM_EMAIL", "")          # mismo que SMTP_USER
+SMTP_USER = os.environ.get("SMTP_USER", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 
-# Legacy (Resend ya no se usa)
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+# Remitente (si no se define, usa SMTP_USER o onboarding@resend.dev)
+FROM_EMAIL = os.environ.get("FROM_EMAIL", "")
+
 REMINDER_INTERVAL_MINUTES = int(os.environ.get("REMINDER_MINUTES", "30"))

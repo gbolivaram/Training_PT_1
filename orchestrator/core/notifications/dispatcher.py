@@ -6,7 +6,7 @@ Siempre: Inbox (DB). Si SMTP configurado: también email.
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from config import PROCEDURES, ROLE_CONTACTS, SMTP_USER
+from config import PROCEDURES, ROLE_CONTACTS
 from core.state_machine.transitions import TransitionResolver
 from core.notifications.inbox_channel import InboxChannel
 from core.notifications.email_channel import EmailChannel
@@ -48,7 +48,7 @@ class NotificationDispatcher:
             notif_ids.append(nid)
 
             # Siempre intentar email si SMTP está configurado
-            if SMTP_USER:
+            if EmailChannel.is_configured():
                 EmailChannel.send(
                     to_email=email, to_name=contact["nombre"],
                     titulo=titulo, mensaje=mensaje, link=link,
@@ -85,7 +85,7 @@ class NotificationDispatcher:
             )
             notif_ids.append(nid)
 
-            if SMTP_USER:
+            if EmailChannel.is_configured():
                 EmailChannel.send(
                     to_email=email, to_name=contact["nombre"],
                     titulo=titulo, mensaje=mensaje, link=f"/process/{instance_id}",
